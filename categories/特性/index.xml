@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>特性 on 中间件</title>
+    <link>https://www6v.github.io/www6vMiddleware/categories/%E7%89%B9%E6%80%A7/</link>
+    <description>Recent content in 特性 on 中间件</description>
+    <generator>Hugo</generator>
+    <language>en</language>
+    <lastBuildDate>Tue, 19 Apr 2016 18:33:32 +0000</lastBuildDate>
+    <atom:link href="https://www6v.github.io/www6vMiddleware/categories/%E7%89%B9%E6%80%A7/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>消息中间件总结</title>
+      <link>https://www6v.github.io/www6vMiddleware/docs/message/Overview/mq/</link>
+      <pubDate>Tue, 19 Apr 2016 18:33:32 +0000</pubDate>
+      <guid>https://www6v.github.io/www6vMiddleware/docs/message/Overview/mq/</guid>
+      <description>&#xA;消息积压&#xD;#&#xD;原则: 消费性能要高于生产的性能&#xD;#&#xD;1. 发送端性能优化&#xD;#&#xD;并发和批量&#xA;2. 消费端性能优化&#xD;#&#xD;分区partion和consumer同步扩容&#xA;参考&#xD;#&#xD;Jumper, JMQ 代码 文档 Kafka vs RocketMQ——单机系统可靠性 以夕 xxx 分布式开放消息系统(RocketMQ)的原理与实践 CHEN川 *** 消息队列设计精要 点评 王烨 失效 Kafka设计解析（六）- Kafka高性能关键技术解析 郭俊 事务消息 -&amp;gt; 消息队列 RocketMQ 阿里云官方文档 消息队列 RocketMQ、Apache RocketMQ、消息队列 Kafka、Apache Kafka、RabbitMQ 产品对比 阿里云官方文档 RocketMQ消息堆积判断 rocketMQ消息堆积监控的java实现 c614756zhang RocketMQ原理（4）——消息ACK机制及消费进度管理 Jaskey Lam </description>
+    </item>
+  </channel>
+</rss>

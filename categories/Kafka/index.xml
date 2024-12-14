@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Kafka on 中间件</title>
+    <link>https://www6v.github.io/www6vMiddleware/categories/Kafka/</link>
+    <description>Recent content in Kafka on 中间件</description>
+    <generator>Hugo</generator>
+    <language>en</language>
+    <lastBuildDate>Sun, 15 May 2022 23:05:40 +0000</lastBuildDate>
+    <atom:link href="https://www6v.github.io/www6vMiddleware/categories/Kafka/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>Kafka总结</title>
+      <link>https://www6v.github.io/www6vMiddleware/docs/message/Kafka/kafka/</link>
+      <pubDate>Wed, 11 May 2016 18:41:01 +0000</pubDate>
+      <guid>https://www6v.github.io/www6vMiddleware/docs/message/Kafka/kafka/</guid>
+      <description>&#xA;参考:&#xD;#&#xD;Kafka剖析（一）：Kafka背景及架构介绍 郭俊 Kafka设计解析（六）- Kafka高性能关键技术解析 郭俊 《kafka权威指南》 薛命灯 第3，5章 Kafka文件存储机制那些事 幽灵之使 分布式发布订阅消息系统 - Kafka架构设计 官方文档翻译 未 </description>
+    </item>
+    <item>
+      <title>Kafka Producer生产者</title>
+      <link>https://www6v.github.io/www6vMiddleware/docs/message/Kafka/kafkaProducer/</link>
+      <pubDate>Sun, 15 May 2022 23:05:40 +0000</pubDate>
+      <guid>https://www6v.github.io/www6vMiddleware/docs/message/Kafka/kafkaProducer/</guid>
+      <description>&#xA;Producer 架构&#xD;#&#xD;Overviw 1 [1]&#xD;#&#xD;整个生产者客户端是由主线程和Sender线程协调运行的, 主线程创建消息, 然后通过 拦截器、元信息更新、序列化、分区器、缓存消息等等流程。 Sender线程在初始化的时候就已经运行了,并且是一个while循环。&#xA;Overviw 2&#xD;#&#xD;Producer 分区策略[2]&#xD;#&#xD;DefaultPartitioner 默认分区策略 粘性分区Sticky Partitioner UniformStickyPartitioner 纯粹的粘性分区策略 RoundRobinPartitioner 分区策略 kafka 生产者 里的buffer[3]&#xD;#&#xD;kafka producer中配置的 buffer.memory （参数在文末有详细说明）参数是缓冲区的大小，这个缓存区大家也就是RecordAccmulator所用的内存大小。默认是32MB。&#xA;参考&#xD;#&#xD;图解kafka生产者流程,超详细！ 石臻臻 kafka contributor Kafka生产者的3种分区策略 石臻臻 kafka contributor Kafka Producer全流程分析和思考 </description>
+    </item>
+    <item>
+      <title>Kafka消费者总结</title>
+      <link>https://www6v.github.io/www6vMiddleware/docs/message/Kafka/kafkaConsumer/</link>
+      <pubDate>Sat, 25 Jun 2016 18:46:27 +0000</pubDate>
+      <guid>https://www6v.github.io/www6vMiddleware/docs/message/Kafka/kafkaConsumer/</guid>
+      <description>Kafka消费者&#xD;#&#xD;总结&#xD;#&#xD;lag&#xD;#&#xD;消费者&#xD;#&#xD;批量消费 消费者的ZeroCopy:&#xA;直接把消息从文件里发送到网络通道， 而不需要内核与用户态之间数据的来回复制。 Q&amp;amp;A&#xD;#&#xD;怎么计算Lag？(注意read_uncommitted和read_committed状态下的不同)&#xA;“消费组中的消费者个数如果超过topic的分区，那么就会有消费者消费不到数据”这句话是否正确？如果不正确，那么有没有什么hack的手段？&#xA;消费者提交消费位移时提交的是当前消费到的最新消息的offset还是offset+1?&#xA;有哪些情形会造成重复消费？&#xA;Kafka常见的导致重复消费原因和解决方案&#xA;原因3:（重复消费最常见的原因）：消费后的数据，当offset还没有提交时，partition就断开连接。比如，通常会遇到消费的数据，处理很耗时，导致超过了Kafka的session timeout时间（0.10.x版本默认是30秒），那么就会re-blance重平衡，此时有一定几率offset没提交，会导致重平衡后重复消费。&#xA;那些情景下会造成消息漏消费？&#xA;Kafka 可靠性总结&#xA;聊聊 Kafka：Kafka 消息丢失的场景以及最佳实践&#xA;KafkaConsumer是非线程安全的，那么怎么样实现多线程消费？&#xA;简述消费者与消费组之间的关系&#xA;Kafka的旧版Scala的消费者客户端的设计有什么缺陷？&#xA;参考&#xD;#&#xD;Kafka设计解析（四）- Kafka Consumer设计解析 郭俊 Kafka的Lag计算误区及正确实现 朱小厮 《kafka权威指南》 薛命灯 第3，4 ，5章 Kafka Consumer机制优化-保证每条消息至少消费一次 幽灵之使 分区分配策略&#xA;Kafka分区分配策略（1）——RangeAssignor 朱小厮&#xA;Kafka分区分配策略（2）——RoundRobinAssignor和StickyAssignor 朱小厮&#xA;Kafka分区分配策略（3）——自定义分区分配策略 朱小厮&#xA;图解Kafka消费者分区分配策略 石臻臻 kafka contributor *** 未</description>
+    </item>
+    <item>
+      <title>Kafka消费者-Rebalance机制</title>
+      <link>https://www6v.github.io/www6vMiddleware/docs/message/Kafka/kafkaRebalance/</link>
+      <pubDate>Wed, 11 May 2022 17:56:31 +0000</pubDate>
+      <guid>https://www6v.github.io/www6vMiddleware/docs/message/Kafka/kafkaRebalance/</guid>
+      <description>Rebalance (What)&#xD;#&#xD;Rebalance 定义&#xA;在同一个消费者组当中，分区的所有权从一个消费者转移到另外一个消费者 原理&#xA;重平衡的通知机制正是通过心跳线程来完成的 [7] 角色&#xA;consumer leader cordinator[8]&#xA;Rebalance 发生的时机有三个 (when) [1]&#xD;#&#xD;重平衡的 3 个触发条件：&#xA;组成员数量发生变化。(最常遇到)&#xA;订阅主题数量发生变化。&#xA;订阅主题的分区数发生变化。 问题和解决方案&#xD;#&#xD;Rebalance 的 弊端 [1]&#xD;#&#xD;Rebalance 影响 Consumer 端 TPS&#xA;在 Rebalance 期间，Consumer 会停下手头的事情，什么也干不了 如果你的 Group 下成员很多， Rebalance 会很慢。 Rebalance 效率不高&#xA;Group 下的 所有成员都要参与进来，而且通常不会考虑局部性原理 consumer rebalance 的问题&#xD;#&#xD;Rebalance 过程也和这个类似，在 Rebalance 过程中，所有 Consumer 实例都会停止消费，等待 Rebalance 完成。 这是 Rebalance 为人诟病的一个方面。&#xA;【消费者重平衡的时候， 所有的消费者是不能消费数据的。】 “不必要的”的Rebalance (Solution) [1]&#xD;#&#xD;第一类非必要 Rebalance 是因为未能及时发送心跳，导致 Consumer 被“踢出”Group 而引发的。 因此，你需要仔细地设置session.</description>
+    </item>
+    <item>
+      <title>Kafka 可靠性总结</title>
+      <link>https://www6v.github.io/www6vMiddleware/docs/message/Kafka/kafkaReliability/</link>
+      <pubDate>Tue, 05 Jul 2016 06:20:57 +0000</pubDate>
+      <guid>https://www6v.github.io/www6vMiddleware/docs/message/Kafka/kafkaReliability/</guid>
+      <description>Kafka高可靠配置&#xD;#&#xD;位置 配置项 可靠性 topic的配置 replication.factor&amp;gt;=3,即副本数至少是3个 复制因子&#xA;replication.factor(topic级别) default.replication.factor(broker级别) - 2&amp;lt;=min.insync.replicas&amp;lt;=replication.factor 最少同步副本min.insync.replicas 3副本（总）&#xA;+ 3副本，一般最少同步2副本 + 最少同步2副本时，如2副本挂了，这时不能写，只能读.&#xA;设置为1，单副本挂了，就会丢数据【3】 broker的配置 leader的选举条件unclean.leader.election.enable=false unclean.leader.election -&amp;gt; broker级别 1.允许不同步的副本成为首领 ，有数据不可靠的风险.&#xA;2.不允许不同步的副本成为首领 ，降低了可用性. 3. 强烈建议不要开启它，还可以通过其他的方式来提升可用性 producer的配置 request.required.acks=-1(all)【6】 producer.type=sync【7】 如何确保消息不会丢失&#xD;#&#xD;生产阶段&#xD;#&#xD;在编写发送消息代码时，需要注意，正确处理返回值或者捕获异常，就可以保证这个阶段的消息不会丢失。&#xA;捕获消息发送的错误，并重发消息。 异步发送时，则需要在回调方法里进行检查。这个地方是需要特别注意的，很多丢消息的原因就是，使用了异步发送，却没有在回调中检查发送结果。 存储阶段&#xD;#&#xD;通过配置刷盘和复制相关的参数，让消息写入到多个副本的磁盘上，来确保消息不会因为某个 Broker 宕机或者磁盘损坏而丢失。&#xA;Eg. 在 RocketMQ 中，需要将刷盘方式 flushDiskType 配置为 SYNC_FLUSH 同步刷盘&#xA;Eg. 表. kafka高可靠配置 topic的配置 消费阶段&#xD;#&#xD;在处理完全部消费业务逻辑之后，再发送消费确认。 检测消息丢失的方法&#xD;#&#xD;可以利用消息队列的有序性来验证是否有消息丢失。在 Producer 端，我们给每个发出的消息附加一个连续递增的序号，然后在 Consumer 端来检查这个序号的连续性。&#xA;Q&amp;amp;A&#xD;#&#xD;怎么样才能确保Kafka极大程度上的可靠性？ Kafka在可靠性方面做了哪些改进？（HW, LeaderEpoch）</description>
+    </item>
+    <item>
+      <title>Kafka 索引</title>
+      <link>https://www6v.github.io/www6vMiddleware/docs/message/Kafka/kafkaIndex/</link>
+      <pubDate>Sat, 15 May 2021 15:51:57 +0000</pubDate>
+      <guid>https://www6v.github.io/www6vMiddleware/docs/message/Kafka/kafkaIndex/</guid>
+      <description>Kafka索引&#xD;#&#xD;稀疏索引 LogSegment 构成&#xD;#&#xD;$ tree /tmp/kafka-logs/t1-1/ /tmp/kafka-logs/t1-1/ ├── 00000000000000000000.index ├── 00000000000000000000.log ## 位移索引 ├── 00000000000000000000.timeindex ## 时间戳索引 └── leader-epoch-checkpoint Index类型&#xD;#&#xD;位移索引 [3] 假设要查找偏移量为230的消息，查找过程如下： 首先找到baseOffset=217的日志段文件（这里使用了跳跃表的结构来加速查找） 计算相对偏移量relativeOffset=230-217=13 在索引文件中查找不大于13的最大相对偏移量对应的索引项，即[12,456] 根据12对应的物理地址456，在日志文件.log中定位到准确位置 从日志文件物理位置456继续向后查找找到相对偏移量为13，即绝对偏移量为230，物理地址为468的消息 时间戳索引 [3] 假设要查找时间戳为1540的消息，查找过程如下（这里时间戳只是一个示意值）： 将要查找的时间戳1540和每个日志段的最大时间戳逐一对比，直到找到最大时间戳不小于1540的日志段。（日志段的最大时间戳：获取时间戳索引文件最后一个索引项的时间戳，如果大于0，取该值；否则取日志段的最近修改时间） 找到对应的日志段后，在时间戳索引文件中使用二分查找找到不大于目标时间戳1540的最大索引项，即图中的[1530,12]，获取对应的相对偏移量12 在该日志段的偏移量索引文件中找到相对偏移量不大于12的索引项，即图中的[12，456] 在日志文件中从物理位置456开始查找时间戳不小于1540的消息 位移索引 vs 时间戳索引 [2] 改进版二分查找算法 [1]&#xD;#&#xD;在位移索引 和 时间戳索引中都使用二分查找算法&#xA;示例 现在，最新索引项保存在 Page #13 中。如果要查找最新索引项，原版二分查找算法将会 依次访问 Page #0、7、10、12 和 13。此时，问题来了：Page 7 和 10 已经很久没有被 访问过了，它们大概率不在页缓存中，因此，一旦索引开始征用 Page #13，就会发生 Page Fault，等待那些冷页数据从磁盘中加载到页缓存。根据国外用户的测试，这种加载过程可能长达 1 秒。</description>
+    </item>
+    <item>
+      <title>Kafka-ZeroCopy</title>
+      <link>https://www6v.github.io/www6vMiddleware/docs/message/Kafka/kafkaZeroCopy/</link>
+      <pubDate>Sun, 16 May 2021 17:19:54 +0000</pubDate>
+      <guid>https://www6v.github.io/www6vMiddleware/docs/message/Kafka/kafkaZeroCopy/</guid>
+      <description>Index 中的mmap&#xD;#&#xD;在 AbstractIndex 中，这个 MappedByteBuffer 就是名为 mmap 的变量。 接下来，我用注释的方式，带你深入了解下这个 mmap 的主要流程。&#xA;@volatile protected var mmap: MappedByteBuffer = { // 第1步：创建索引文件 val newlyCreated = file.createNewFile() // 第2步：以writable指定的方式（读写方式或只读方式）打开索引文件 val raf = if (writable) new RandomAccessFile(file, &amp;#34;rw&amp;#34;) else new Rando try { if(newlyCreated) { if(maxIndexSize &amp;lt; entrySize) // 预设的索引文件大小不能太小，如果连一个索引 throw new IllegalArgumentException(&amp;#34;Invalid max index size: &amp;#34; + m // 第3步：设置索引文件长度，roundDownToExactMultiple计算的是不超过maxInde // 比如maxIndexSize=1234567，entrySize=8，那么调整后的文件长度为1234560 raf.setLength(roundDownToExactMultipl 这些代码最主要的作用就是创建 mmap 对象。AbstractIndex 其他大部分的操作都是和 mmap 相关。&#xA;AbstractIndex：这是 Kafka 所有类型索引的抽象父类，里面的 mmap 变量是实现索引机制的核心。</description>
+    </item>
+    <item>
+      <title>Kafka Controller-控制器</title>
+      <link>https://www6v.github.io/www6vMiddleware/docs/message/Kafka/kafkaController/</link>
+      <pubDate>Sun, 16 May 2021 14:30:24 +0000</pubDate>
+      <guid>https://www6v.github.io/www6vMiddleware/docs/message/Kafka/kafkaController/</guid>
+      <description>选举控制器的规则:&#xD;#&#xD;第一个成功创建 /controller 节点的 Broker 会被指定为控制器。&#xA;作用&#xD;#&#xD;主题管理(创建、删除、增加分区)&#xA;分区重分配&#xA;kafka-reassign-partitions&#xA;Preferred 领导者选举&#xA;Preferred 领导者选举主要是 Kafka 为了避免部分 Broker 负载过重而提供的一种换 Leader 的方案。&#xA;集群成员管理(新增 Broker、Broker 主动关闭、Broker 宕机)&#xA;包括自动检测新增 Broker、Broker 主动关闭及被动宕机。&#xA;这种自动检测是依赖于前面提到的 Watch 功能和 ZooKeeper 临时节点组合实现的。&#xA;数据服务&#xA;控制器上保存了最全的集群 元数据信息，其他所有 Broker 会定期接收控制器发来的元数据更新请求，从而更新其内存 中的缓存数据。&#xA;参考&#xD;#&#xD;直击Kafka的心脏——控制器 &amp;laquo;26 | 你一定不能错过的Kafka控制器&amp;raquo; 胡夕</description>
+    </item>
+    <item>
+      <title>Kafka Replication-副本机制</title>
+      <link>https://www6v.github.io/www6vMiddleware/docs/message/Kafka/kafkaReplica/</link>
+      <pubDate>Sun, 16 May 2021 10:50:48 +0000</pubDate>
+      <guid>https://www6v.github.io/www6vMiddleware/docs/message/Kafka/kafkaReplica/</guid>
+      <description>&#xA;Partition&#xD;#&#xD;首领 leader ， 首领副本 跟随者 follower， 跟随者副本 首选首领 Kafka的副本机制&#xD;#&#xD;AR = ISR + OSR。&#xA;ISR 不只是追随者副本集合，它必然包括 Leader 副本。&#xA;ISR中副本有主从之分，但是读写都是主副本， 从副本只负责拉取主副本的数据。 好处（一致性方面）&#xA;方便实现**“Read-your-writes”** 方便实现单调读（Monotonic Reads） Kafka 判断 Follower 是否与 Leader 同步的标准,不是看&amp;quot;相差的消息数&amp;quot;，而是看&amp;quot;落后的时间&amp;quot;。&#xA;落后的时间就是 Broker 端参数 replica.lag.time.max.ms 参数值。&#xA;这个参数的含义是Follower 副本能够落后 Leader 副本的最长时间间隔，当前默认值是 10 秒。&#xA;Unclean 领导者选举（Unclean Leader Election）&#xA;Kafka 可靠性总结 self&#xA;Q&amp;amp;A&#xD;#&#xD;失效副本是指什么？有那些应对措施？&#xA;怎么样判定一个分区是否有副本是处于同步失效状态的呢？从Kafka 0.9.x版本开始通过唯一的一个参数replica.lag.time.max.ms（默认大小为10,000）来控制，当ISR中的一个follower副本滞后leader副本的时间超过参数replica.lag.time.max.ms指定的值时即判定为副本失效，需要将此follower副本剔出除ISR之外。&#xA;Kafka解析之失效副本 优先副本是什么？它有什么特殊的作用？ 多副本下，各个副本中的HW和LEO的演变过程 为什么Kafka不支持读写分离？ 参考：&#xD;#&#xD;Kafka核心技术与实战 - 23丨Kafka副本机制详解 胡夕 </description>
+    </item>
+    <item>
+      <title>Kafka 中的选主</title>
+      <link>https://www6v.github.io/www6vMiddleware/docs/message/Kafka/kafkaElection/</link>
+      <pubDate>Sun, 16 May 2021 10:37:20 +0000</pubDate>
+      <guid>https://www6v.github.io/www6vMiddleware/docs/message/Kafka/kafkaElection/</guid>
+      <description>Kafka中的选主[1]&#xD;#&#xD;/ 组件 详细 kafka Controller leader 依赖zk选主, kafka只有一个Controller Partition leader[2] leader在ISR中 Consumer leader的选举 消费组内的消费者选举出一个消费组的leader zookeeper zk自身的选主 Zab协议(原子广播+奔溃恢复) 其他系统依赖zk选主 使用zk的临时节点， session结束， 临时节点消失 Q&amp;amp;A&#xD;#&#xD;~~Kafka中有那些地方需要选举？~~这些地方的选举策略又有哪些？ 参考&#xD;#&#xD;Kafka科普系列 | 原来Kafka中的选举有这么多？ 朱小厮&#xA;Kafka科普系列 | 原来Kafka中的选举有这么多&#xA;你想知道的所有关于Kafka Leader选举流程和选举策略都在这(内含12张高清大图,建议收藏) 石臻臻 *** 未</description>
+    </item>
+    <item>
+      <title>Kafka  Q&amp;A</title>
+      <link>https://www6v.github.io/www6vMiddleware/docs/message/Kafka/kafkaQ-A/</link>
+      <pubDate>Wed, 15 May 2019 17:06:28 +0000</pubDate>
+      <guid>https://www6v.github.io/www6vMiddleware/docs/message/Kafka/kafkaQ-A/</guid>
+      <description>基础&#xD;#&#xD;Kafka的用途有哪些？使用场景如何？&#xA;Kafka中的ISR、AR又代表什么？ISR的伸缩又指什么&#xA;Kafka中的HW、LEO、LSO、LW等分别代表什么？&#xA;topic&#xD;#&#xD;当你使用kafka-topics.sh创建（删除）了一个topic之后，Kafka背后会执行什么逻辑？&#xA;topic的分区数可不可以增加？如果可以怎么增加？如果不可以，那又是为什么？&#xA;创建topic时如何选择合适的分区数？&#xA;Kafka目前有那些内部topic，它们都有什么特征？各自的作用又是什么？&#xA;Kafka有哪几处地方有分区分配的概念？简述大致的过程及原理&#xA;Producer&#xD;#&#xD;Kafka中的分区器、序列化器、拦截器是否了解？它们之间的处理顺序是什么？ Kafka生产者客户端中使用了几个线程来处理？分别是什么？ 特性&#xD;#&#xD;聊一聊Kafka的延时操作的原理&#xA;Kafka科普系列 | 轻松理解Kafka中的延时操作&#xA;这里就涉及到了Kafka延迟操作的概念。Kafka在处理拉取请求时，会先读取一次日志文件，如果收集不到足够多（fetchMinBytes，由参数fetch.min.bytes配置，默认值为1）的消息，那么就会创建一个延时拉取操作（DelayedFetch）以等待拉取到足够数量的消息。当延时拉取操作执行时，会再读取一次日志文件，然后将拉取结果返回给follower副本。&#xA;延迟操作不只是拉取消息时的特有操作，在Kafka中有多种延时操作，比如延时数据删除、延时生产等。&#xA;Kafka中的延迟队列怎么实现（这题被问的比事务那题还要多！！！听说你会Kafka，那你说说延迟队列怎么实现？）&#xA;Kafka中是怎么体现消息顺序性的？&#xA;Kafka的那些设计让它有如此高的性能？&#xA;补齐&#xD;#&#xD;Kafka中怎么实现死信队列和重试队列？&#xA;Kafka中怎么做消息审计？&#xA;Kafka中怎么做消息轨迹？&#xA;监控&#xD;#&#xD;Kafka中有那些配置参数比较有意思？聊一聊你的看法&#xA;Kafka有哪些指标需要着重关注？&#xA;其他&#xD;#&#xD;在使用Kafka的过程中遇到过什么困难？怎么解决的？&#xA;还用过什么同质类的其它产品，与Kafka相比有什么优缺点？&#xA;Kafka有什么优缺点？&#xA;Kafka总结</description>
+    </item>
+  </channel>
+</rss>

@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>消息系统 on 中间件</title>
+    <link>https://www6v.github.io/www6vMiddleware/tags/%E6%B6%88%E6%81%AF%E7%B3%BB%E7%BB%9F/</link>
+    <description>Recent content in 消息系统 on 中间件</description>
+    <generator>Hugo</generator>
+    <language>en</language>
+    <lastBuildDate>Thu, 12 May 2022 22:17:03 +0000</lastBuildDate>
+    <atom:link href="https://www6v.github.io/www6vMiddleware/tags/%E6%B6%88%E6%81%AF%E7%B3%BB%E7%BB%9F/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>消息中间件总结</title>
+      <link>https://www6v.github.io/www6vMiddleware/docs/message/Overview/mq/</link>
+      <pubDate>Tue, 19 Apr 2016 18:33:32 +0000</pubDate>
+      <guid>https://www6v.github.io/www6vMiddleware/docs/message/Overview/mq/</guid>
+      <description>&#xA;消息积压&#xD;#&#xD;原则: 消费性能要高于生产的性能&#xD;#&#xD;1. 发送端性能优化&#xD;#&#xD;并发和批量&#xA;2. 消费端性能优化&#xD;#&#xD;分区partion和consumer同步扩容&#xA;参考&#xD;#&#xD;Jumper, JMQ 代码 文档 Kafka vs RocketMQ——单机系统可靠性 以夕 xxx 分布式开放消息系统(RocketMQ)的原理与实践 CHEN川 *** 消息队列设计精要 点评 王烨 失效 Kafka设计解析（六）- Kafka高性能关键技术解析 郭俊 事务消息 -&amp;gt; 消息队列 RocketMQ 阿里云官方文档 消息队列 RocketMQ、Apache RocketMQ、消息队列 Kafka、Apache Kafka、RabbitMQ 产品对比 阿里云官方文档 RocketMQ消息堆积判断 rocketMQ消息堆积监控的java实现 c614756zhang RocketMQ原理（4）——消息ACK机制及消费进度管理 Jaskey Lam </description>
+    </item>
+    <item>
+      <title>MQ总结(Kafka, Rocketmq, Rabbitmq)</title>
+      <link>https://www6v.github.io/www6vMiddleware/docs/message/Overview/mqCompare/</link>
+      <pubDate>Thu, 12 May 2022 22:17:03 +0000</pubDate>
+      <guid>https://www6v.github.io/www6vMiddleware/docs/message/Overview/mqCompare/</guid>
+      <description>功能 RocketMQ Kafka RabbitMQ 可靠性* - 同步刷盘&#xA;- 异步刷盘 异步刷盘，丢数据概率高 同步刷盘 横向扩展能力 支持 支持 - 集群扩容依赖前端 - LVS 负载均衡调度 消费模型* Push/Pull Pull Push/Pull 定时消息* 支持（只支持18个固定 Level） 不支持 支持 顺序消息* 支持 支持 不支持 消息堆积能力 百亿级别 影响性能 影响性能 影响性能 消息堆积查询 支持 不支持 不支持 消息回溯 支持 支持（位置，时间） 不支持 消息重试 支持 生产者有重试机制 支持 死信队列 支持 不支持 支持 性能（常规）* 非常好 十万级 QPS 非常好 百万级 QPS 一般 万级 QPS 性能（万级 Topic 场景） 非常好 十万级 QPS 低 低 性能（海量消息堆积场景） 非常好 十万级 QPS 低 低 全链路消息轨迹 不支持 不支持 不支持 MQ比较[3]&#xD;#&#xD;重点[3]&#xD;#&#xD;功能级别不具备一票否决权 选型时要特别注意中间件的性能与扩展性 需要注重团队技术栈与中间件编程语言的匹配度 参数&#xD;#&#xD;Kafka、RabbitMQ、RocketMQ等消息中间件的对比 https://honeypps.</description>
+    </item>
+    <item>
+      <title>消息系统 顺序消息</title>
+      <link>https://www6v.github.io/www6vMiddleware/docs/message/Overview/mqOrdering/</link>
+      <pubDate>Wed, 19 May 2021 12:02:22 +0000</pubDate>
+      <guid>https://www6v.github.io/www6vMiddleware/docs/message/Overview/mqOrdering/</guid>
+      <description>&#xA;顺序消息&#xD;#&#xD;严格顺序消息(场景:数据库复制),单个生产者/消费者[jmq,Rocketmq]&#xD;#&#xD;jmq方案，任意时刻都有两个消息副本 [3] 单个生产者生产，其余生产者会抛出异常[jmq] 单个消费者消费，其余消费者会抛出异常[jmq] 正常流程:消息队列分配在两组以上的BROKER组，每个BROKER组由MASTER-SLAVE组成。消息同步写入单个broker的MASTER。 异常处理流程：Master宕机后，slave只能消费读。生产failover到下一个可用的Broker组，等宕机的broker组的slave消费完，然后消费被挑选到的可用的Broker组的slave 协调者 controller：BROKER组的集群信息在协调者上保存为一个单向的链表，消费者和发送者各有一份独立的链表数据。 rocketmq方案 顺序消息 rocketmq 顺序消息 [6][9][10] 从业务层面来保证消息的顺序而不仅仅是依赖于消息系统.比如，订单号相同的消息会被先后发送到同一个队列中 从业务层面来保证消息的顺序, 而不仅仅是依赖于消息系统 Eg. 订单号相同的消息会被先后发送到同一个队列中 partition 内部有序, 局部有序[kafka]&#xD;#&#xD;pull模型+单线程生产/消费[metaq]&#xD;#&#xD;参考&#xD;#&#xD;jmq顺序消息&#xD;#&#xD;高可用保证消息绝对顺序消费的BROKER设计方案 丁俊 rocketmq顺序消息&#xD;#&#xD;分布式开放消息系统(RocketMQ)的原理与实践 CHEN川 *** 消息的顺序问题 消息的重复问题 聊一聊顺序消息（RocketMQ顺序消息的实现机制） 杭州.Mark producer: selector, 相同orderid的发送到同一个topic; consumer: 多消费者加锁竞争消息 收发顺序消息 阿里云文档 </description>
+    </item>
+  </channel>
+</rss>

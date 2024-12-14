@@ -9,6 +9,13 @@
     <lastBuildDate>Wed, 20 Jul 2022 14:30:49 +0000</lastBuildDate>
     <atom:link href="https://www6v.github.io/www6vMiddleware/categories/%E4%BA%8B%E5%8A%A1/index.xml" rel="self" type="application/rss+xml" />
     <item>
+      <title>Kafka 幂等性和事务</title>
+      <link>https://www6v.github.io/www6vMiddleware/docs/message/Kafka/kafkaTransaction/</link>
+      <pubDate>Wed, 04 May 2022 18:29:58 +0000</pubDate>
+      <guid>https://www6v.github.io/www6vMiddleware/docs/message/Kafka/kafkaTransaction/</guid>
+      <description>Kafka 幂等性&#xD;#&#xD;为了实现生产者的幂等性， 引入了producer id（PID）和 序列号（sequence number）&#xA;PID: producer 初始化的时候分配&#xA;序列号： producer每发送一条消息，就会将&amp;lt;PID, 分区&amp;gt;对应的序列号的值+1.&#xA;局限性： Kafka 幂等性只能保证单个producer 回话（session）中单分区的幂等&#xA;Kafka 事务&#xD;#&#xD;Kafka 幂等性不能跨多个分区运作，而事务可以保证对多个分区写入操作的原子性。 事务性实现的关键&#xD;#&#xD;事务要求producer 开启幂等特性 enable.idempotence = true transactionalId：&#xA;一个Producer 在 Fail 恢复后能主动 abort 上次未完成的事务（接上之前未完成的事务），然后重新开始一个事务，这种情况应该怎么办？&#xA;之前幂等性引入的 PID 是无法解决这个问题的，因为每次 Producer 在重启时，PID 都会更新为一个新值：&#xA;Kafka 在 Producer 端引入了一个 transactionalId 来解决这个问题，这个 txn.id 是由应用来配置的； 架构和组件&#xD;#&#xD;transactionalId和PID一一对应，transactionalId用户显示设置，PID由Kafka内部分配； 跨producer会话的消息幂等发送: 新的producer启动后，具有相同transactionalId的旧producer会立即失效； 跨producer会话的事务恢复: producer宕机后，新的producer可以保证未完成的旧事务要么commit，要么Abort。 TransactionCoordinator(coordinate 协调者) 事务日志 语义&#xD;#&#xD;Kafka 的事务机制，更多的情况下被用来配合Kafka的幂等机制来实现 Kafka 的 Exactly Once 语义。 Kafka 的 Exactly Once 机制，是为了解决在**&amp;ldquo;consume - transform - produce&amp;rdquo;（流计算）**这样的计算过程中数据不重不丢，而不是我们通常理解的使用消息队列进行消息生产消费过程中的 Exactly Once。 ”consume - transform - produce“模式 总结&#xD;#&#xD;幂等性、事务都是0.</description>
+    </item>
+    <item>
       <title>Spring  Transaction  失效</title>
       <link>https://www6v.github.io/www6vMiddleware/docs/serviceGovernance/Springcloud/springTransactionInvalid/</link>
       <pubDate>Wed, 20 Jul 2022 14:30:49 +0000</pubDate>
