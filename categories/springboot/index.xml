@@ -1,18 +1,18 @@
 <?xml version="1.0" encoding="utf-8" standalone="yes"?>
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
-    <title>Springboot on Hugo Book</title>
-    <link>https://example.com/categories/springboot/</link>
-    <description>Recent content in Springboot on Hugo Book</description>
+    <title>Springboot on 中间件</title>
+    <link>https://www6v.github.io/www6vMiddleware/categories/springboot/</link>
+    <description>Recent content in Springboot on 中间件</description>
     <generator>Hugo</generator>
     <language>en</language>
     <lastBuildDate>Fri, 20 Sep 2019 15:02:28 +0000</lastBuildDate>
-    <atom:link href="https://example.com/categories/springboot/index.xml" rel="self" type="application/rss+xml" />
+    <atom:link href="https://www6v.github.io/www6vMiddleware/categories/springboot/index.xml" rel="self" type="application/rss+xml" />
     <item>
       <title>SpringBoot</title>
-      <link>https://example.com/docs/serviceGovernance/Springcloud/springboot/</link>
+      <link>https://www6v.github.io/www6vMiddleware/docs/serviceGovernance/Springcloud/springboot/</link>
       <pubDate>Fri, 20 Sep 2019 15:02:28 +0000</pubDate>
-      <guid>https://example.com/docs/serviceGovernance/Springcloud/springboot/</guid>
+      <guid>https://www6v.github.io/www6vMiddleware/docs/serviceGovernance/Springcloud/springboot/</guid>
       <description>Core&#xD;#&#xD;Spring Boot定义&#xD;#&#xD;Spring Boot is designed to get you up and running as quickly as possible, with minimal upfront configuration of Spring. Spring Boot takes an opinionated view of building production-ready applications.&#xA;Features (官方)&#xD;#&#xD;Create stand-alone Spring applications Embed Tomcat, Jetty or Undertow directly (no need to deploy WAR files) Provide opinionated &amp;lsquo;starter&amp;rsquo; dependencies to simplify your build configuration Automatically configure Spring and 3rd party libraries whenever possible Provide production-ready features such as metrics, health checks, and externalized configuration Absolutely no code generation and no requirement for XML configuration 特性&#xD;#&#xD;自动配置 Auto Configuration 为Spring及第三方库提供自动配置; 简化了项目的构建配置;</description>
     </item>
   </channel>

@@ -1,18 +1,18 @@
 <?xml version="1.0" encoding="utf-8" standalone="yes"?>
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
-    <title>负载均衡 on Hugo Book</title>
-    <link>https://example.com/tags/%E8%B4%9F%E8%BD%BD%E5%9D%87%E8%A1%A1/</link>
-    <description>Recent content in 负载均衡 on Hugo Book</description>
+    <title>负载均衡 on 中间件</title>
+    <link>https://www6v.github.io/www6vMiddleware/tags/%E8%B4%9F%E8%BD%BD%E5%9D%87%E8%A1%A1/</link>
+    <description>Recent content in 负载均衡 on 中间件</description>
     <generator>Hugo</generator>
     <language>en</language>
     <lastBuildDate>Fri, 06 May 2022 11:29:37 +0000</lastBuildDate>
-    <atom:link href="https://example.com/tags/%E8%B4%9F%E8%BD%BD%E5%9D%87%E8%A1%A1/index.xml" rel="self" type="application/rss+xml" />
+    <atom:link href="https://www6v.github.io/www6vMiddleware/tags/%E8%B4%9F%E8%BD%BD%E5%9D%87%E8%A1%A1/index.xml" rel="self" type="application/rss+xml" />
     <item>
       <title>负载均衡-算法</title>
-      <link>https://example.com/docs/serviceGovernance/loadBalance/loadBalance/</link>
+      <link>https://www6v.github.io/www6vMiddleware/docs/serviceGovernance/loadBalance/loadBalance/</link>
       <pubDate>Fri, 06 May 2022 11:29:37 +0000</pubDate>
-      <guid>https://example.com/docs/serviceGovernance/loadBalance/loadBalance/</guid>
+      <guid>https://www6v.github.io/www6vMiddleware/docs/serviceGovernance/loadBalance/loadBalance/</guid>
       <description>&#xA;负载均衡算法&#xD;#&#xD;LVS[1][2]&#xD;#&#xD;组件 类型 负载均衡算法 场景 LVS 静态 RR：roundrobin [常用] 轮询机制 WRR：Weighted RR [常用] 加权轮询，权重越大承担负载越大 SH：Source Hashing 源地址哈希 实现session sticky缺点：调度粒度大，对负载均衡效果差； DH：Destination Hashing 目标地址哈希 动态 LC：least connections 适用于长连接应用&#xA;Overhead=activeconns*256+inactiveconns WLC：Weighted LC [常用] 默认调度方法,较常用（加上了权重）&#xA;Overhead=(activeconns*256+inactiveconns)/weight SED：Shortest Expection Delay Overhead=(activeconns+1)*256/weight NQ：Never Queue， 第一轮均匀分配，后续SED****SED****算法改进 LBLC：Locality-Based LC 动态的 ****DH****连接算法 LBLCR：LBLC with Replication 带复制功能的LBLC Nginx [3]&#xD;#&#xD;组件 类型 负载均衡算法 场景 Nginx 静态 轮询 每个请求按时间顺序逐一分配到不同的后端服务器，如果后端服务器 down 掉，能自动剔除 加权轮询 指定轮询几率，weight 和访问比率成正比，用于后端服务器性能不均的情况 IP Hash 每个请求按访问 ip 的 hash 结果分配，这样每个访客固定访问一个后端服务器，可以解决 session 的问题 动态 Fair （第三方） 按后端服务器的响应时间来分配请求，响应时间短的优先分配 url_hash（第三方） 按访问 url 的 hash 结果来分配请求，使每个 url 定向到同一个后端服务器，后端服务器为缓存时比较有效 Least Connections HAproxy&#xD;#&#xD;组件 类型 负载均衡算法 场景 HAproxy 静态 轮询 加权轮询 IP Hash 动态 Least Connections Source LVS工作模式[11-16]&#xD;#&#xD;DR TUN模式 NAT模式 参考&#xD;#&#xD;LVS负载均衡集群服务搭建详解 LVS调度算法总结 LVS、Nginx 及 HAProxy 的区别 LVS集群的负载调度 *** 未 LVS工作模式&#xD;#&#xD;LVS三种模式的区别及负载均衡算法 LVS 介绍以及配置应用 *** 深入浅出 LVS 负载均衡（一）NAT、FULLNAT 模型原理 未 深入浅出 LVS 负载均衡（二）DR、TUN 模型原理 未 深入浅出 LVS 负载均衡（三）实操 NAT、TUNNEL 模型 未 深入浅出 LVS 负载均衡（四）实操 DR 模型、Keepalived DR 模型的高可用 未 </description>
     </item>
   </channel>

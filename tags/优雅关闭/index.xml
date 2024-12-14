@@ -1,18 +1,18 @@
 <?xml version="1.0" encoding="utf-8" standalone="yes"?>
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
-    <title>优雅关闭 on Hugo Book</title>
-    <link>https://example.com/tags/%E4%BC%98%E9%9B%85%E5%85%B3%E9%97%AD/</link>
-    <description>Recent content in 优雅关闭 on Hugo Book</description>
+    <title>优雅关闭 on 中间件</title>
+    <link>https://www6v.github.io/www6vMiddleware/tags/%E4%BC%98%E9%9B%85%E5%85%B3%E9%97%AD/</link>
+    <description>Recent content in 优雅关闭 on 中间件</description>
     <generator>Hugo</generator>
     <language>en</language>
     <lastBuildDate>Sun, 14 Aug 2022 15:19:23 +0000</lastBuildDate>
-    <atom:link href="https://example.com/tags/%E4%BC%98%E9%9B%85%E5%85%B3%E9%97%AD/index.xml" rel="self" type="application/rss+xml" />
+    <atom:link href="https://www6v.github.io/www6vMiddleware/tags/%E4%BC%98%E9%9B%85%E5%85%B3%E9%97%AD/index.xml" rel="self" type="application/rss+xml" />
     <item>
       <title>优雅关闭</title>
-      <link>https://example.com/docs/serviceGovernance/faultTolerant/soaGracefulClose/</link>
+      <link>https://www6v.github.io/www6vMiddleware/docs/serviceGovernance/faultTolerant/soaGracefulClose/</link>
       <pubDate>Sun, 14 Aug 2022 15:19:23 +0000</pubDate>
-      <guid>https://example.com/docs/serviceGovernance/faultTolerant/soaGracefulClose/</guid>
+      <guid>https://www6v.github.io/www6vMiddleware/docs/serviceGovernance/faultTolerant/soaGracefulClose/</guid>
       <description>关闭流程&#xD;#&#xD;关闭流程的优雅处理可以通过以下步骤实现 [gpt 总结]&#xA;服务提供方在关闭时设置一个请求挡板，告知调用方正在关闭并不能处理新的请求。 当服务提供方收到新的业务请求时，直接返回一个特定的异常（如ShutdownException）给调用方。 调用方收到异常响应后，将该节点从健康列表中挪出，并自动将请求重试到其他节点，保证业务无损。 除了等待被动调用外，可以加上主动通知流程，提高实时性并避免通知失败的情况。 通过捕获操作系统的进程信号，如使用Java语言中的Runtime.addShutdownHook方法，在关闭钩子中进行关闭标识的设置和服务对象的安全关闭。 在调用链中加入挡板处理器，当新的请求到来时，判断关闭标识，如果正在关闭，则抛出特定异常。 为了完成正在处理的请求，可以在服务对象上添加引用计数器，在开始处理请求前加一，完成处理后减一，根据引用计数器判断是否有正在处理的请求。 服务对象在关闭过程中拒绝新的请求，并根据引用计数器等待正在处理的请求全部结束后真正关闭。 为避免无法正常退出应用，可以在ShutdownHook中添加超时时间控制，当超过指定时间仍未结束，则强制退出应用。 通过以上步骤，实现了服务提供方的优雅关闭，保证业务正常处理并最大限度地完成正在处理的请求。&#xA;参考&#xD;#&#xD;《13 | 优雅关闭：如何避免服务停机带来的业务损失？》</description>
     </item>
   </channel>

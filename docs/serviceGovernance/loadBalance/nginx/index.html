@@ -8,27 +8,25 @@ least-connection算法， 如果所有节点的connection都一致， 会退化�
 节点热更新#master节点热更新#worker节点热更新#域名转发到其他域名[2]#return 指令 rewrite proxy_pass 文件下载#nginx.">
 <meta name="theme-color" media="(prefers-color-scheme: light)" content="#ffffff">
 <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#343a40">
-<meta name="color-scheme" content="light dark"><meta property="og:url" content="https://example.com/docs/serviceGovernance/loadBalance/nginx/">
-  <meta property="og:site_name" content="Hugo Book">
+<meta name="color-scheme" content="light dark"><meta property="og:url" content="https://www6v.github.io/www6vMiddleware/docs/serviceGovernance/loadBalance/nginx/">
+  <meta property="og:site_name" content="中间件">
   <meta property="og:title" content="Nginx总结">
   <meta property="og:description" content="Nginx总结#Nginx架构#共享内存 Slab 分页 4K， 8K， 16K Nginx反向代理#类型#带权重的round-robin算法是基础 hash负载均衡算法 ip-hash算法 -&gt; real-ip hash算法 -&gt; 自定义可以hash的参数（比如?userName） 问题: 如果有upstream的机器宕机， hash算法还会路由到这台机器 解决方案：使用一致性hash(consistent),hash 环
 least-connection算法， 如果所有节点的connection都一致， 会退化成为round-robin算法。 可扩展立方体#X-axis 基于round-robin或者least-connected算法分发请求 -&gt; 相对简单 Y-axis 基于URL对功能进行分发。 -&gt; 相对复杂 Z-axis 将用户IP地址或者其他信息映射到某个特定的服务或者集群 -&gt; 相对简单 多种协议反向代理#tcp udp 透传 http -&gt; memcached , scgi, fastcgi, uwsgi, grpc, http, websocket 反向代理流程#修改发送到upstream机器的请求的nginx指令。
 节点热更新#master节点热更新#worker节点热更新#域名转发到其他域名[2]#return 指令 rewrite proxy_pass 文件下载#nginx.">
   <meta property="og:locale" content="en">
   <meta property="og:type" content="website">
-<title>Nginx总结 | Hugo Book</title>
-<link rel="icon" href="/favicon.png" >
-<link rel="manifest" href="/manifest.json">
-<link rel="canonical" href="https://example.com/docs/serviceGovernance/loadBalance/nginx/">
-<link rel="stylesheet" href="/book.min.6c8b9d2a1fc95075ed7da46ca81060b39add8fff6741ac51259f768929281e2c.css" integrity="sha256-bIudKh/JUHXtfaRsqBBgs5rdj/9nQaxRJZ92iSkoHiw=" crossorigin="anonymous">
-  <script defer src="/fuse.min.js"></script>
-  <script defer src="/en.search.min.00f24245ba145350d6a7d4627a067b10704a773920b0be54d269e10ef5c946e1.js" integrity="sha256-APJCRboUU1DWp9RiegZ7EHBKdzkgsL5U0mnhDvXJRuE=" crossorigin="anonymous"></script>
-
-  <script defer src="/sw.min.6f6f90fcb8eb1c49ec389838e6b801d0de19430b8e516902f8d75c3c8bd98739.js" integrity="sha256-b2&#43;Q/LjrHEnsOJg45rgB0N4ZQwuOUWkC&#43;NdcPIvZhzk=" crossorigin="anonymous"></script>
+<title>Nginx总结 | 中间件</title>
+<link rel="icon" href="/www6vMiddleware/favicon.png" >
+<link rel="manifest" href="/www6vMiddleware/manifest.json">
+<link rel="canonical" href="https://www6v.github.io/www6vMiddleware/docs/serviceGovernance/loadBalance/nginx/">
+<link rel="stylesheet" href="/www6vMiddleware/book.min.6c8b9d2a1fc95075ed7da46ca81060b39add8fff6741ac51259f768929281e2c.css" integrity="sha256-bIudKh/JUHXtfaRsqBBgs5rdj/9nQaxRJZ92iSkoHiw=" crossorigin="anonymous">
+  <script defer src="/www6vMiddleware/fuse.min.js"></script>
+  <script defer src="/www6vMiddleware/en.search.min.93e50f5e49a2dbcae27e2c92eedd98c66f712ea8903e07c4a3ef1b2c21d71b47.js" integrity="sha256-k&#43;UPXkmi28rifiyS7t2Yxm9xLqiQPgfEo&#43;8bLCHXG0c=" crossorigin="anonymous"></script>
 
   
 
-<link rel="alternate" type="application/rss+xml" href="https://example.com/docs/serviceGovernance/loadBalance/nginx/index.xml" title="Hugo Book" />
+<link rel="alternate" type="application/rss+xml" href="https://www6v.github.io/www6vMiddleware/docs/serviceGovernance/loadBalance/nginx/index.xml" title="中间件" />
 <!--
 Made with Book Theme
 https://github.com/alex-shpak/hugo-book
@@ -44,7 +42,7 @@ https://github.com/alex-shpak/hugo-book
         
   <nav>
 <h2 class="book-brand">
-  <a class="flex align-center" href="/"><span>Hugo Book</span>
+  <a class="flex align-center" href="/www6vMiddleware/"><span>中间件</span>
   </a>
 </h2>
 
@@ -106,7 +104,7 @@ https://github.com/alex-shpak/hugo-book
   
 
   
-    <a href="/docs/serviceGovernance/Overview/microservice/" class="">微服务 总结</a>
+    <a href="/www6vMiddleware/docs/serviceGovernance/Overview/microservice/" class="">微服务 总结</a>
   
 
           
@@ -124,7 +122,7 @@ https://github.com/alex-shpak/hugo-book
   
 
   
-    <a href="/docs/serviceGovernance/Overview/soaFeature/" class="">分布式服务框架功能</a>
+    <a href="/www6vMiddleware/docs/serviceGovernance/Overview/soaFeature/" class="">分布式服务框架功能</a>
   
 
           
@@ -160,7 +158,7 @@ https://github.com/alex-shpak/hugo-book
   
 
   
-    <a href="/docs/serviceGovernance/API-Gateway/apiGatawaySpringGateway/" class="">API 网关-SpringCloud Gateway</a>
+    <a href="/www6vMiddleware/docs/serviceGovernance/API-Gateway/apiGatawaySpringGateway/" class="">API 网关-SpringCloud Gateway</a>
   
 
         </li>
@@ -173,7 +171,7 @@ https://github.com/alex-shpak/hugo-book
   
 
   
-    <a href="/docs/serviceGovernance/API-Gateway/apiGatawayApisix/" class="">API 网关-apisix</a>
+    <a href="/www6vMiddleware/docs/serviceGovernance/API-Gateway/apiGatawayApisix/" class="">API 网关-apisix</a>
   
 
           
@@ -191,7 +189,7 @@ https://github.com/alex-shpak/hugo-book
   
 
   
-    <a href="/docs/serviceGovernance/API-Gateway/apiGateway/" class="">API Gateway网关</a>
+    <a href="/www6vMiddleware/docs/serviceGovernance/API-Gateway/apiGateway/" class="">API Gateway网关</a>
   
 
           
@@ -227,7 +225,7 @@ https://github.com/alex-shpak/hugo-book
   
 
   
-    <a href="/docs/serviceGovernance/ConfigDiscovery/soaDiscovery/" class="">服务发现</a>
+    <a href="/www6vMiddleware/docs/serviceGovernance/ConfigDiscovery/soaDiscovery/" class="">服务发现</a>
   
 
           
@@ -245,7 +243,7 @@ https://github.com/alex-shpak/hugo-book
   
 
   
-    <a href="/docs/serviceGovernance/ConfigDiscovery/config/" class="">服务治理-分布式配置</a>
+    <a href="/www6vMiddleware/docs/serviceGovernance/ConfigDiscovery/config/" class="">服务治理-分布式配置</a>
   
 
           
@@ -281,7 +279,7 @@ https://github.com/alex-shpak/hugo-book
   
 
   
-    <a href="/docs/serviceGovernance/loadBalance/loadBalance/" class="">负载均衡-算法</a>
+    <a href="/www6vMiddleware/docs/serviceGovernance/loadBalance/loadBalance/" class="">负载均衡-算法</a>
   
 
           
@@ -299,7 +297,7 @@ https://github.com/alex-shpak/hugo-book
   
 
   
-    <a href="/docs/serviceGovernance/loadBalance/nginxOptimize/" class="">Nginx优化</a>
+    <a href="/www6vMiddleware/docs/serviceGovernance/loadBalance/nginxOptimize/" class="">Nginx优化</a>
   
 
         </li>
@@ -312,7 +310,7 @@ https://github.com/alex-shpak/hugo-book
   
 
   
-    <a href="/docs/serviceGovernance/loadBalance/nginx/" class="active">Nginx总结</a>
+    <a href="/www6vMiddleware/docs/serviceGovernance/loadBalance/nginx/" class="active">Nginx总结</a>
   
 
           
@@ -348,7 +346,7 @@ https://github.com/alex-shpak/hugo-book
   
 
   
-    <a href="/docs/serviceGovernance/threadModel/jsfThreadModel/" class="">京东服务框架JSF服务提供者线程模型</a>
+    <a href="/www6vMiddleware/docs/serviceGovernance/threadModel/jsfThreadModel/" class="">京东服务框架JSF服务提供者线程模型</a>
   
 
           
@@ -397,7 +395,7 @@ https://github.com/alex-shpak/hugo-book
   
 
   
-    <a href="/docs/serviceGovernance/faultTolerant/faultTolerant/soaTolerateFramework/" class="">容错框架</a>
+    <a href="/www6vMiddleware/docs/serviceGovernance/faultTolerant/faultTolerant/soaTolerateFramework/" class="">容错框架</a>
   
 
           
@@ -415,7 +413,7 @@ https://github.com/alex-shpak/hugo-book
   
 
   
-    <a href="/docs/serviceGovernance/faultTolerant/faultTolerant/soaTimeout/" class="">超时和重试 总结</a>
+    <a href="/www6vMiddleware/docs/serviceGovernance/faultTolerant/faultTolerant/soaTimeout/" class="">超时和重试 总结</a>
   
 
           
@@ -433,7 +431,7 @@ https://github.com/alex-shpak/hugo-book
   
 
   
-    <a href="/docs/serviceGovernance/faultTolerant/faultTolerant/soaTolerate/" class="">分布式服务框架 容错机制</a>
+    <a href="/www6vMiddleware/docs/serviceGovernance/faultTolerant/faultTolerant/soaTolerate/" class="">分布式服务框架 容错机制</a>
   
 
           
@@ -469,7 +467,7 @@ https://github.com/alex-shpak/hugo-book
   
 
   
-    <a href="/docs/serviceGovernance/faultTolerant/throttle/ratelimitSentinel/" class="">流量治理-Sentinel</a>
+    <a href="/www6vMiddleware/docs/serviceGovernance/faultTolerant/throttle/ratelimitSentinel/" class="">流量治理-Sentinel</a>
   
 
           
@@ -487,7 +485,7 @@ https://github.com/alex-shpak/hugo-book
   
 
   
-    <a href="/docs/serviceGovernance/faultTolerant/throttle/ratelimit/" class="">限流-总结</a>
+    <a href="/www6vMiddleware/docs/serviceGovernance/faultTolerant/throttle/ratelimit/" class="">限流-总结</a>
   
 
           
@@ -510,7 +508,7 @@ https://github.com/alex-shpak/hugo-book
   
 
   
-    <a href="/docs/serviceGovernance/faultTolerant/soaGracefulStart/" class="">优雅启动</a>
+    <a href="/www6vMiddleware/docs/serviceGovernance/faultTolerant/soaGracefulStart/" class="">优雅启动</a>
   
 
           
@@ -528,7 +526,7 @@ https://github.com/alex-shpak/hugo-book
   
 
   
-    <a href="/docs/serviceGovernance/faultTolerant/soaGracefulClose/" class="">优雅关闭</a>
+    <a href="/www6vMiddleware/docs/serviceGovernance/faultTolerant/soaGracefulClose/" class="">优雅关闭</a>
   
 
           
@@ -564,7 +562,7 @@ https://github.com/alex-shpak/hugo-book
   
 
   
-    <a href="/docs/serviceGovernance/Springcloud/springTransactionInvalid/" class="">Spring  Transaction  失效</a>
+    <a href="/www6vMiddleware/docs/serviceGovernance/Springcloud/springTransactionInvalid/" class="">Spring  Transaction  失效</a>
   
 
           
@@ -582,7 +580,7 @@ https://github.com/alex-shpak/hugo-book
   
 
   
-    <a href="/docs/serviceGovernance/Springcloud/springCloud/" class="">SpringCloud</a>
+    <a href="/www6vMiddleware/docs/serviceGovernance/Springcloud/springCloud/" class="">SpringCloud</a>
   
 
           
@@ -600,7 +598,7 @@ https://github.com/alex-shpak/hugo-book
   
 
   
-    <a href="/docs/serviceGovernance/Springcloud/springboot/" class="">SpringBoot</a>
+    <a href="/www6vMiddleware/docs/serviceGovernance/Springcloud/springboot/" class="">SpringBoot</a>
   
 
           
@@ -618,7 +616,7 @@ https://github.com/alex-shpak/hugo-book
   
 
   
-    <a href="/docs/serviceGovernance/Springcloud/springTransaction/" class="">Spring事务</a>
+    <a href="/www6vMiddleware/docs/serviceGovernance/Springcloud/springTransaction/" class="">Spring事务</a>
   
 
           
@@ -654,7 +652,7 @@ https://github.com/alex-shpak/hugo-book
   
 
   
-    <a href="/docs/serviceGovernance/Gray/apiGatewayGray/" class="">API 网关-灰度发布</a>
+    <a href="/www6vMiddleware/docs/serviceGovernance/Gray/apiGatewayGray/" class="">API 网关-灰度发布</a>
   
 
           
@@ -690,7 +688,7 @@ https://github.com/alex-shpak/hugo-book
   
 
   
-    <a href="/docs/serviceGovernance/security/soaAuth/" class="">服务治理-鉴权</a>
+    <a href="/www6vMiddleware/docs/serviceGovernance/security/soaAuth/" class="">服务治理-鉴权</a>
   
 
           
@@ -708,7 +706,7 @@ https://github.com/alex-shpak/hugo-book
   
 
   
-    <a href="/docs/serviceGovernance/security/securityOAuth2/" class="">安全-OAuth2</a>
+    <a href="/www6vMiddleware/docs/serviceGovernance/security/securityOAuth2/" class="">安全-OAuth2</a>
   
 
           
@@ -761,14 +759,14 @@ https://github.com/alex-shpak/hugo-book
         
   <div class="flex align-center justify-between">
   <label for="menu-control">
-    <img src="/svg/menu.svg" class="book-icon" alt="Menu" />
+    <img src="/www6vMiddleware/svg/menu.svg" class="book-icon" alt="Menu" />
   </label>
 
   <h3>Nginx总结</h3>
 
   <label for="toc-control">
     
-    <img src="/svg/toc.svg" class="book-icon" alt="Table of Contents" />
+    <img src="/www6vMiddleware/svg/toc.svg" class="book-icon" alt="Table of Contents" />
     
   </label>
 </div>
@@ -821,8 +819,7 @@ https://github.com/alex-shpak/hugo-book
   Nginx总结
   <a class="anchor" href="#nginx%e6%80%bb%e7%bb%93">#</a>
 </h2>
-<p>
-  <img src="https://user-images.githubusercontent.com/5608425/64508349-cedbeb00-d30f-11e9-836c-2f920725e1bb.jpg" alt="Nginx总结" /></p>
+<p><img src="https://user-images.githubusercontent.com/5608425/64508349-cedbeb00-d30f-11e9-836c-2f920725e1bb.jpg" alt="Nginx总结" /></p>
 <h2 id="nginx架构">
   Nginx架构
   <a class="anchor" href="#nginx%e6%9e%b6%e6%9e%84">#</a>
@@ -882,16 +879,13 @@ hash算法 -&gt; 自定义可以hash的参数（比如?userName）
   master节点热更新
   <a class="anchor" href="#master%e8%8a%82%e7%82%b9%e7%83%ad%e6%9b%b4%e6%96%b0">#</a>
 </h3>
-<p>
-  <img src="./images/master-graceful-showdown.jpg" alt="master-graceful-showdown" /></p>
+<p><img src="./images/master-graceful-showdown.jpg" alt="master-graceful-showdown" /></p>
 <h3 id="worker节点热更新">
   worker节点热更新
   <a class="anchor" href="#worker%e8%8a%82%e7%82%b9%e7%83%ad%e6%9b%b4%e6%96%b0">#</a>
 </h3>
-<p>
-  <img src="./images/worker-graceful-showdown1.jpg" alt="worker-graceful-showdown1" /></p>
-<p>
-  <img src="./images/worker-graceful-showdown.jpg" alt="worker-graceful-showdown" /></p>
+<p><img src="./images/worker-graceful-showdown1.jpg" alt="worker-graceful-showdown1" /></p>
+<p><img src="./images/worker-graceful-showdown.jpg" alt="worker-graceful-showdown" /></p>
 <h2 id="域名转发到其他域名2">
   域名转发到其他域名[2]
   <a class="anchor" href="#%e5%9f%9f%e5%90%8d%e8%bd%ac%e5%8f%91%e5%88%b0%e5%85%b6%e4%bb%96%e5%9f%9f%e5%90%8d2">#</a>
@@ -927,12 +921,10 @@ hash算法 -&gt; 自定义可以hash的参数（比如?userName）
 </h2>
 <ol>
 <li>
-<p>
-  <a href="https://mp.weixin.qq.com/s?__biz=MjM5MDE0Mjc4MA==&amp;mid=2651010416&amp;idx=4&amp;sn=dfa07f0e065d273b028e662e87e780ff&amp;chksm=bdbecd238ac9443511c4e7eadf9e59cc9139fac25c52b44f7a93787b940826c5f61f06e10224&amp;scene=27#wechat_redirect">深入Nginx 思维导图</a></p>
+<p><a href="https://mp.weixin.qq.com/s?__biz=MjM5MDE0Mjc4MA==&amp;mid=2651010416&amp;idx=4&amp;sn=dfa07f0e065d273b028e662e87e780ff&amp;chksm=bdbecd238ac9443511c4e7eadf9e59cc9139fac25c52b44f7a93787b940826c5f61f06e10224&amp;scene=27#wechat_redirect">深入Nginx 思维导图</a></p>
 </li>
 <li>
-<p>
-  <a href="https://blog.csdn.net/yeguxin/article/details/94020476">nginx配置域名转发到其他域名的几种方法</a></p>
+<p><a href="https://blog.csdn.net/yeguxin/article/details/94020476">nginx配置域名转发到其他域名的几种方法</a></p>
 </li>
 </ol>
 </article>

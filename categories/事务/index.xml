@@ -1,25 +1,25 @@
 <?xml version="1.0" encoding="utf-8" standalone="yes"?>
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
-    <title>事务 on Hugo Book</title>
-    <link>https://example.com/categories/%E4%BA%8B%E5%8A%A1/</link>
-    <description>Recent content in 事务 on Hugo Book</description>
+    <title>事务 on 中间件</title>
+    <link>https://www6v.github.io/www6vMiddleware/categories/%E4%BA%8B%E5%8A%A1/</link>
+    <description>Recent content in 事务 on 中间件</description>
     <generator>Hugo</generator>
     <language>en</language>
     <lastBuildDate>Wed, 20 Jul 2022 14:30:49 +0000</lastBuildDate>
-    <atom:link href="https://example.com/categories/%E4%BA%8B%E5%8A%A1/index.xml" rel="self" type="application/rss+xml" />
+    <atom:link href="https://www6v.github.io/www6vMiddleware/categories/%E4%BA%8B%E5%8A%A1/index.xml" rel="self" type="application/rss+xml" />
     <item>
       <title>Spring  Transaction  失效</title>
-      <link>https://example.com/docs/serviceGovernance/Springcloud/springTransactionInvalid/</link>
+      <link>https://www6v.github.io/www6vMiddleware/docs/serviceGovernance/Springcloud/springTransactionInvalid/</link>
       <pubDate>Wed, 20 Jul 2022 14:30:49 +0000</pubDate>
-      <guid>https://example.com/docs/serviceGovernance/Springcloud/springTransactionInvalid/</guid>
+      <guid>https://www6v.github.io/www6vMiddleware/docs/serviceGovernance/Springcloud/springTransactionInvalid/</guid>
       <description>&#xA;Spring事务失效问题&#xD;#&#xD;spring事务失效 [1]&#xD;#&#xD;- 场景：普通方法调用事务方法时，事务会失效 - 解决：要在普通方法(一般是最外层)上加上@Transactional 代理不生效 [2]&#xD;#&#xD;非public修饰的方法 在AbstractFallbackTransactionAttributeSource类的computeTransactionAttribute方法中有个判断，如果目标方法不是public，则TransactionAttribute返回null，即不支持事务。&#xA;被final、static关键字修饰的类或方法 spring事务底层使用了aop，也就是通过jdk动态代理或者cglib，帮我们生成了代理类，在代理类中实现的事务功能。但如果某个方法用final修饰了，那么在它的代理类中，就无法重写该方法，而添加事务功能。&#xA;类方法内部调用 updateStatus方法拥有事务的能力是因为spring aop生成代理了对象，但是这种方法直接调用了this对象的方法，所以updateStatus方法不会生成事务&#xA;解决方案 新加一个Service方法 在该Service类中注入自己 通过AopContent类 当前类没有被Spring管理&#xA;多线程调用 spring的事务是通过数据库连接来实现的。当前线程中保存了一个map，key是数据源，value是数据库连接。 同一个事务，其实是指同一个数据库连接，只有拥有同一个数据库连接才能同时提交和回滚。如果在不同的线程，拿到的数据库连接肯定是不一样的，所以是不同的事务。&#xA;(存储引擎)表不支持事务&#xA;未开启事务 springboot通过DataSourceTransactionManagerAutoConfiguration类，已经默默的帮你开启了事务。 使用的还是传统的spring项目，则需要在applicationContext.xml文件中，手动配置事务相关参数。如果忘了配置，事务肯定是不会生效的。&#xA;将注解标注在接口方法上&#xA;错误使用@Transactional [2]&#xD;#&#xD;错误的传播机制 目前只有这三种传播特性才会创建新事务：REQUIRED，REQUIRES_NEW，NESTED。&#xA;异常被内部catch 如果想要spring事务能够正常回滚，必须抛出它能够处理的异常。如果没有抛异常，则spring认为程序是正常的。&#xA;rollbackFor属性设置错误&#xA;@Transactional(rollbackFor = BusinessException.class) public void add(UserModel userModel) throws Exception { saveData(userModel); updateData(userModel); } 嵌套事务 可以将内部嵌套事务放在try/catch中，并且不继续往上抛异常。这样就能保证，如果内部嵌套事务中出现异常，只回滚内部事务，而不影响外部事务。&#xA;手动抛了别的异常&#xA;参考&#xD;#&#xD;Spring 踩坑之@Transactional 神奇失效 小鱼儿 spring事务（注解 @Transactional ）失效的12种场景 spring中12种@Transactional的失效场景(小结) Spring @Async/@Transactional 失效的原因及解决方案 未 </description>
     </item>
     <item>
       <title>Spring事务</title>
-      <link>https://example.com/docs/serviceGovernance/Springcloud/springTransaction/</link>
+      <link>https://www6v.github.io/www6vMiddleware/docs/serviceGovernance/Springcloud/springTransaction/</link>
       <pubDate>Mon, 16 Mar 2015 14:52:34 +0000</pubDate>
-      <guid>https://example.com/docs/serviceGovernance/Springcloud/springTransaction/</guid>
+      <guid>https://www6v.github.io/www6vMiddleware/docs/serviceGovernance/Springcloud/springTransaction/</guid>
       <description>&#xA;三种事务模型&#xD;#&#xD;三种事务模型 本地事务模型 事务全部交给数据库来管理 编程式事务模型 事务的提交和回滚操作完全交给开发人员 TransactionTemplate TransactionCallback中执行业务代码 事务代码和业务代码可以实现分离的原理【1】 声明式事务模型【AOP】 事务的提交和回滚操作全部交给Spring来管理 事务拦截器TransactionInterceptor 事务管理器transactionManager【2】 事务配置的提供者transactionAttributes【3】&#xA;业务方法+传播属性 代理的对象target&#xA;业务对象 参考&#xD;#&#xD;分布式事务系列（1.1）Spring事务管理器PlatformTransactionManager 乒乓狂魔 分布式事务系列（1.2）Spring的事务体系 乒乓狂魔 </description>
     </item>
   </channel>

@@ -1,18 +1,18 @@
 <?xml version="1.0" encoding="utf-8" standalone="yes"?>
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
-    <title>服务发现 on Hugo Book</title>
-    <link>https://example.com/categories/%E6%9C%8D%E5%8A%A1%E5%8F%91%E7%8E%B0/</link>
-    <description>Recent content in 服务发现 on Hugo Book</description>
+    <title>服务发现 on 中间件</title>
+    <link>https://www6v.github.io/www6vMiddleware/categories/%E6%9C%8D%E5%8A%A1%E5%8F%91%E7%8E%B0/</link>
+    <description>Recent content in 服务发现 on 中间件</description>
     <generator>Hugo</generator>
     <language>en</language>
     <lastBuildDate>Sun, 14 Aug 2022 19:20:42 +0000</lastBuildDate>
-    <atom:link href="https://example.com/categories/%E6%9C%8D%E5%8A%A1%E5%8F%91%E7%8E%B0/index.xml" rel="self" type="application/rss+xml" />
+    <atom:link href="https://www6v.github.io/www6vMiddleware/categories/%E6%9C%8D%E5%8A%A1%E5%8F%91%E7%8E%B0/index.xml" rel="self" type="application/rss+xml" />
     <item>
       <title>服务发现</title>
-      <link>https://example.com/docs/serviceGovernance/ConfigDiscovery/soaDiscovery/</link>
+      <link>https://www6v.github.io/www6vMiddleware/docs/serviceGovernance/ConfigDiscovery/soaDiscovery/</link>
       <pubDate>Sun, 14 Aug 2022 19:20:42 +0000</pubDate>
-      <guid>https://example.com/docs/serviceGovernance/ConfigDiscovery/soaDiscovery/</guid>
+      <guid>https://www6v.github.io/www6vMiddleware/docs/serviceGovernance/ConfigDiscovery/soaDiscovery/</guid>
       <description>&#xA;机制&#xD;#&#xD;Overview&#xD;#&#xD;服务注册和发现&#xA;模式&#xD;#&#xD;Client-side Discovery Server-side Discovery patterns 实现&#xD;#&#xD;需求 [1]&#xD;#&#xD;RPC 框架依赖的注册中心的服务数据的一致性其实并不需要满足 CP，只要满足 AP 即可。&#xA;Framework&#xD;#&#xD;etcd - CP nacos 基于raft协议 zk - CP eureka - AP 参考&#xD;#&#xD;《08 | 服务发现：到底是要CP还是AP？》 </description>
     </item>
   </channel>

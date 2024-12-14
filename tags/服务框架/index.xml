@@ -1,32 +1,32 @@
 <?xml version="1.0" encoding="utf-8" standalone="yes"?>
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
-    <title>服务框架 on Hugo Book</title>
-    <link>https://example.com/tags/%E6%9C%8D%E5%8A%A1%E6%A1%86%E6%9E%B6/</link>
-    <description>Recent content in 服务框架 on Hugo Book</description>
+    <title>服务框架 on 中间件</title>
+    <link>https://www6v.github.io/www6vMiddleware/tags/%E6%9C%8D%E5%8A%A1%E6%A1%86%E6%9E%B6/</link>
+    <description>Recent content in 服务框架 on 中间件</description>
     <generator>Hugo</generator>
     <language>en</language>
     <lastBuildDate>Thu, 09 Jul 2015 17:14:28 +0000</lastBuildDate>
-    <atom:link href="https://example.com/tags/%E6%9C%8D%E5%8A%A1%E6%A1%86%E6%9E%B6/index.xml" rel="self" type="application/rss+xml" />
+    <atom:link href="https://www6v.github.io/www6vMiddleware/tags/%E6%9C%8D%E5%8A%A1%E6%A1%86%E6%9E%B6/index.xml" rel="self" type="application/rss+xml" />
     <item>
       <title>京东服务框架JSF服务提供者线程模型</title>
-      <link>https://example.com/docs/serviceGovernance/threadModel/jsfThreadModel/</link>
+      <link>https://www6v.github.io/www6vMiddleware/docs/serviceGovernance/threadModel/jsfThreadModel/</link>
       <pubDate>Thu, 09 Jul 2015 17:14:28 +0000</pubDate>
-      <guid>https://example.com/docs/serviceGovernance/threadModel/jsfThreadModel/</guid>
+      <guid>https://www6v.github.io/www6vMiddleware/docs/serviceGovernance/threadModel/jsfThreadModel/</guid>
       <description>&#xA;京东服务框架JSF&#xD;#&#xD;JSF是京东基础架构组的服务化中间件产品，全名是Jingdong Service Framework（中文名：杰夫）。 JSF整体是依据netty来构建的，本文从代码层面简单介绍一下JSF服务端的线程模型。&#xA;1.JSF的服务端线程模型整体上是 boss线程池 + worker线程池 + 业务线程池。boss线程池和worker线程池称为Reactor线程池。&#xD;#&#xD;三类线程池各自的参数详见下图1。&#xA;worker线程池和业务线程池之间的关系详见下图2，在图中可以看到业务线程和worker线程是解耦的，请求放入业务线程后，IO线程即worker线程就返回了，业务线程和I/O线程隔离。 在没有解耦IO线程和业务ChannelHandler的情况时，如果在业务ChannelHandler中进行数据库等同步I/O操作，很有可能会导致IO线程中的pipeline链路被阻塞。&#xA;2. 图3是boss线程池， 线程数为Max(4,cpu/2)，用户不可以配置&#xD;#&#xD;3. 图4是worker线程池， 线程数为Max(8,cpu+1)，用户可以配置&#xD;#&#xD;4.图5和图6是业务线程池的构建，cached线程池大小是20-200，默认queue的大小是0。 任务来了直接分配线程，直到线程池满，得不到执行线程抛异常。&#xD;#&#xD;图7中一个服务端口对应一个业务线程池。&#xA;5. 在ChannelPipeline中ServerHandler根据服务端的配置获取对应的业务线程池，然后在ServerHandler的handlerRequest中提交业务任务，默认的任务是JSFTask。&#xD;#&#xD;具体实现如图8,9,10.&#xA;可以看到，JSF服务提供者线程模型整体还是按照boss+worker+biz这种netty官方推荐的方式构建的。&#xA;参考：&#xD;#&#xD;京东 jsf 源代码和文档 Netty案例集锦之多线程篇（续） 李林锋 </description>
     </item>
     <item>
       <title>分布式服务框架 容错机制</title>
-      <link>https://example.com/docs/serviceGovernance/faultTolerant/faultTolerant/soaTolerate/</link>
+      <link>https://www6v.github.io/www6vMiddleware/docs/serviceGovernance/faultTolerant/faultTolerant/soaTolerate/</link>
       <pubDate>Wed, 17 Jun 2015 17:08:05 +0000</pubDate>
-      <guid>https://example.com/docs/serviceGovernance/faultTolerant/faultTolerant/soaTolerate/</guid>
+      <guid>https://www6v.github.io/www6vMiddleware/docs/serviceGovernance/faultTolerant/faultTolerant/soaTolerate/</guid>
       <description>&#xA;关键词： 容错, 降级, 隔离, 超时, 重试, 高可用, 监控, 开关&#xA;Overview&#xD;#&#xD;超时重试机制[self 1][self 2] 限流 熔断机制 隔离 降级（本地缓存） 流量调度、负载均衡 微服务熔断与隔离 降级&#xD;#&#xD;降级策略 场景 实现 降低一致性约束 [1] 关闭非核心业务 人工开关 （非核心服务）, 强制降级,简化功能 开关存放位置:配置文件,数据库, Redis/Zk 关闭非核心业务 自动开关(非核心服务), 超时降级 1. 统计失败次数降级-不稳定的api&#xA;2. 限流降级-大促秒杀&#xA;3. 实现-熔断器 超时和重试 Retry&#xD;#&#xD;超时和重试 网络连接/读/写的超时时间（重要） 服务 读服务 - 可重试 写服务 - 幂等可重试 服务 客户端超时与重试 服务端超时 - 业务超时 任务型 服务调用型 超时后策略 failover 其它分组 其它机房 failcache 托底默认数据 等待页/错误页 降级 超时时间 太短 调用成功率降低 太长 后续正常请求挤压 经验值 稍微大于tp99的响应时间 集群容错&#xD;#&#xD;集群容错 Fail over（重试其他节点） 超时异常 Fail fast（快速失败） Fail cache（重试故障节点）（hedwig） 网路异常 Fail back（回退） 隔离 BulkHead&#xD;#&#xD;隔离 线程池隔离(hystirx) vm隔离（资源隔离） 物理机隔离 集群隔离 分组隔离 机房隔离 框架&#xD;#&#xD;框架 淘宝Dubbo 一号店Hedwig 京东JSF 点评pegion 唯品会OSP 状态监测&#xD;#&#xD;状态监测 服务注册中心状态监测（hedwig） 服务提供者和消费者之间的链路有效性检测（pegion） 服务健康检查（打分） 反推回消费者的路由表 流量控制（算法） Rate Limiter&#xD;#&#xD;流量控制（算法）　限流算法 令牌桶（控制入口） 漏桶（控制出口） 计数器(hedwig) 接口的总请求数（hedwig客户端） 接口的时间窗口请求数（hedwig服务端） 平滑限流,整形（netty） 整体流控 静态流控(整体qps固定) 预先分配 动态配额分配置（推） 动态配额申请制（拉） 动态流控 分级流控-拒绝流量 连接控制 并发控制（线程的并发执行数） 参考&#xD;#&#xD;self&#xD;#&#xD;{% post_link &amp;lsquo;soaTolerate&amp;rsquo; %} self {% post_link &amp;lsquo;soaTimeout&amp;rsquo; %} self </description>
     </item>
     <item>
       <title>分布式服务框架功能</title>
-      <link>https://example.com/docs/serviceGovernance/Overview/soaFeature/</link>
+      <link>https://www6v.github.io/www6vMiddleware/docs/serviceGovernance/Overview/soaFeature/</link>
       <pubDate>Thu, 07 May 2015 17:01:07 +0000</pubDate>
-      <guid>https://example.com/docs/serviceGovernance/Overview/soaFeature/</guid>
+      <guid>https://www6v.github.io/www6vMiddleware/docs/serviceGovernance/Overview/soaFeature/</guid>
       <description>负载均衡 RR Least Connections Least Time “Power of Two Choices” 参考&#xD;#&#xD;NGINX and the “Power of Two Choices” Load-Balancing Algorithm 【直播回放】海量并发微服务框架设计 重要公式</description>
     </item>
   </channel>

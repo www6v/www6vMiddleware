@@ -1,12 +1,12 @@
 <?xml version="1.0" encoding="utf-8" standalone="yes"?>
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
-    <title>Docs on Hugo Book</title>
-    <link>https://example.com/docs/</link>
-    <description>Recent content in Docs on Hugo Book</description>
+    <title>Docs on 中间件</title>
+    <link>https://www6v.github.io/www6vMiddleware/docs/</link>
+    <description>Recent content in Docs on 中间件</description>
     <generator>Hugo</generator>
     <language>en</language>
     <lastBuildDate></lastBuildDate>
-    <atom:link href="https://example.com/docs/index.xml" rel="self" type="application/rss+xml" />
+    <atom:link href="https://www6v.github.io/www6vMiddleware/docs/index.xml" rel="self" type="application/rss+xml" />
   </channel>
 </rss>
