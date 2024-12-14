@@ -2,11 +2,11 @@
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
     <title>SpringCloud on Hugo Book</title>
-    <link>http://localhost:1313/docs/serviceGovernance/Springcloud/springCloud/</link>
+    <link>https://example.com/docs/serviceGovernance/Springcloud/springCloud/</link>
     <description>Recent content in SpringCloud on Hugo Book</description>
     <generator>Hugo</generator>
     <language>en</language>
     <lastBuildDate></lastBuildDate>
-    <atom:link href="http://localhost:1313/docs/serviceGovernance/Springcloud/springCloud/index.xml" rel="self" type="application/rss+xml" />
+    <atom:link href="https://example.com/docs/serviceGovernance/Springcloud/springCloud/index.xml" rel="self" type="application/rss+xml" />
   </channel>
 </rss>

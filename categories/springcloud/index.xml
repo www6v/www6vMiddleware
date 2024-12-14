@@ -2,17 +2,17 @@
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
     <title>Springcloud on Hugo Book</title>
-    <link>http://localhost:1313/categories/springcloud/</link>
+    <link>https://example.com/categories/springcloud/</link>
     <description>Recent content in Springcloud on Hugo Book</description>
     <generator>Hugo</generator>
     <language>en</language>
     <lastBuildDate>Sun, 06 Jun 2021 16:07:33 +0000</lastBuildDate>
-    <atom:link href="http://localhost:1313/categories/springcloud/index.xml" rel="self" type="application/rss+xml" />
+    <atom:link href="https://example.com/categories/springcloud/index.xml" rel="self" type="application/rss+xml" />
     <item>
       <title>SpringCloud</title>
-      <link>http://localhost:1313/docs/serviceGovernance/Springcloud/springCloud/</link>
+      <link>https://example.com/docs/serviceGovernance/Springcloud/springCloud/</link>
       <pubDate>Sun, 06 Jun 2021 16:07:33 +0000</pubDate>
-      <guid>http://localhost:1313/docs/serviceGovernance/Springcloud/springCloud/</guid>
+      <guid>https://example.com/docs/serviceGovernance/Springcloud/springCloud/</guid>
       <description>参考&#xD;#&#xD;SpringCloud 面试题 （持续更新、吐血推荐）</description>
     </item>
   </channel>

@@ -2,11 +2,11 @@
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
     <title>超时和重试 总结 on Hugo Book</title>
-    <link>http://localhost:1313/docs/serviceGovernance/faultTolerant/faultTolerant/soaTimeout/</link>
+    <link>https://example.com/docs/serviceGovernance/faultTolerant/faultTolerant/soaTimeout/</link>
     <description>Recent content in 超时和重试 总结 on Hugo Book</description>
     <generator>Hugo</generator>
     <language>en</language>
     <lastBuildDate></lastBuildDate>
-    <atom:link href="http://localhost:1313/docs/serviceGovernance/faultTolerant/faultTolerant/soaTimeout/index.xml" rel="self" type="application/rss+xml" />
+    <atom:link href="https://example.com/docs/serviceGovernance/faultTolerant/faultTolerant/soaTimeout/index.xml" rel="self" type="application/rss+xml" />
   </channel>
 </rss>

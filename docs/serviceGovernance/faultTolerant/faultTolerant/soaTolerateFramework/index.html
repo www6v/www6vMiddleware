@@ -1,13 +1,13 @@
 <!DOCTYPE html>
 <html lang="en" dir="ltr">
-<head><script src="/livereload.js?mindelay=10&amp;v=2&amp;port=1313&amp;path=livereload" data-no-instant defer></script>
+<head>
   <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="description" content="
 Hystrix实现和容错模式#Hystrix实现和容错模式 熔断【熔断器模式】 三个状态 开 闭 半开 模块 熔断请求判断机制算法 维护10个bucket,每秒一个bucket,每个blucket记录成功,失败,超时,拒绝的状态。 超时【超时与重试模式】 失败（异常） 成功 拒绝 线程池拒绝【1】 信号量拒绝【2】 默认错误超过50%且10秒内超过20个请求进行中断拦截 熔断恢复 每隔5s允许部分请求通过，若请求都是健康的（RT&lt;250ms）则对请求健康恢复 熔断报警和Metric上报 流控【限流模式】 控制速率 控制并发 隔离【舱壁隔离模式】 Hystrix实现 线程池隔离 【1】 信号量隔离【2】 回退【回退模式】 快速失败（Fail Fast ） 无声失败（Fail Silent ） 返回默认值（Fallback Static ） Resilience4j [1]#断路器（Circuit Breaker） 重试（Retry） 限时器（Time Limiter） 限流器（Rate Limiter） 隔板（BulkHead） 参考#Hystrix#微服务熔断与隔离 楚岩 Hystrix技术解析 王新栋 &laquo;亿级流量网站架构核心技术&raquo; 5.8节 张开涛 Hystrix 使用与分析 zhangyijun Resilience4j#Resilience4j 比 Hystrix 好在哪里？ ">
 <meta name="theme-color" media="(prefers-color-scheme: light)" content="#ffffff">
 <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#343a40">
-<meta name="color-scheme" content="light dark"><meta property="og:url" content="http://localhost:1313/docs/serviceGovernance/faultTolerant/faultTolerant/soaTolerateFramework/">
+<meta name="color-scheme" content="light dark"><meta property="og:url" content="https://example.com/docs/serviceGovernance/faultTolerant/faultTolerant/soaTolerateFramework/">
   <meta property="og:site_name" content="Hugo Book">
   <meta property="og:title" content="容错框架">
   <meta property="og:description" content="
@@ -17,7 +17,7 @@ Hystrix实现和容错模式#Hystrix实现和容错模式 熔断【熔断器�
 <title>容错框架 | Hugo Book</title>
 <link rel="icon" href="/favicon.png" >
 <link rel="manifest" href="/manifest.json">
-<link rel="canonical" href="http://localhost:1313/docs/serviceGovernance/faultTolerant/faultTolerant/soaTolerateFramework/">
+<link rel="canonical" href="https://example.com/docs/serviceGovernance/faultTolerant/faultTolerant/soaTolerateFramework/">
 <link rel="stylesheet" href="/book.min.6c8b9d2a1fc95075ed7da46ca81060b39add8fff6741ac51259f768929281e2c.css" integrity="sha256-bIudKh/JUHXtfaRsqBBgs5rdj/9nQaxRJZ92iSkoHiw=" crossorigin="anonymous">
   <script defer src="/fuse.min.js"></script>
   <script defer src="/en.search.min.00f24245ba145350d6a7d4627a067b10704a773920b0be54d269e10ef5c946e1.js" integrity="sha256-APJCRboUU1DWp9RiegZ7EHBKdzkgsL5U0mnhDvXJRuE=" crossorigin="anonymous"></script>
@@ -26,7 +26,7 @@ Hystrix实现和容错模式#Hystrix实现和容错模式 熔断【熔断器�
 
   
 
-<link rel="alternate" type="application/rss+xml" href="http://localhost:1313/docs/serviceGovernance/faultTolerant/faultTolerant/soaTolerateFramework/index.xml" title="Hugo Book" />
+<link rel="alternate" type="application/rss+xml" href="https://example.com/docs/serviceGovernance/faultTolerant/faultTolerant/soaTolerateFramework/index.xml" title="Hugo Book" />
 <!--
 Made with Book Theme
 https://github.com/alex-shpak/hugo-book

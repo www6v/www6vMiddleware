@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html lang="en" dir="ltr">
-<head><script src="/livereload.js?mindelay=10&amp;v=2&amp;port=1313&amp;path=livereload" data-no-instant defer></script>
+<head>
   <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="description" content="
@@ -9,7 +9,7 @@ Overhead=activeconns*256&#43;inactiveconns WLC：Weighted LC [常用] 默认调�
 Overhead=(activeconns*256&#43;inactiveconns)/weight SED：Shortest Expection Delay Overhead=(activeconns&#43;1)*256/weight NQ：Never Queue， 第一轮均匀分配，后续SED****SED****算法改进 LBLC：Locality-Based LC 动态的 ****DH****连接算法 LBLCR：LBLC with Replication 带复制功能的LBLC Nginx [3]#组件 类型 负载均衡算法 场景 Nginx 静态 轮询 每个请求按时间顺序逐一分配到不同的后端服务器，如果后端服务器 down 掉，能自动剔除 加权轮询 指定轮询几率，weight 和访问比率成正比，用于后端服务器性能不均的情况 IP Hash 每个请求按访问 ip 的 hash 结果分配，这样每个访客固定访问一个后端服务器，可以解决 session 的问题 动态 Fair （第三方） 按后端服务器的响应时间来分配请求，响应时间短的优先分配 url_hash（第三方） 按访问 url 的 hash 结果来分配请求，使每个 url 定向到同一个后端服务器，后端服务器为缓存时比较有效 Least Connections HAproxy#组件 类型 负载均衡算法 场景 HAproxy 静态 轮询 加权轮询 IP Hash 动态 Least Connections Source LVS工作模式[11-16]#DR TUN模式 NAT模式 参考#LVS负载均衡集群服务搭建详解 LVS调度算法总结 LVS、Nginx 及 HAProxy 的区别 LVS集群的负载调度 *** 未 LVS工作模式#LVS三种模式的区别及负载均衡算法 LVS 介绍以及配置应用 *** 深入浅出 LVS 负载均衡（一）NAT、FULLNAT 模型原理 未 深入浅出 LVS 负载均衡（二）DR、TUN 模型原理 未 深入浅出 LVS 负载均衡（三）实操 NAT、TUNNEL 模型 未 深入浅出 LVS 负载均衡（四）实操 DR 模型、Keepalived DR 模型的高可用 未 ">
 <meta name="theme-color" media="(prefers-color-scheme: light)" content="#ffffff">
 <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#343a40">
-<meta name="color-scheme" content="light dark"><meta property="og:url" content="http://localhost:1313/docs/serviceGovernance/loadBalance/loadBalance/">
+<meta name="color-scheme" content="light dark"><meta property="og:url" content="https://example.com/docs/serviceGovernance/loadBalance/loadBalance/">
   <meta property="og:site_name" content="Hugo Book">
   <meta property="og:title" content="负载均衡-算法">
   <meta property="og:description" content="
@@ -21,7 +21,7 @@ Overhead=(activeconns*256&#43;inactiveconns)/weight SED：Shortest Expection Del
 <title>负载均衡-算法 | Hugo Book</title>
 <link rel="icon" href="/favicon.png" >
 <link rel="manifest" href="/manifest.json">
-<link rel="canonical" href="http://localhost:1313/docs/serviceGovernance/loadBalance/loadBalance/">
+<link rel="canonical" href="https://example.com/docs/serviceGovernance/loadBalance/loadBalance/">
 <link rel="stylesheet" href="/book.min.6c8b9d2a1fc95075ed7da46ca81060b39add8fff6741ac51259f768929281e2c.css" integrity="sha256-bIudKh/JUHXtfaRsqBBgs5rdj/9nQaxRJZ92iSkoHiw=" crossorigin="anonymous">
   <script defer src="/fuse.min.js"></script>
   <script defer src="/en.search.min.00f24245ba145350d6a7d4627a067b10704a773920b0be54d269e10ef5c946e1.js" integrity="sha256-APJCRboUU1DWp9RiegZ7EHBKdzkgsL5U0mnhDvXJRuE=" crossorigin="anonymous"></script>
@@ -30,7 +30,7 @@ Overhead=(activeconns*256&#43;inactiveconns)/weight SED：Shortest Expection Del
 
   
 
-<link rel="alternate" type="application/rss+xml" href="http://localhost:1313/docs/serviceGovernance/loadBalance/loadBalance/index.xml" title="Hugo Book" />
+<link rel="alternate" type="application/rss+xml" href="https://example.com/docs/serviceGovernance/loadBalance/loadBalance/index.xml" title="Hugo Book" />
 <!--
 Made with Book Theme
 https://github.com/alex-shpak/hugo-book

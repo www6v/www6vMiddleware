@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html lang="en" dir="ltr">
-<head><script src="/livereload.js?mindelay=10&amp;v=2&amp;port=1313&amp;path=livereload" data-no-instant defer></script>
+<head>
   <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="description" content="Features [0]#Built on Spring Framework 5, Project Reactor and Spring Boot 2.0 Able to match routes on any request attribute. Predicates and filters are specific to routes. Circuit Breaker integration. Spring Cloud DiscoveryClient integration Easy to write Predicates and Filters Request Rate Limiting Path Rewriting 核心概念 [1][2]#路由（Route）
@@ -9,7 +9,7 @@ id：路由标识，要求唯一，名称任意（默认值 uuid，一般不用�
 路由（Route）[1][2]#服务发现-集成nacos服务注册中心 [2]#服务路由配置 spring: cloud: gateway: routes: - id: gateway-provider_1 ## 使用了lb形式，从注册中心负载均衡的获取uri uri: lb://gateway-provider ## 配置断言 predicates: - Path=/gateway/provider/** filters: - AddResponseHeader=X-Response-Foo, Bar 自动路由配置 # enabled：默认为false，设置为true表明spring cloud gateway开启服务发现和路由的功能，网关自动根据注册中心的服务名为每个服务创建一个router，将以服务名开头的请求路径转发到对应的服务 spring.">
 <meta name="theme-color" media="(prefers-color-scheme: light)" content="#ffffff">
 <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#343a40">
-<meta name="color-scheme" content="light dark"><meta property="og:url" content="http://localhost:1313/docs/serviceGovernance/API-Gateway/apiGatawaySpringGateway/">
+<meta name="color-scheme" content="light dark"><meta property="og:url" content="https://example.com/docs/serviceGovernance/API-Gateway/apiGatawaySpringGateway/">
   <meta property="og:site_name" content="Hugo Book">
   <meta property="og:title" content="API 网关-SpringCloud Gateway">
   <meta property="og:description" content="Features [0]#Built on Spring Framework 5, Project Reactor and Spring Boot 2.0 Able to match routes on any request attribute. Predicates and filters are specific to routes. Circuit Breaker integration. Spring Cloud DiscoveryClient integration Easy to write Predicates and Filters Request Rate Limiting Path Rewriting 核心概念 [1][2]#路由（Route）
@@ -25,7 +25,7 @@ id：路由标识，要求唯一，名称任意（默认值 uuid，一般不用�
 <title>API 网关-SpringCloud Gateway | Hugo Book</title>
 <link rel="icon" href="/favicon.png" >
 <link rel="manifest" href="/manifest.json">
-<link rel="canonical" href="http://localhost:1313/docs/serviceGovernance/API-Gateway/apiGatawaySpringGateway/">
+<link rel="canonical" href="https://example.com/docs/serviceGovernance/API-Gateway/apiGatawaySpringGateway/">
 <link rel="stylesheet" href="/book.min.6c8b9d2a1fc95075ed7da46ca81060b39add8fff6741ac51259f768929281e2c.css" integrity="sha256-bIudKh/JUHXtfaRsqBBgs5rdj/9nQaxRJZ92iSkoHiw=" crossorigin="anonymous">
   <script defer src="/fuse.min.js"></script>
   <script defer src="/en.search.min.00f24245ba145350d6a7d4627a067b10704a773920b0be54d269e10ef5c946e1.js" integrity="sha256-APJCRboUU1DWp9RiegZ7EHBKdzkgsL5U0mnhDvXJRuE=" crossorigin="anonymous"></script>

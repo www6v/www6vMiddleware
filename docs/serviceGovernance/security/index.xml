@@ -2,11 +2,11 @@
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
     <title>安全 on Hugo Book</title>
-    <link>http://localhost:1313/docs/serviceGovernance/security/</link>
+    <link>https://example.com/docs/serviceGovernance/security/</link>
     <description>Recent content in 安全 on Hugo Book</description>
     <generator>Hugo</generator>
     <language>en</language>
     <lastBuildDate></lastBuildDate>
-    <atom:link href="http://localhost:1313/docs/serviceGovernance/security/index.xml" rel="self" type="application/rss+xml" />
+    <atom:link href="https://example.com/docs/serviceGovernance/security/index.xml" rel="self" type="application/rss+xml" />
   </channel>
 </rss>
