@@ -1,0 +1,1029 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head><script src="/livereload.js?mindelay=10&amp;v=2&amp;port=1313&amp;path=livereload" data-no-instant defer></script>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="Nginx 参数优化#反向代理#proxy_cache: 10M(重要) proxy_cache_path /data/nginx_cache/ levels=1:2 keys_zone=my_zone:10m inactive=300s max_size=5g; tls ssl#ssl_session_cache builtin:1000 shared:SSL:10m; /// 一天内连接上的用户， 不需要再协商秘钥 ssl_session_cache builtin:1000 shared:SSL:10m; /// 1m -&gt; 4000个https连接 ssl_session_timeout 10m; /// 10分钟 ssl_protocols TLSv1.2; /// 版本号 非安全请求重定向#No redirect: 无重定向 Redirect： 301-302 -》 转到https站点 gzip#gzip on; gzip_comp_level 5; gzip_http_version 1.1; /// 注意：gzip 在1.1上有效， http2.0上是无效的 gzip_min_length 256; gzip_types application/atom&#43;xml ... gzip_proxied any; gzip_vary on; worker#worker_connections 16384; /// 一个worker有 16384/2=8192 ‬个链接 .">
+<meta name="theme-color" media="(prefers-color-scheme: light)" content="#ffffff">
+<meta name="theme-color" media="(prefers-color-scheme: dark)" content="#343a40">
+<meta name="color-scheme" content="light dark"><meta property="og:url" content="http://localhost:1313/docs/serviceGovernance/loadBalance/nginxOptimize/">
+  <meta property="og:site_name" content="Hugo Book">
+  <meta property="og:title" content="Nginx优化">
+  <meta property="og:description" content="Nginx 参数优化#反向代理#proxy_cache: 10M(重要) proxy_cache_path /data/nginx_cache/ levels=1:2 keys_zone=my_zone:10m inactive=300s max_size=5g; tls ssl#ssl_session_cache builtin:1000 shared:SSL:10m; /// 一天内连接上的用户， 不需要再协商秘钥 ssl_session_cache builtin:1000 shared:SSL:10m; /// 1m -&gt; 4000个https连接 ssl_session_timeout 10m; /// 10分钟 ssl_protocols TLSv1.2; /// 版本号 非安全请求重定向#No redirect: 无重定向 Redirect： 301-302 -》 转到https站点 gzip#gzip on; gzip_comp_level 5; gzip_http_version 1.1; /// 注意：gzip 在1.1上有效， http2.0上是无效的 gzip_min_length 256; gzip_types application/atom&#43;xml ... gzip_proxied any; gzip_vary on; worker#worker_connections 16384; /// 一个worker有 16384/2=8192 ‬个链接 .">
+  <meta property="og:locale" content="en">
+  <meta property="og:type" content="article">
+    <meta property="article:section" content="docs">
+    <meta property="article:published_time" content="2020-03-26T12:07:27+00:00">
+    <meta property="article:modified_time" content="2020-03-26T12:07:27+00:00">
+    <meta property="article:tag" content="Nginx">
+<title>Nginx优化 | Hugo Book</title>
+<link rel="icon" href="/favicon.png" >
+<link rel="manifest" href="/manifest.json">
+<link rel="canonical" href="http://localhost:1313/docs/serviceGovernance/loadBalance/nginxOptimize/">
+<link rel="stylesheet" href="/book.min.6c8b9d2a1fc95075ed7da46ca81060b39add8fff6741ac51259f768929281e2c.css" integrity="sha256-bIudKh/JUHXtfaRsqBBgs5rdj/9nQaxRJZ92iSkoHiw=" crossorigin="anonymous">
+  <script defer src="/fuse.min.js"></script>
+  <script defer src="/en.search.min.00f24245ba145350d6a7d4627a067b10704a773920b0be54d269e10ef5c946e1.js" integrity="sha256-APJCRboUU1DWp9RiegZ7EHBKdzkgsL5U0mnhDvXJRuE=" crossorigin="anonymous"></script>
+
+  <script defer src="/sw.min.6f6f90fcb8eb1c49ec389838e6b801d0de19430b8e516902f8d75c3c8bd98739.js" integrity="sha256-b2&#43;Q/LjrHEnsOJg45rgB0N4ZQwuOUWkC&#43;NdcPIvZhzk=" crossorigin="anonymous"></script>
+
+  
+
+<!--
+Made with Book Theme
+https://github.com/alex-shpak/hugo-book
+-->
+  
+</head>
+<body dir="ltr">
+  <input type="checkbox" class="hidden toggle" id="menu-control" />
+  <input type="checkbox" class="hidden toggle" id="toc-control" />
+  <main class="container flex">
+    <aside class="book-menu">
+      <div class="book-menu-content">
+        
+  <nav>
+<h2 class="book-brand">
+  <a class="flex align-center" href="/"><span>Hugo Book</span>
+  </a>
+</h2>
+
+
+<div class="book-search hidden">
+  <input type="text" id="book-search-input" placeholder="Search" aria-label="Search" maxlength="64" data-hotkeys="s/" />
+  <div class="book-search-spinner hidden"></div>
+  <ul id="book-search-results"></ul>
+</div>
+<script>document.querySelector(".book-search").classList.remove("hidden")</script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <span>服务治理</span>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <span>Overview</span>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/serviceGovernance/Overview/microservice/" class="">微服务 总结</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/serviceGovernance/Overview/soaFeature/" class="">分布式服务框架功能</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <span>API Gateway</span>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/serviceGovernance/API-Gateway/apiGatawaySpringGateway/" class="">API 网关-SpringCloud Gateway</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/serviceGovernance/API-Gateway/apiGatawayApisix/" class="">API 网关-apisix</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/serviceGovernance/API-Gateway/apiGateway/" class="">API Gateway网关</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <span>Config &amp; Discovery</span>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/serviceGovernance/ConfigDiscovery/soaDiscovery/" class="">服务发现</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/serviceGovernance/ConfigDiscovery/config/" class="">服务治理-分布式配置</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <span>负载均衡</span>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/serviceGovernance/loadBalance/loadBalance/" class="">负载均衡-算法</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/serviceGovernance/loadBalance/nginxOptimize/" class="active">Nginx优化</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/serviceGovernance/loadBalance/nginx/" class="">Nginx总结</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <span>线程模型</span>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/serviceGovernance/threadModel/jsfThreadModel/" class="">京东服务框架JSF服务提供者线程模型</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <span>容错&amp;限流</span>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <span>容错</span>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/serviceGovernance/faultTolerant/faultTolerant/soaTolerateFramework/" class="">容错框架</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/serviceGovernance/faultTolerant/faultTolerant/soaTimeout/" class="">超时和重试 总结</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/serviceGovernance/faultTolerant/faultTolerant/soaTolerate/" class="">分布式服务框架 容错机制</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <span>限流</span>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/serviceGovernance/faultTolerant/throttle/ratelimitSentinel/" class="">流量治理-Sentinel</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/serviceGovernance/faultTolerant/throttle/ratelimit/" class="">限流-总结</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/serviceGovernance/faultTolerant/soaGracefulStart/" class="">优雅启动</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/serviceGovernance/faultTolerant/soaGracefulClose/" class="">优雅关闭</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <span>Spring Cloud</span>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/serviceGovernance/Springcloud/springTransactionInvalid/" class="">Spring  Transaction  失效</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/serviceGovernance/Springcloud/springCloud/" class="">SpringCloud</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/serviceGovernance/Springcloud/springboot/" class="">SpringBoot</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/serviceGovernance/Springcloud/springTransaction/" class="">Spring事务</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <span>灰度发布</span>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/serviceGovernance/Gray/apiGatewayGray/" class="">API 网关-灰度发布</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <span>安全</span>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/serviceGovernance/security/soaAuth/" class="">服务治理-鉴权</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/serviceGovernance/security/securityOAuth2/" class="">安全-OAuth2</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</nav>
+
+
+
+
+  <script>(function(){var e=document.querySelector("aside .book-menu-content");addEventListener("beforeunload",function(){localStorage.setItem("menu.scrollTop",e.scrollTop)}),e.scrollTop=localStorage.getItem("menu.scrollTop")})()</script>
+
+
+ 
+      </div>
+    </aside>
+
+    <div class="book-page">
+      <header class="book-header">
+        
+  <div class="flex align-center justify-between">
+  <label for="menu-control">
+    <img src="/svg/menu.svg" class="book-icon" alt="Menu" />
+  </label>
+
+  <h3>Nginx优化</h3>
+
+  <label for="toc-control">
+    
+    <img src="/svg/toc.svg" class="book-icon" alt="Table of Contents" />
+    
+  </label>
+</div>
+
+
+  
+  <aside class="hidden clearfix">
+    
+  
+<nav id="TableOfContents">
+  <ul>
+    <li>
+      <ul>
+        <li><a href="#nginx-参数优化">Nginx 参数优化</a>
+          <ul>
+            <li><a href="#反向代理">反向代理</a></li>
+            <li><a href="#tls-ssl">tls ssl</a></li>
+            <li><a href="#非安全请求重定向">非安全请求重定向</a></li>
+            <li><a href="#gzip">gzip</a></li>
+            <li><a href="#worker">worker</a></li>
+            <li><a href="#减少进程间切换">减少进程间切换</a></li>
+            <li><a href="#提升cpu缓存命中率">提升CPU缓存命中率</a></li>
+            <li><a href="#lua-分配的内存暂时没有使用">lua 分配的内存（暂时没有使用）</a></li>
+            <li><a href="#http的keeplive--长链接一个tcp的链接上面有多个http的请求">http的keeplive  长链接（一个tcp的链接，上面有多个http的请求）</a></li>
+          </ul>
+        </li>
+        <li><a href="#测试用例">测试用例</a>
+          <ul>
+            <li><a href="#case1">case1</a></li>
+            <li><a href="#case2">case2</a></li>
+          </ul>
+        </li>
+        <li><a href="#参考">参考</a></li>
+      </ul>
+    </li>
+  </ul>
+</nav>
+
+
+
+  </aside>
+  
+ 
+      </header>
+
+      
+      
+  <article class="markdown book-article"><p></p>
+<!-- more -->
+<h2 id="nginx-参数优化">
+  Nginx 参数优化
+  <a class="anchor" href="#nginx-%e5%8f%82%e6%95%b0%e4%bc%98%e5%8c%96">#</a>
+</h2>
+<h3 id="反向代理">
+  反向代理
+  <a class="anchor" href="#%e5%8f%8d%e5%90%91%e4%bb%a3%e7%90%86">#</a>
+</h3>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-nginx" data-lang="nginx"><span style="display:flex;"><span><span style="color:#66d9ef">proxy_cache:</span> <span style="color:#e6db74">10M(重要)</span>
+</span></span><span style="display:flex;"><span><span style="color:#e6db74">proxy_cache_path</span> <span style="color:#e6db74">/data/nginx_cache/</span> <span style="color:#e6db74">levels=1:2</span> <span style="color:#e6db74">keys_zone=my_zone:10m</span> <span style="color:#e6db74">inactive=300s</span> <span style="color:#e6db74">max_size=5g</span>;
+</span></span></code></pre></div><h3 id="tls-ssl">
+  tls ssl
+  <a class="anchor" href="#tls-ssl">#</a>
+</h3>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-nginx" data-lang="nginx"><span style="display:flex;"><span><span style="color:#66d9ef">ssl_session_cache</span> builtin:<span style="color:#ae81ff">1000</span> <span style="color:#e6db74">shared:SSL:10m</span>;  <span style="color:#66d9ef">///</span> <span style="color:#e6db74">一天内连接上的用户，</span> <span style="color:#e6db74">不需要再协商秘钥</span>
+</span></span><span style="display:flex;"><span><span style="color:#e6db74">ssl_session_cache</span> builtin:<span style="color:#ae81ff">1000</span> <span style="color:#e6db74">shared:SSL:10m</span>;  <span style="color:#66d9ef">///</span> <span style="color:#ae81ff">1m</span> <span style="color:#e6db74">-&gt;</span> <span style="color:#e6db74">4000个https连接</span>
+</span></span><span style="display:flex;"><span><span style="color:#e6db74">ssl_session_timeout</span> <span style="color:#ae81ff">10m</span>; <span style="color:#66d9ef">///</span> <span style="color:#e6db74">10分钟</span>
+</span></span><span style="display:flex;"><span><span style="color:#e6db74">ssl_protocols</span> <span style="color:#e6db74">TLSv1.2</span>;  <span style="color:#66d9ef">///</span> <span style="color:#e6db74">版本号</span>
+</span></span></code></pre></div><h3 id="非安全请求重定向">
+  非安全请求重定向
+  <a class="anchor" href="#%e9%9d%9e%e5%ae%89%e5%85%a8%e8%af%b7%e6%b1%82%e9%87%8d%e5%ae%9a%e5%90%91">#</a>
+</h3>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-nginx" data-lang="nginx"><span style="display:flex;"><span><span style="color:#66d9ef">No</span> <span style="color:#e6db74">redirect:</span>  <span style="color:#e6db74">无重定向</span> 
+</span></span><span style="display:flex;"><span><span style="color:#e6db74">Redirect：</span> <span style="color:#ae81ff">301</span><span style="color:#e6db74">-302</span> <span style="color:#e6db74">-》</span> <span style="color:#e6db74">转到https站点</span> 
+</span></span></code></pre></div><h3 id="gzip">
+  gzip
+  <a class="anchor" href="#gzip">#</a>
+</h3>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-nginx" data-lang="nginx"><span style="display:flex;"><span><span style="color:#66d9ef">gzip</span> <span style="color:#66d9ef">on</span>;
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">gzip_comp_level</span> <span style="color:#ae81ff">5</span>;
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">gzip_http_version</span> <span style="color:#ae81ff">1</span><span style="color:#e6db74">.1</span>;   <span style="color:#66d9ef">///</span> <span style="color:#e6db74">注意：gzip</span> <span style="color:#e6db74">在1.1上有效，</span> <span style="color:#e6db74">http2.0上是无效的</span>
+</span></span><span style="display:flex;"><span><span style="color:#e6db74">gzip_min_length</span> <span style="color:#ae81ff">256</span>;
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">gzip_types</span> <span style="color:#e6db74">application/atom+xml</span> <span style="color:#e6db74">...</span> 
+</span></span><span style="display:flex;"><span><span style="color:#e6db74">gzip_proxied</span> <span style="color:#e6db74">any</span>;
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">gzip_vary</span> <span style="color:#66d9ef">on</span>;
+</span></span></code></pre></div><h3 id="worker">
+  worker
+  <a class="anchor" href="#worker">#</a>
+</h3>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-nginx" data-lang="nginx"><span style="display:flex;"><span><span style="color:#66d9ef">worker_connections</span>  <span style="color:#ae81ff">16384</span>;  <span style="color:#66d9ef">///</span>    <span style="color:#e6db74">一个worker有</span> <span style="color:#ae81ff">16384</span><span style="color:#e6db74">/2=8192</span> <span style="color:#e6db74">‬个链接</span> <span style="color:#e6db74">.</span>
+</span></span><span style="display:flex;"><span>                                   <span style="color:#e6db74">两个事件，</span> <span style="color:#e6db74">一个读事件，</span> <span style="color:#e6db74">一个写事件。</span> 
+</span></span><span style="display:flex;"><span>                                   <span style="color:#e6db74">越多的connections对应更多的内存消耗。</span>
+</span></span><span style="display:flex;"><span><span style="color:#e6db74">Default:</span> <span style="color:#e6db74">worker_connections</span> <span style="color:#ae81ff">512</span>;                                 
+</span></span></code></pre></div><div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-nginx" data-lang="nginx"><span style="display:flex;"><span><span style="color:#66d9ef">高级选项：</span>
+</span></span><span style="display:flex;"><span><span style="color:#e6db74">worker</span> <span style="color:#e6db74">connections的内存池（pools），</span> <span style="color:#e6db74">更少的的内存碎片。一般是nginx自动分配的，</span> <span style="color:#e6db74">不用分配。</span>
+</span></span><span style="display:flex;"><span><span style="color:#e6db74">Default:</span> 	<span style="color:#e6db74">connection_pool_size</span> <span style="color:#ae81ff">256</span><span style="color:#e6db74">|512</span>
+</span></span><span style="display:flex;"><span><span style="color:#e6db74">Default:</span> 	<span style="color:#e6db74">request_pool_size</span> <span style="color:#ae81ff">4k</span>;
+</span></span></code></pre></div><div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-nginx" data-lang="nginx"><span style="display:flex;"><span><span style="color:#66d9ef">worker_processes</span>  <span style="color:#e6db74">设置worker进程的数量</span>
+</span></span></code></pre></div><h3 id="减少进程间切换">
+  减少进程间切换
+  <a class="anchor" href="#%e5%87%8f%e5%b0%91%e8%bf%9b%e7%a8%8b%e9%97%b4%e5%88%87%e6%8d%a2">#</a>
+</h3>
+<p>程间切换： cpu从一个进程或线程切换到另一个进程或线程。</p>
+<ul>
+<li>主动切换和被动切换</li>
+<li>减少主动切换</li>
+<li>被动切换：时间片耗尽。
+减少被动切换： <strong>增大进程优先级</strong>
+Nice 静态优先级: -20 &ndash; 19
+Priority 动态优先级： 0-139</li>
+</ul>
+<h3 id="提升cpu缓存命中率">
+  提升CPU缓存命中率
+  <a class="anchor" href="#%e6%8f%90%e5%8d%87cpu%e7%bc%93%e5%ad%98%e5%91%bd%e4%b8%ad%e7%8e%87">#</a>
+</h3>
+<ul>
+<li><strong>绑定worker到指定cpu</strong>
+L1,L2(cpu独享)
+L3（共享的）</li>
+</ul>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-nginx" data-lang="nginx"><span style="display:flex;"><span><span style="color:#66d9ef">worker_cpu_affinity</span> <span style="color:#e6db74">cpumask</span> <span style="color:#e6db74">...</span>;
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">worker_cpu_affinity</span> <span style="color:#e6db74">auto</span> <span style="color:#e6db74">[cpumask]</span>;
+</span></span></code></pre></div><h3 id="lua-分配的内存暂时没有使用">
+  lua 分配的内存（暂时没有使用）
+  <a class="anchor" href="#lua-%e5%88%86%e9%85%8d%e7%9a%84%e5%86%85%e5%ad%98%e6%9a%82%e6%97%b6%e6%b2%a1%e6%9c%89%e4%bd%bf%e7%94%a8">#</a>
+</h3>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-nginx" data-lang="nginx"><span style="display:flex;"><span><span style="color:#66d9ef">lua_shared_dict</span> <span style="color:#e6db74">configuration_data</span> <span style="color:#e6db74">5M</span>;
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">lua_shared_dict</span> <span style="color:#e6db74">certificate_data</span> <span style="color:#e6db74">16M</span>;
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">//</span> <span style="color:#e6db74">应用场景:</span> <span style="color:#e6db74">集群流控,</span>  <span style="color:#e6db74">多个worker之间的内存的共享。</span>
+</span></span></code></pre></div><h3 id="http的keeplive--长链接一个tcp的链接上面有多个http的请求">
+  http的keeplive  长链接（一个tcp的链接，上面有多个http的请求）
+  <a class="anchor" href="#http%e7%9a%84keeplive--%e9%95%bf%e9%93%be%e6%8e%a5%e4%b8%80%e4%b8%aatcp%e7%9a%84%e9%93%be%e6%8e%a5%e4%b8%8a%e9%9d%a2%e6%9c%89%e5%a4%9a%e4%b8%aahttp%e7%9a%84%e8%af%b7%e6%b1%82">#</a>
+</h3>
+<p>注意: 非tcp keeplive</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-nginx" data-lang="nginx"><span style="display:flex;"><span><span style="color:#66d9ef">keepalive_disable</span>;  <span style="color:#66d9ef">///</span> <span style="color:#e6db74">没有设置</span>
+</span></span><span style="display:flex;"><span><span style="color:#e6db74">keepalive_timeout</span>  <span style="color:#e6db74">75s</span>; <span style="color:#66d9ef">//</span> <span style="color:#e6db74">默认值</span>
+</span></span><span style="display:flex;"><span><span style="color:#e6db74">keepalive_requests</span> <span style="color:#ae81ff">100</span>; <span style="color:#66d9ef">//</span> <span style="color:#e6db74">默认值</span>  <span style="color:#e6db74">一个tcp请求中可发100个http请求</span>
+</span></span></code></pre></div><h2 id="测试用例">
+  测试用例
+  <a class="anchor" href="#%e6%b5%8b%e8%af%95%e7%94%a8%e4%be%8b">#</a>
+</h2>
+<p>URL：logsearch.sh.pre.urtc.com.cn</p>
+<h3 id="case1">
+  case1
+  <a class="anchor" href="#case1">#</a>
+</h3>
+<p>input：
+1000用户并发, 短连接， 非keepalive的</p>
+<p>result：
+链接数  40000+<br>
+tps 4000+<br>
+avg 百ms</p>
+<h3 id="case2">
+  case2
+  <a class="anchor" href="#case2">#</a>
+</h3>
+<p>input：
+1500用户并发，短连接， 非keepalive的</p>
+<p>result：
+链接数 30000+，<br>
+tps 4000+ ，<br>
+avg 200ms+</p>
+<h2 id="参考">
+  参考
+  <a class="anchor" href="#%e5%8f%82%e8%80%83">#</a>
+</h2>
+<ol start="100">
+<li>
+  <a href="https://www.cnblogs.com/xfeiyun/p/15877678.html">Nginx全面配置</a>  *** 未</li>
+</ol>
+</article>
+ 
+      
+
+      <footer class="book-footer">
+        
+  <div class="flex flex-wrap justify-between">
+
+
+
+
+
+</div>
+
+
+
+  <script>(function(){function e(e){const t=window.getSelection(),n=document.createRange();n.selectNodeContents(e),t.removeAllRanges(),t.addRange(n)}document.querySelectorAll("pre code").forEach(t=>{t.addEventListener("click",function(){if(window.getSelection().toString())return;e(t.parentElement),navigator.clipboard&&navigator.clipboard.writeText(t.parentElement.textContent)})})})()</script>
+
+
+ 
+        
+      </footer>
+
+      
+  
+  <div class="book-comments">
+
+</div>
+  
+ 
+
+      <label for="menu-control" class="hidden book-menu-overlay"></label>
+    </div>
+
+    
+    <aside class="book-toc">
+      <div class="book-toc-content">
+        
+  
+<nav id="TableOfContents">
+  <ul>
+    <li>
+      <ul>
+        <li><a href="#nginx-参数优化">Nginx 参数优化</a>
+          <ul>
+            <li><a href="#反向代理">反向代理</a></li>
+            <li><a href="#tls-ssl">tls ssl</a></li>
+            <li><a href="#非安全请求重定向">非安全请求重定向</a></li>
+            <li><a href="#gzip">gzip</a></li>
+            <li><a href="#worker">worker</a></li>
+            <li><a href="#减少进程间切换">减少进程间切换</a></li>
+            <li><a href="#提升cpu缓存命中率">提升CPU缓存命中率</a></li>
+            <li><a href="#lua-分配的内存暂时没有使用">lua 分配的内存（暂时没有使用）</a></li>
+            <li><a href="#http的keeplive--长链接一个tcp的链接上面有多个http的请求">http的keeplive  长链接（一个tcp的链接，上面有多个http的请求）</a></li>
+          </ul>
+        </li>
+        <li><a href="#测试用例">测试用例</a>
+          <ul>
+            <li><a href="#case1">case1</a></li>
+            <li><a href="#case2">case2</a></li>
+          </ul>
+        </li>
+        <li><a href="#参考">参考</a></li>
+      </ul>
+    </li>
+  </ul>
+</nav>
+
+
+ 
+      </div>
+    </aside>
+    
+  </main>
+
+  
+</body>
+</html>
+
+
+
+
+
+
+
+
+
+
+
+

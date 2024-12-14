@@ -1,0 +1,959 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head><script src="/livereload.js?mindelay=10&amp;v=2&amp;port=1313&amp;path=livereload" data-no-instant defer></script>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="
+京东服务框架JSF#JSF是京东基础架构组的服务化中间件产品，全名是Jingdong Service Framework（中文名：杰夫）。 JSF整体是依据netty来构建的，本文从代码层面简单介绍一下JSF服务端的线程模型。
+1.JSF的服务端线程模型整体上是 boss线程池 &#43; worker线程池 &#43; 业务线程池。boss线程池和worker线程池称为Reactor线程池。#三类线程池各自的参数详见下图1。
+worker线程池和业务线程池之间的关系详见下图2，在图中可以看到业务线程和worker线程是解耦的，请求放入业务线程后，IO线程即worker线程就返回了，业务线程和I/O线程隔离。 在没有解耦IO线程和业务ChannelHandler的情况时，如果在业务ChannelHandler中进行数据库等同步I/O操作，很有可能会导致IO线程中的pipeline链路被阻塞。
+2. 图3是boss线程池， 线程数为Max(4,cpu/2)，用户不可以配置#3. 图4是worker线程池， 线程数为Max(8,cpu&#43;1)，用户可以配置#4.图5和图6是业务线程池的构建，cached线程池大小是20-200，默认queue的大小是0。 任务来了直接分配线程，直到线程池满，得不到执行线程抛异常。#图7中一个服务端口对应一个业务线程池。
+5. 在ChannelPipeline中ServerHandler根据服务端的配置获取对应的业务线程池，然后在ServerHandler的handlerRequest中提交业务任务，默认的任务是JSFTask。#具体实现如图8,9,10.
+可以看到，JSF服务提供者线程模型整体还是按照boss&#43;worker&#43;biz这种netty官方推荐的方式构建的。
+参考：#京东 jsf 源代码和文档 Netty案例集锦之多线程篇（续） 李林锋 ">
+<meta name="theme-color" media="(prefers-color-scheme: light)" content="#ffffff">
+<meta name="theme-color" media="(prefers-color-scheme: dark)" content="#343a40">
+<meta name="color-scheme" content="light dark"><meta property="og:url" content="http://localhost:1313/docs/serviceGovernance/threadModel/jsfThreadModel/">
+  <meta property="og:site_name" content="Hugo Book">
+  <meta property="og:title" content="京东服务框架JSF服务提供者线程模型">
+  <meta property="og:description" content="
+京东服务框架JSF#JSF是京东基础架构组的服务化中间件产品，全名是Jingdong Service Framework（中文名：杰夫）。 JSF整体是依据netty来构建的，本文从代码层面简单介绍一下JSF服务端的线程模型。
+1.JSF的服务端线程模型整体上是 boss线程池 &#43; worker线程池 &#43; 业务线程池。boss线程池和worker线程池称为Reactor线程池。#三类线程池各自的参数详见下图1。
+worker线程池和业务线程池之间的关系详见下图2，在图中可以看到业务线程和worker线程是解耦的，请求放入业务线程后，IO线程即worker线程就返回了，业务线程和I/O线程隔离。 在没有解耦IO线程和业务ChannelHandler的情况时，如果在业务ChannelHandler中进行数据库等同步I/O操作，很有可能会导致IO线程中的pipeline链路被阻塞。
+2. 图3是boss线程池， 线程数为Max(4,cpu/2)，用户不可以配置#3. 图4是worker线程池， 线程数为Max(8,cpu&#43;1)，用户可以配置#4.图5和图6是业务线程池的构建，cached线程池大小是20-200，默认queue的大小是0。 任务来了直接分配线程，直到线程池满，得不到执行线程抛异常。#图7中一个服务端口对应一个业务线程池。
+5. 在ChannelPipeline中ServerHandler根据服务端的配置获取对应的业务线程池，然后在ServerHandler的handlerRequest中提交业务任务，默认的任务是JSFTask。#具体实现如图8,9,10.
+可以看到，JSF服务提供者线程模型整体还是按照boss&#43;worker&#43;biz这种netty官方推荐的方式构建的。
+参考：#京东 jsf 源代码和文档 Netty案例集锦之多线程篇（续） 李林锋 ">
+  <meta property="og:locale" content="en">
+  <meta property="og:type" content="website">
+<title>京东服务框架JSF服务提供者线程模型 | Hugo Book</title>
+<link rel="icon" href="/favicon.png" >
+<link rel="manifest" href="/manifest.json">
+<link rel="canonical" href="http://localhost:1313/docs/serviceGovernance/threadModel/jsfThreadModel/">
+<link rel="stylesheet" href="/book.min.6c8b9d2a1fc95075ed7da46ca81060b39add8fff6741ac51259f768929281e2c.css" integrity="sha256-bIudKh/JUHXtfaRsqBBgs5rdj/9nQaxRJZ92iSkoHiw=" crossorigin="anonymous">
+  <script defer src="/fuse.min.js"></script>
+  <script defer src="/en.search.min.00f24245ba145350d6a7d4627a067b10704a773920b0be54d269e10ef5c946e1.js" integrity="sha256-APJCRboUU1DWp9RiegZ7EHBKdzkgsL5U0mnhDvXJRuE=" crossorigin="anonymous"></script>
+
+  <script defer src="/sw.min.6f6f90fcb8eb1c49ec389838e6b801d0de19430b8e516902f8d75c3c8bd98739.js" integrity="sha256-b2&#43;Q/LjrHEnsOJg45rgB0N4ZQwuOUWkC&#43;NdcPIvZhzk=" crossorigin="anonymous"></script>
+
+  
+
+<link rel="alternate" type="application/rss+xml" href="http://localhost:1313/docs/serviceGovernance/threadModel/jsfThreadModel/index.xml" title="Hugo Book" />
+<!--
+Made with Book Theme
+https://github.com/alex-shpak/hugo-book
+-->
+  
+</head>
+<body dir="ltr">
+  <input type="checkbox" class="hidden toggle" id="menu-control" />
+  <input type="checkbox" class="hidden toggle" id="toc-control" />
+  <main class="container flex">
+    <aside class="book-menu">
+      <div class="book-menu-content">
+        
+  <nav>
+<h2 class="book-brand">
+  <a class="flex align-center" href="/"><span>Hugo Book</span>
+  </a>
+</h2>
+
+
+<div class="book-search hidden">
+  <input type="text" id="book-search-input" placeholder="Search" aria-label="Search" maxlength="64" data-hotkeys="s/" />
+  <div class="book-search-spinner hidden"></div>
+  <ul id="book-search-results"></ul>
+</div>
+<script>document.querySelector(".book-search").classList.remove("hidden")</script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <span>服务治理</span>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <span>Overview</span>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/serviceGovernance/Overview/microservice/" class="">微服务 总结</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/serviceGovernance/Overview/soaFeature/" class="">分布式服务框架功能</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <span>API Gateway</span>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/serviceGovernance/API-Gateway/apiGatawaySpringGateway/" class="">API 网关-SpringCloud Gateway</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/serviceGovernance/API-Gateway/apiGatawayApisix/" class="">API 网关-apisix</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/serviceGovernance/API-Gateway/apiGateway/" class="">API Gateway网关</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <span>Config &amp; Discovery</span>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/serviceGovernance/ConfigDiscovery/soaDiscovery/" class="">服务发现</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/serviceGovernance/ConfigDiscovery/config/" class="">服务治理-分布式配置</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <span>负载均衡</span>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/serviceGovernance/loadBalance/loadBalance/" class="">负载均衡-算法</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/serviceGovernance/loadBalance/nginxOptimize/" class="">Nginx优化</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/serviceGovernance/loadBalance/nginx/" class="">Nginx总结</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <span>线程模型</span>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/serviceGovernance/threadModel/jsfThreadModel/" class="active">京东服务框架JSF服务提供者线程模型</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <span>容错&amp;限流</span>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <span>容错</span>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/serviceGovernance/faultTolerant/faultTolerant/soaTolerateFramework/" class="">容错框架</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/serviceGovernance/faultTolerant/faultTolerant/soaTimeout/" class="">超时和重试 总结</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/serviceGovernance/faultTolerant/faultTolerant/soaTolerate/" class="">分布式服务框架 容错机制</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <span>限流</span>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/serviceGovernance/faultTolerant/throttle/ratelimitSentinel/" class="">流量治理-Sentinel</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/serviceGovernance/faultTolerant/throttle/ratelimit/" class="">限流-总结</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/serviceGovernance/faultTolerant/soaGracefulStart/" class="">优雅启动</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/serviceGovernance/faultTolerant/soaGracefulClose/" class="">优雅关闭</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <span>Spring Cloud</span>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/serviceGovernance/Springcloud/springTransactionInvalid/" class="">Spring  Transaction  失效</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/serviceGovernance/Springcloud/springCloud/" class="">SpringCloud</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/serviceGovernance/Springcloud/springboot/" class="">SpringBoot</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/serviceGovernance/Springcloud/springTransaction/" class="">Spring事务</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <span>灰度发布</span>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/serviceGovernance/Gray/apiGatewayGray/" class="">API 网关-灰度发布</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <span>安全</span>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/serviceGovernance/security/soaAuth/" class="">服务治理-鉴权</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/serviceGovernance/security/securityOAuth2/" class="">安全-OAuth2</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</nav>
+
+
+
+
+  <script>(function(){var e=document.querySelector("aside .book-menu-content");addEventListener("beforeunload",function(){localStorage.setItem("menu.scrollTop",e.scrollTop)}),e.scrollTop=localStorage.getItem("menu.scrollTop")})()</script>
+
+
+ 
+      </div>
+    </aside>
+
+    <div class="book-page">
+      <header class="book-header">
+        
+  <div class="flex align-center justify-between">
+  <label for="menu-control">
+    <img src="/svg/menu.svg" class="book-icon" alt="Menu" />
+  </label>
+
+  <h3>京东服务框架JSF服务提供者线程模型</h3>
+
+  <label for="toc-control">
+    
+    <img src="/svg/toc.svg" class="book-icon" alt="Table of Contents" />
+    
+  </label>
+</div>
+
+
+  
+  <aside class="hidden clearfix">
+    
+  
+<nav id="TableOfContents">
+  <ul>
+    <li><a href="#京东服务框架jsf">京东服务框架JSF</a>
+      <ul>
+        <li>
+          <ul>
+            <li><a href="#1jsf的服务端线程模型整体上是-boss线程池--worker线程池--业务线程池boss线程池和worker线程池称为reactor线程池">1.JSF的服务端线程模型整体上是 boss线程池 + worker线程池 + 业务线程池。boss线程池和worker线程池称为Reactor线程池。</a></li>
+            <li><a href="#2-图3是boss线程池-线程数为max4cpu2用户不可以配置">2. 图3是boss线程池， 线程数为Max(4,cpu/2)，用户不可以配置</a></li>
+            <li><a href="#3-图4是worker线程池-线程数为max8cpu1用户可以配置">3. 图4是worker线程池， 线程数为Max(8,cpu+1)，用户可以配置</a></li>
+            <li><a href="#4图5和图6是业务线程池的构建cached线程池大小是20-200默认queue的大小是0-任务来了直接分配线程直到线程池满得不到执行线程抛异常">4.图5和图6是业务线程池的构建，cached线程池大小是20-200，默认queue的大小是0。 任务来了直接分配线程，直到线程池满，得不到执行线程抛异常。</a></li>
+            <li><a href="#5-在channelpipeline中serverhandler根据服务端的配置获取对应的业务线程池然后在serverhandler的handlerrequest中提交业务任务默认的任务是jsftask">5. 在ChannelPipeline中ServerHandler根据服务端的配置获取对应的业务线程池，然后在ServerHandler的handlerRequest中提交业务任务，默认的任务是JSFTask。</a></li>
+          </ul>
+        </li>
+        <li><a href="#参考">参考：</a></li>
+      </ul>
+    </li>
+  </ul>
+</nav>
+
+
+
+  </aside>
+  
+ 
+      </header>
+
+      
+      
+  <article class="markdown book-article"><p></p>
+<!-- more -->
+<h1 id="京东服务框架jsf">
+  京东服务框架JSF
+  <a class="anchor" href="#%e4%ba%ac%e4%b8%9c%e6%9c%8d%e5%8a%a1%e6%a1%86%e6%9e%b6jsf">#</a>
+</h1>
+<p>JSF是京东基础架构组的服务化中间件产品，全名是Jingdong Service Framework（中文名：杰夫）。
+JSF整体是依据netty来构建的，本文从代码层面简单介绍一下JSF服务端的线程模型。</p>
+<h3 id="1jsf的服务端线程模型整体上是-boss线程池--worker线程池--业务线程池boss线程池和worker线程池称为reactor线程池">
+  1.JSF的服务端线程模型整体上是 boss线程池 + worker线程池 + 业务线程池。boss线程池和worker线程池称为Reactor线程池。
+  <a class="anchor" href="#1jsf%e7%9a%84%e6%9c%8d%e5%8a%a1%e7%ab%af%e7%ba%bf%e7%a8%8b%e6%a8%a1%e5%9e%8b%e6%95%b4%e4%bd%93%e4%b8%8a%e6%98%af-boss%e7%ba%bf%e7%a8%8b%e6%b1%a0--worker%e7%ba%bf%e7%a8%8b%e6%b1%a0--%e4%b8%9a%e5%8a%a1%e7%ba%bf%e7%a8%8b%e6%b1%a0boss%e7%ba%bf%e7%a8%8b%e6%b1%a0%e5%92%8cworker%e7%ba%bf%e7%a8%8b%e6%b1%a0%e7%a7%b0%e4%b8%bareactor%e7%ba%bf%e7%a8%8b%e6%b1%a0">#</a>
+</h3>
+<p>三类线程池各自的参数详见下图1。</p>
+<p>worker线程池和业务线程池之间的关系详见下图2，在图中可以看到业务线程和worker线程是解耦的，请求放入业务线程后，IO线程即worker线程就返回了，业务线程和I/O线程隔离。 在没有解耦IO线程和业务ChannelHandler的情况时，如果在业务ChannelHandler中进行数据库等同步I/O操作，很有可能会导致IO线程中的pipeline链路被阻塞。</p>
+<p>
+  <img src="./images/jsf%e7%ba%bf%e7%a8%8b%e6%a8%a1%e5%9e%8b_%e5%8f%82%e6%95%b0.jpg" alt="图1 三类线程池各自的参数" /></p>
+<p>
+  <img src="http://www6v.github.io/www6vHome/jsf%20%E7%BA%BF%E7%A8%8B%E6%A8%A1%E5%9E%8B/netty%20%E7%BA%BF%E7%A8%8B%E6%A8%A1%E5%9E%8B.png" alt="图2 worker线程池和业务线程池关系" title="图2 worker线程池和业务线程池关系"/></p>
+<h3 id="2-图3是boss线程池-线程数为max4cpu2用户不可以配置">
+  2. 图3是boss线程池， 线程数为Max(4,cpu/2)，用户不可以配置
+  <a class="anchor" href="#2-%e5%9b%be3%e6%98%afboss%e7%ba%bf%e7%a8%8b%e6%b1%a0-%e7%ba%bf%e7%a8%8b%e6%95%b0%e4%b8%bamax4cpu2%e7%94%a8%e6%88%b7%e4%b8%8d%e5%8f%af%e4%bb%a5%e9%85%8d%e7%bd%ae">#</a>
+</h3>
+<p>
+  <img src="http://www6v.github.io/www6vHome/jsf%20%E7%BA%BF%E7%A8%8B%E6%A8%A1%E5%9E%8B/boss%E7%BA%BF%E7%A8%8B%E6%B1%A0.JPG" alt="图3 boss线程池" title="图3 boss线程池"/></p>
+<h3 id="3-图4是worker线程池-线程数为max8cpu1用户可以配置">
+  3. 图4是worker线程池， 线程数为Max(8,cpu+1)，用户可以配置
+  <a class="anchor" href="#3-%e5%9b%be4%e6%98%afworker%e7%ba%bf%e7%a8%8b%e6%b1%a0-%e7%ba%bf%e7%a8%8b%e6%95%b0%e4%b8%bamax8cpu1%e7%94%a8%e6%88%b7%e5%8f%af%e4%bb%a5%e9%85%8d%e7%bd%ae">#</a>
+</h3>
+<p>
+  <img src="http://www6v.github.io/www6vHome/jsf%20%E7%BA%BF%E7%A8%8B%E6%A8%A1%E5%9E%8B/worker%E7%BA%BF%E7%A8%8B%EF%BC%88io%E7%BA%BF%E7%A8%8B%EF%BC%89.JPG" alt="图4 worker线程池" title="图4 worker线程池"/></p>
+<h3 id="4图5和图6是业务线程池的构建cached线程池大小是20-200默认queue的大小是0-任务来了直接分配线程直到线程池满得不到执行线程抛异常">
+  4.图5和图6是业务线程池的构建，cached线程池大小是20-200，默认queue的大小是0。 任务来了直接分配线程，直到线程池满，得不到执行线程抛异常。
+  <a class="anchor" href="#4%e5%9b%be5%e5%92%8c%e5%9b%be6%e6%98%af%e4%b8%9a%e5%8a%a1%e7%ba%bf%e7%a8%8b%e6%b1%a0%e7%9a%84%e6%9e%84%e5%bb%bacached%e7%ba%bf%e7%a8%8b%e6%b1%a0%e5%a4%a7%e5%b0%8f%e6%98%af20-200%e9%bb%98%e8%ae%a4queue%e7%9a%84%e5%a4%a7%e5%b0%8f%e6%98%af0-%e4%bb%bb%e5%8a%a1%e6%9d%a5%e4%ba%86%e7%9b%b4%e6%8e%a5%e5%88%86%e9%85%8d%e7%ba%bf%e7%a8%8b%e7%9b%b4%e5%88%b0%e7%ba%bf%e7%a8%8b%e6%b1%a0%e6%bb%a1%e5%be%97%e4%b8%8d%e5%88%b0%e6%89%a7%e8%a1%8c%e7%ba%bf%e7%a8%8b%e6%8a%9b%e5%bc%82%e5%b8%b8">#</a>
+</h3>
+<p>图7中一个服务端口对应一个业务线程池。</p>
+<p>
+  <img src="http://www6v.github.io/www6vHome/jsf%20%E7%BA%BF%E7%A8%8B%E6%A8%A1%E5%9E%8B/%E4%B8%9A%E5%8A%A1%E7%BA%BF%E7%A8%8B%E6%B1%A0-%E5%88%9D%E5%A7%8B%E5%8C%961.JPG" alt="图5 业务线程池构建1" title="图5 业务线程池构建1"/></p>
+<p>
+  <img src="http://www6v.github.io/www6vHome/jsf%20%E7%BA%BF%E7%A8%8B%E6%A8%A1%E5%9E%8B/%E4%B8%9A%E5%8A%A1%E7%BA%BF%E7%A8%8B%E6%B1%A0-%E5%88%9D%E5%A7%8B%E5%8C%962.JPG" alt="图6 业务线程池构建2" title="图6 业务线程池构建2"/></p>
+<p>
+  <img src="http://www6v.github.io/www6vHome/jsf%20%E7%BA%BF%E7%A8%8B%E6%A8%A1%E5%9E%8B/%E4%B8%9A%E5%8A%A1%E7%BA%BF%E7%A8%8B%E6%B1%A0-%E6%9E%84%E5%BB%BA.JPG" alt="图7 服务端口和业务线程池的关系" title="图7 服务端口和业务线程池的关系"/></p>
+<h3 id="5-在channelpipeline中serverhandler根据服务端的配置获取对应的业务线程池然后在serverhandler的handlerrequest中提交业务任务默认的任务是jsftask">
+  5. 在ChannelPipeline中ServerHandler根据服务端的配置获取对应的业务线程池，然后在ServerHandler的handlerRequest中提交业务任务，默认的任务是JSFTask。
+  <a class="anchor" href="#5-%e5%9c%a8channelpipeline%e4%b8%adserverhandler%e6%a0%b9%e6%8d%ae%e6%9c%8d%e5%8a%a1%e7%ab%af%e7%9a%84%e9%85%8d%e7%bd%ae%e8%8e%b7%e5%8f%96%e5%af%b9%e5%ba%94%e7%9a%84%e4%b8%9a%e5%8a%a1%e7%ba%bf%e7%a8%8b%e6%b1%a0%e7%84%b6%e5%90%8e%e5%9c%a8serverhandler%e7%9a%84handlerrequest%e4%b8%ad%e6%8f%90%e4%ba%a4%e4%b8%9a%e5%8a%a1%e4%bb%bb%e5%8a%a1%e9%bb%98%e8%ae%a4%e7%9a%84%e4%bb%bb%e5%8a%a1%e6%98%afjsftask">#</a>
+</h3>
+<p>具体实现如图8,9,10.</p>
+<p>
+  <img src="http://www6v.github.io/www6vHome/jsf%20%E7%BA%BF%E7%A8%8B%E6%A8%A1%E5%9E%8B/%E4%B8%9A%E5%8A%A1%E7%BA%BF%E7%A8%8B%E6%B1%A0-%E8%8E%B7%E5%8F%96.JPG" alt="图8 ServerHandler中获取业务线程池" title="图8 ServerHandler中获取业务线程池"/></p>
+<p>
+  <img src="http://www6v.github.io/www6vHome/jsf%20%E7%BA%BF%E7%A8%8B%E6%A8%A1%E5%9E%8B/%E6%8F%90%E4%BA%A4task%E5%88%B0%E4%B8%9A%E5%8A%A1%E7%BA%BF%E7%A8%8B.JPG" alt="图9 ServerHandler中提交业务任务" title="图9 ServerHandler中提交业务任务"/></p>
+<p>
+  <img src="http://www6v.github.io/www6vHome/jsf%20%E7%BA%BF%E7%A8%8B%E6%A8%A1%E5%9E%8B/%E4%B8%9A%E5%8A%A1%E7%BA%BF%E7%A8%8B%E6%89%A7%E8%A1%8Ctask.JPG" alt="图10 提交task到业务线程Executor" title="图10 提交task到业务线程Executor"/></p>
+<p>可以看到，JSF服务提供者线程模型整体还是按照boss+worker+biz这种netty官方推荐的方式构建的。</p>
+<h2 id="参考">
+  参考：
+  <a class="anchor" href="#%e5%8f%82%e8%80%83">#</a>
+</h2>
+<ol>
+<li>京东 jsf 源代码和文档</li>
+<li>Netty案例集锦之多线程篇（续） 李林锋</li>
+</ol>
+</article>
+ 
+      
+
+      <footer class="book-footer">
+        
+  <div class="flex flex-wrap justify-between">
+
+
+
+
+
+</div>
+
+
+
+  <script>(function(){function e(e){const t=window.getSelection(),n=document.createRange();n.selectNodeContents(e),t.removeAllRanges(),t.addRange(n)}document.querySelectorAll("pre code").forEach(t=>{t.addEventListener("click",function(){if(window.getSelection().toString())return;e(t.parentElement),navigator.clipboard&&navigator.clipboard.writeText(t.parentElement.textContent)})})})()</script>
+
+
+ 
+        
+      </footer>
+
+      
+  
+  <div class="book-comments">
+
+</div>
+  
+ 
+
+      <label for="menu-control" class="hidden book-menu-overlay"></label>
+    </div>
+
+    
+    <aside class="book-toc">
+      <div class="book-toc-content">
+        
+  
+<nav id="TableOfContents">
+  <ul>
+    <li><a href="#京东服务框架jsf">京东服务框架JSF</a>
+      <ul>
+        <li>
+          <ul>
+            <li><a href="#1jsf的服务端线程模型整体上是-boss线程池--worker线程池--业务线程池boss线程池和worker线程池称为reactor线程池">1.JSF的服务端线程模型整体上是 boss线程池 + worker线程池 + 业务线程池。boss线程池和worker线程池称为Reactor线程池。</a></li>
+            <li><a href="#2-图3是boss线程池-线程数为max4cpu2用户不可以配置">2. 图3是boss线程池， 线程数为Max(4,cpu/2)，用户不可以配置</a></li>
+            <li><a href="#3-图4是worker线程池-线程数为max8cpu1用户可以配置">3. 图4是worker线程池， 线程数为Max(8,cpu+1)，用户可以配置</a></li>
+            <li><a href="#4图5和图6是业务线程池的构建cached线程池大小是20-200默认queue的大小是0-任务来了直接分配线程直到线程池满得不到执行线程抛异常">4.图5和图6是业务线程池的构建，cached线程池大小是20-200，默认queue的大小是0。 任务来了直接分配线程，直到线程池满，得不到执行线程抛异常。</a></li>
+            <li><a href="#5-在channelpipeline中serverhandler根据服务端的配置获取对应的业务线程池然后在serverhandler的handlerrequest中提交业务任务默认的任务是jsftask">5. 在ChannelPipeline中ServerHandler根据服务端的配置获取对应的业务线程池，然后在ServerHandler的handlerRequest中提交业务任务，默认的任务是JSFTask。</a></li>
+          </ul>
+        </li>
+        <li><a href="#参考">参考：</a></li>
+      </ul>
+    </li>
+  </ul>
+</nav>
+
+
+ 
+      </div>
+    </aside>
+    
+  </main>
+
+  
+</body>
+</html>
+
+
+
+
+
+
+
+
+
+
+
+

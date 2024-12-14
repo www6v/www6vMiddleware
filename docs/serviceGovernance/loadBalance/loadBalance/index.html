@@ -1,0 +1,1132 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head><script src="/livereload.js?mindelay=10&amp;v=2&amp;port=1313&amp;path=livereload" data-no-instant defer></script>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="
+负载均衡算法#LVS[1][2]#组件 类型 负载均衡算法 场景 LVS 静态 RR：roundrobin [常用] 轮询机制 WRR：Weighted RR [常用] 加权轮询，权重越大承担负载越大 SH：Source Hashing 源地址哈希 实现session sticky缺点：调度粒度大，对负载均衡效果差； DH：Destination Hashing 目标地址哈希 动态 LC：least connections 适用于长连接应用
+Overhead=activeconns*256&#43;inactiveconns WLC：Weighted LC [常用] 默认调度方法,较常用（加上了权重）
+Overhead=(activeconns*256&#43;inactiveconns)/weight SED：Shortest Expection Delay Overhead=(activeconns&#43;1)*256/weight NQ：Never Queue， 第一轮均匀分配，后续SED****SED****算法改进 LBLC：Locality-Based LC 动态的 ****DH****连接算法 LBLCR：LBLC with Replication 带复制功能的LBLC Nginx [3]#组件 类型 负载均衡算法 场景 Nginx 静态 轮询 每个请求按时间顺序逐一分配到不同的后端服务器，如果后端服务器 down 掉，能自动剔除 加权轮询 指定轮询几率，weight 和访问比率成正比，用于后端服务器性能不均的情况 IP Hash 每个请求按访问 ip 的 hash 结果分配，这样每个访客固定访问一个后端服务器，可以解决 session 的问题 动态 Fair （第三方） 按后端服务器的响应时间来分配请求，响应时间短的优先分配 url_hash（第三方） 按访问 url 的 hash 结果来分配请求，使每个 url 定向到同一个后端服务器，后端服务器为缓存时比较有效 Least Connections HAproxy#组件 类型 负载均衡算法 场景 HAproxy 静态 轮询 加权轮询 IP Hash 动态 Least Connections Source LVS工作模式[11-16]#DR TUN模式 NAT模式 参考#LVS负载均衡集群服务搭建详解 LVS调度算法总结 LVS、Nginx 及 HAProxy 的区别 LVS集群的负载调度 *** 未 LVS工作模式#LVS三种模式的区别及负载均衡算法 LVS 介绍以及配置应用 *** 深入浅出 LVS 负载均衡（一）NAT、FULLNAT 模型原理 未 深入浅出 LVS 负载均衡（二）DR、TUN 模型原理 未 深入浅出 LVS 负载均衡（三）实操 NAT、TUNNEL 模型 未 深入浅出 LVS 负载均衡（四）实操 DR 模型、Keepalived DR 模型的高可用 未 ">
+<meta name="theme-color" media="(prefers-color-scheme: light)" content="#ffffff">
+<meta name="theme-color" media="(prefers-color-scheme: dark)" content="#343a40">
+<meta name="color-scheme" content="light dark"><meta property="og:url" content="http://localhost:1313/docs/serviceGovernance/loadBalance/loadBalance/">
+  <meta property="og:site_name" content="Hugo Book">
+  <meta property="og:title" content="负载均衡-算法">
+  <meta property="og:description" content="
+负载均衡算法#LVS[1][2]#组件 类型 负载均衡算法 场景 LVS 静态 RR：roundrobin [常用] 轮询机制 WRR：Weighted RR [常用] 加权轮询，权重越大承担负载越大 SH：Source Hashing 源地址哈希 实现session sticky缺点：调度粒度大，对负载均衡效果差； DH：Destination Hashing 目标地址哈希 动态 LC：least connections 适用于长连接应用
+Overhead=activeconns*256&#43;inactiveconns WLC：Weighted LC [常用] 默认调度方法,较常用（加上了权重）
+Overhead=(activeconns*256&#43;inactiveconns)/weight SED：Shortest Expection Delay Overhead=(activeconns&#43;1)*256/weight NQ：Never Queue， 第一轮均匀分配，后续SED****SED****算法改进 LBLC：Locality-Based LC 动态的 ****DH****连接算法 LBLCR：LBLC with Replication 带复制功能的LBLC Nginx [3]#组件 类型 负载均衡算法 场景 Nginx 静态 轮询 每个请求按时间顺序逐一分配到不同的后端服务器，如果后端服务器 down 掉，能自动剔除 加权轮询 指定轮询几率，weight 和访问比率成正比，用于后端服务器性能不均的情况 IP Hash 每个请求按访问 ip 的 hash 结果分配，这样每个访客固定访问一个后端服务器，可以解决 session 的问题 动态 Fair （第三方） 按后端服务器的响应时间来分配请求，响应时间短的优先分配 url_hash（第三方） 按访问 url 的 hash 结果来分配请求，使每个 url 定向到同一个后端服务器，后端服务器为缓存时比较有效 Least Connections HAproxy#组件 类型 负载均衡算法 场景 HAproxy 静态 轮询 加权轮询 IP Hash 动态 Least Connections Source LVS工作模式[11-16]#DR TUN模式 NAT模式 参考#LVS负载均衡集群服务搭建详解 LVS调度算法总结 LVS、Nginx 及 HAProxy 的区别 LVS集群的负载调度 *** 未 LVS工作模式#LVS三种模式的区别及负载均衡算法 LVS 介绍以及配置应用 *** 深入浅出 LVS 负载均衡（一）NAT、FULLNAT 模型原理 未 深入浅出 LVS 负载均衡（二）DR、TUN 模型原理 未 深入浅出 LVS 负载均衡（三）实操 NAT、TUNNEL 模型 未 深入浅出 LVS 负载均衡（四）实操 DR 模型、Keepalived DR 模型的高可用 未 ">
+  <meta property="og:locale" content="en">
+  <meta property="og:type" content="website">
+<title>负载均衡-算法 | Hugo Book</title>
+<link rel="icon" href="/favicon.png" >
+<link rel="manifest" href="/manifest.json">
+<link rel="canonical" href="http://localhost:1313/docs/serviceGovernance/loadBalance/loadBalance/">
+<link rel="stylesheet" href="/book.min.6c8b9d2a1fc95075ed7da46ca81060b39add8fff6741ac51259f768929281e2c.css" integrity="sha256-bIudKh/JUHXtfaRsqBBgs5rdj/9nQaxRJZ92iSkoHiw=" crossorigin="anonymous">
+  <script defer src="/fuse.min.js"></script>
+  <script defer src="/en.search.min.00f24245ba145350d6a7d4627a067b10704a773920b0be54d269e10ef5c946e1.js" integrity="sha256-APJCRboUU1DWp9RiegZ7EHBKdzkgsL5U0mnhDvXJRuE=" crossorigin="anonymous"></script>
+
+  <script defer src="/sw.min.6f6f90fcb8eb1c49ec389838e6b801d0de19430b8e516902f8d75c3c8bd98739.js" integrity="sha256-b2&#43;Q/LjrHEnsOJg45rgB0N4ZQwuOUWkC&#43;NdcPIvZhzk=" crossorigin="anonymous"></script>
+
+  
+
+<link rel="alternate" type="application/rss+xml" href="http://localhost:1313/docs/serviceGovernance/loadBalance/loadBalance/index.xml" title="Hugo Book" />
+<!--
+Made with Book Theme
+https://github.com/alex-shpak/hugo-book
+-->
+  
+</head>
+<body dir="ltr">
+  <input type="checkbox" class="hidden toggle" id="menu-control" />
+  <input type="checkbox" class="hidden toggle" id="toc-control" />
+  <main class="container flex">
+    <aside class="book-menu">
+      <div class="book-menu-content">
+        
+  <nav>
+<h2 class="book-brand">
+  <a class="flex align-center" href="/"><span>Hugo Book</span>
+  </a>
+</h2>
+
+
+<div class="book-search hidden">
+  <input type="text" id="book-search-input" placeholder="Search" aria-label="Search" maxlength="64" data-hotkeys="s/" />
+  <div class="book-search-spinner hidden"></div>
+  <ul id="book-search-results"></ul>
+</div>
+<script>document.querySelector(".book-search").classList.remove("hidden")</script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <span>服务治理</span>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <span>Overview</span>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/serviceGovernance/Overview/microservice/" class="">微服务 总结</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/serviceGovernance/Overview/soaFeature/" class="">分布式服务框架功能</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <span>API Gateway</span>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/serviceGovernance/API-Gateway/apiGatawaySpringGateway/" class="">API 网关-SpringCloud Gateway</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/serviceGovernance/API-Gateway/apiGatawayApisix/" class="">API 网关-apisix</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/serviceGovernance/API-Gateway/apiGateway/" class="">API Gateway网关</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <span>Config &amp; Discovery</span>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/serviceGovernance/ConfigDiscovery/soaDiscovery/" class="">服务发现</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/serviceGovernance/ConfigDiscovery/config/" class="">服务治理-分布式配置</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <span>负载均衡</span>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/serviceGovernance/loadBalance/loadBalance/" class="active">负载均衡-算法</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/serviceGovernance/loadBalance/nginxOptimize/" class="">Nginx优化</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/serviceGovernance/loadBalance/nginx/" class="">Nginx总结</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <span>线程模型</span>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/serviceGovernance/threadModel/jsfThreadModel/" class="">京东服务框架JSF服务提供者线程模型</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <span>容错&amp;限流</span>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <span>容错</span>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/serviceGovernance/faultTolerant/faultTolerant/soaTolerateFramework/" class="">容错框架</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/serviceGovernance/faultTolerant/faultTolerant/soaTimeout/" class="">超时和重试 总结</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/serviceGovernance/faultTolerant/faultTolerant/soaTolerate/" class="">分布式服务框架 容错机制</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <span>限流</span>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/serviceGovernance/faultTolerant/throttle/ratelimitSentinel/" class="">流量治理-Sentinel</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/serviceGovernance/faultTolerant/throttle/ratelimit/" class="">限流-总结</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/serviceGovernance/faultTolerant/soaGracefulStart/" class="">优雅启动</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/serviceGovernance/faultTolerant/soaGracefulClose/" class="">优雅关闭</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <span>Spring Cloud</span>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/serviceGovernance/Springcloud/springTransactionInvalid/" class="">Spring  Transaction  失效</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/serviceGovernance/Springcloud/springCloud/" class="">SpringCloud</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/serviceGovernance/Springcloud/springboot/" class="">SpringBoot</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/serviceGovernance/Springcloud/springTransaction/" class="">Spring事务</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <span>灰度发布</span>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/serviceGovernance/Gray/apiGatewayGray/" class="">API 网关-灰度发布</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <span>安全</span>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/serviceGovernance/security/soaAuth/" class="">服务治理-鉴权</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/serviceGovernance/security/securityOAuth2/" class="">安全-OAuth2</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</nav>
+
+
+
+
+  <script>(function(){var e=document.querySelector("aside .book-menu-content");addEventListener("beforeunload",function(){localStorage.setItem("menu.scrollTop",e.scrollTop)}),e.scrollTop=localStorage.getItem("menu.scrollTop")})()</script>
+
+
+ 
+      </div>
+    </aside>
+
+    <div class="book-page">
+      <header class="book-header">
+        
+  <div class="flex align-center justify-between">
+  <label for="menu-control">
+    <img src="/svg/menu.svg" class="book-icon" alt="Menu" />
+  </label>
+
+  <h3>负载均衡-算法</h3>
+
+  <label for="toc-control">
+    
+    <img src="/svg/toc.svg" class="book-icon" alt="Table of Contents" />
+    
+  </label>
+</div>
+
+
+  
+  <aside class="hidden clearfix">
+    
+  
+<nav id="TableOfContents">
+  <ul>
+    <li><a href="#负载均衡算法">负载均衡算法</a>
+      <ul>
+        <li>
+          <ul>
+            <li><a href="#lvs12">LVS[1][2]</a></li>
+            <li><a href="#nginx-3">Nginx [3]</a></li>
+            <li><a href="#haproxy">HAproxy</a></li>
+          </ul>
+        </li>
+      </ul>
+    </li>
+    <li><a href="#lvs工作模式11-16">LVS工作模式[11-16]</a></li>
+    <li><a href="#参考">参考</a>
+      <ul>
+        <li>
+          <ul>
+            <li><a href="#lvs工作模式">LVS工作模式</a></li>
+          </ul>
+        </li>
+      </ul>
+    </li>
+  </ul>
+</nav>
+
+
+
+  </aside>
+  
+ 
+      </header>
+
+      
+      
+  <article class="markdown book-article"><p></p>
+<!-- more -->
+<h1 id="负载均衡算法">
+  负载均衡算法
+  <a class="anchor" href="#%e8%b4%9f%e8%bd%bd%e5%9d%87%e8%a1%a1%e7%ae%97%e6%b3%95">#</a>
+</h1>
+<h3 id="lvs12">
+  LVS[1][2]
+  <a class="anchor" href="#lvs12">#</a>
+</h3>
+<table>
+<thead>
+<tr>
+<th>组件</th>
+<th>类型</th>
+<th>负载均衡算法</th>
+<th>场景</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>LVS</td>
+<td><strong>静态</strong></td>
+<td>RR：roundrobin [常用]</td>
+<td>轮询机制</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td>WRR：Weighted RR [常用]</td>
+<td>加权轮询，权重越大承担负载越大</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td>SH：Source Hashing 源地址哈希</td>
+<td>实现session sticky<br/>缺点：调度粒度大，对负载均衡效果差；</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td>DH：Destination Hashing 目标地址哈希</td>
+<td></td>
+</tr>
+<tr>
+<td></td>
+<td><strong>动态</strong></td>
+<td>LC：least connections</td>
+<td>适用于长连接应用<br><code>Overhead=activeconns*256+inactiveconns</code></td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td>WLC：Weighted LC  [常用]</td>
+<td>默认调度方法,较常用（加上了权重）<br><code>Overhead=(activeconns*256+inactiveconns)/weight</code></td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td>
+  <a href="https://so.csdn.net/so/search?q=SED&amp;spm=1001.2101.3001.7020">SED</a>：Shortest Expection Delay</td>
+<td><code>Overhead=(activeconns+1)*256/weight</code></td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td>NQ：Never Queue，</td>
+<td>第一轮均匀分配，后续SED<br/>****SED****算法改进</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td>LBLC：Locality-Based LC</td>
+<td>动态的 ****DH****连接算法</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td>LBLCR：LBLC with Replication</td>
+<td>带复制功能的LBLC</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<h3 id="nginx-3">
+  Nginx [3]
+  <a class="anchor" href="#nginx-3">#</a>
+</h3>
+<table>
+<thead>
+<tr>
+<th>组件</th>
+<th>类型</th>
+<th>负载均衡算法</th>
+<th>场景</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Nginx</td>
+<td><strong>静态</strong><br/></td>
+<td>轮询<br/></td>
+<td>每个请求按时间顺序逐一分配到不同的后端服务器，如果后端服务器 down 掉，能自动剔除</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td>加权轮询<br/></td>
+<td>指定轮询几率，weight 和访问比率成正比，用于后端服务器性能不均的情况</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td>IP Hash<br/></td>
+<td>每个请求按访问 ip 的 hash 结果分配，这样每个访客固定访问一个后端服务器，可以解决 session 的问题</td>
+</tr>
+<tr>
+<td></td>
+<td><strong>动态</strong><br/></td>
+<td>Fair （第三方）<br/></td>
+<td>按后端服务器的响应时间来分配请求，响应时间短的优先分配</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td>url_hash（第三方）</td>
+<td>按访问 url 的 hash 结果来分配请求，使每个 url 定向到同一个后端服务器，后端服务器为缓存时比较有效</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td>Least Connections</td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<h3 id="haproxy">
+  HAproxy
+  <a class="anchor" href="#haproxy">#</a>
+</h3>
+<table>
+<thead>
+<tr>
+<th>组件</th>
+<th>类型</th>
+<th>负载均衡算法</th>
+<th>场景</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>HAproxy</td>
+<td><strong>静态</strong><br/></td>
+<td>轮询<br/></td>
+<td></td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td>加权轮询<br/></td>
+<td></td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td>IP Hash<br/></td>
+<td></td>
+</tr>
+<tr>
+<td></td>
+<td><strong>动态</strong><br/></td>
+<td>Least Connections<br/></td>
+<td></td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td>Source</td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<h1 id="lvs工作模式11-16">
+  LVS工作模式[11-16]
+  <a class="anchor" href="#lvs%e5%b7%a5%e4%bd%9c%e6%a8%a1%e5%bc%8f11-16">#</a>
+</h1>
+<ul>
+<li>DR</li>
+<li>TUN模式</li>
+<li>NAT模式</li>
+</ul>
+<h1 id="参考">
+  参考
+  <a class="anchor" href="#%e5%8f%82%e8%80%83">#</a>
+</h1>
+<ol>
+<li>
+  <a href="https://demo.dandelioncloud.cn/article/details/1547407561087266818">LVS负载均衡集群服务搭建详解</a></li>
+<li>
+  <a href="https://blog.csdn.net/aa896517050/article/details/125399055">LVS调度算法总结</a></li>
+<li>
+  <a href="https://blog.csdn.net/weixin_42073629/article/details/109440892">LVS、Nginx 及 HAProxy 的区别</a>
+
+  <a href="http://www.linuxvirtualserver.org/zh/lvs4.html">LVS集群的负载调度</a>  ***  未</li>
+</ol>
+<h3 id="lvs工作模式">
+  LVS工作模式
+  <a class="anchor" href="#lvs%e5%b7%a5%e4%bd%9c%e6%a8%a1%e5%bc%8f">#</a>
+</h3>
+<ol start="11">
+<li>
+  <a href="https://www.likecs.com/show-739972.html">LVS三种模式的区别及负载均衡算法</a></li>
+<li>
+  <a href="https://www.likecs.com/show-307061337.html">LVS 介绍以及配置应用</a> ***</li>
+<li>
+  <a href="https://zhuanlan.zhihu.com/p/363346400">深入浅出 LVS 负载均衡（一）NAT、FULLNAT 模型原理</a>  未</li>
+<li>
+  <a href="https://zhuanlan.zhihu.com/p/377090230">深入浅出 LVS 负载均衡（二）DR、TUN 模型原理</a>  未</li>
+<li>
+  <a href="https://zhuanlan.zhihu.com/p/381297341">深入浅出 LVS 负载均衡（三）实操 NAT、TUNNEL 模型</a>  未</li>
+<li>
+  <a href="https://zhuanlan.zhihu.com/p/356354676">深入浅出 LVS 负载均衡（四）实操 DR 模型、Keepalived DR 模型的高可用</a>  未</li>
+</ol>
+</article>
+ 
+      
+
+      <footer class="book-footer">
+        
+  <div class="flex flex-wrap justify-between">
+
+
+
+
+
+</div>
+
+
+
+  <script>(function(){function e(e){const t=window.getSelection(),n=document.createRange();n.selectNodeContents(e),t.removeAllRanges(),t.addRange(n)}document.querySelectorAll("pre code").forEach(t=>{t.addEventListener("click",function(){if(window.getSelection().toString())return;e(t.parentElement),navigator.clipboard&&navigator.clipboard.writeText(t.parentElement.textContent)})})})()</script>
+
+
+ 
+        
+      </footer>
+
+      
+  
+  <div class="book-comments">
+
+</div>
+  
+ 
+
+      <label for="menu-control" class="hidden book-menu-overlay"></label>
+    </div>
+
+    
+    <aside class="book-toc">
+      <div class="book-toc-content">
+        
+  
+<nav id="TableOfContents">
+  <ul>
+    <li><a href="#负载均衡算法">负载均衡算法</a>
+      <ul>
+        <li>
+          <ul>
+            <li><a href="#lvs12">LVS[1][2]</a></li>
+            <li><a href="#nginx-3">Nginx [3]</a></li>
+            <li><a href="#haproxy">HAproxy</a></li>
+          </ul>
+        </li>
+      </ul>
+    </li>
+    <li><a href="#lvs工作模式11-16">LVS工作模式[11-16]</a></li>
+    <li><a href="#参考">参考</a>
+      <ul>
+        <li>
+          <ul>
+            <li><a href="#lvs工作模式">LVS工作模式</a></li>
+          </ul>
+        </li>
+      </ul>
+    </li>
+  </ul>
+</nav>
+
+
+ 
+      </div>
+    </aside>
+    
+  </main>
+
+  
+</body>
+</html>
+
+
+
+
+
+
+
+
+
+
+
+

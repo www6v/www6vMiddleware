@@ -1,0 +1,1297 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head><script src="/livereload.js?mindelay=10&amp;v=2&amp;port=1313&amp;path=livereload" data-no-instant defer></script>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="目录#微服务 定义#In short, the microservice architectural style [1] is an approach to developing a single application as a suite of small services, each running in its own process and communicating with lightweight mechanisms, often an HTTP resource API. These services are built around business capabilities and independently deployable by fully automated deployment machinery. There is a bare minimum of centralized management of these services, which may be written in different programming languages and use different data storage technologies.">
+<meta name="theme-color" media="(prefers-color-scheme: light)" content="#ffffff">
+<meta name="theme-color" media="(prefers-color-scheme: dark)" content="#343a40">
+<meta name="color-scheme" content="light dark"><meta property="og:url" content="http://localhost:1313/docs/serviceGovernance/Overview/microservice/">
+  <meta property="og:site_name" content="Hugo Book">
+  <meta property="og:title" content="微服务 总结">
+  <meta property="og:description" content="目录#微服务 定义#In short, the microservice architectural style [1] is an approach to developing a single application as a suite of small services, each running in its own process and communicating with lightweight mechanisms, often an HTTP resource API. These services are built around business capabilities and independently deployable by fully automated deployment machinery. There is a bare minimum of centralized management of these services, which may be written in different programming languages and use different data storage technologies.">
+  <meta property="og:locale" content="en">
+  <meta property="og:type" content="website">
+<title>微服务 总结 | Hugo Book</title>
+<link rel="icon" href="/favicon.png" >
+<link rel="manifest" href="/manifest.json">
+<link rel="canonical" href="http://localhost:1313/docs/serviceGovernance/Overview/microservice/">
+<link rel="stylesheet" href="/book.min.6c8b9d2a1fc95075ed7da46ca81060b39add8fff6741ac51259f768929281e2c.css" integrity="sha256-bIudKh/JUHXtfaRsqBBgs5rdj/9nQaxRJZ92iSkoHiw=" crossorigin="anonymous">
+  <script defer src="/fuse.min.js"></script>
+  <script defer src="/en.search.min.00f24245ba145350d6a7d4627a067b10704a773920b0be54d269e10ef5c946e1.js" integrity="sha256-APJCRboUU1DWp9RiegZ7EHBKdzkgsL5U0mnhDvXJRuE=" crossorigin="anonymous"></script>
+
+  <script defer src="/sw.min.6f6f90fcb8eb1c49ec389838e6b801d0de19430b8e516902f8d75c3c8bd98739.js" integrity="sha256-b2&#43;Q/LjrHEnsOJg45rgB0N4ZQwuOUWkC&#43;NdcPIvZhzk=" crossorigin="anonymous"></script>
+
+  
+
+<link rel="alternate" type="application/rss+xml" href="http://localhost:1313/docs/serviceGovernance/Overview/microservice/index.xml" title="Hugo Book" />
+<!--
+Made with Book Theme
+https://github.com/alex-shpak/hugo-book
+-->
+  
+</head>
+<body dir="ltr">
+  <input type="checkbox" class="hidden toggle" id="menu-control" />
+  <input type="checkbox" class="hidden toggle" id="toc-control" />
+  <main class="container flex">
+    <aside class="book-menu">
+      <div class="book-menu-content">
+        
+  <nav>
+<h2 class="book-brand">
+  <a class="flex align-center" href="/"><span>Hugo Book</span>
+  </a>
+</h2>
+
+
+<div class="book-search hidden">
+  <input type="text" id="book-search-input" placeholder="Search" aria-label="Search" maxlength="64" data-hotkeys="s/" />
+  <div class="book-search-spinner hidden"></div>
+  <ul id="book-search-results"></ul>
+</div>
+<script>document.querySelector(".book-search").classList.remove("hidden")</script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <span>服务治理</span>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <span>Overview</span>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/serviceGovernance/Overview/microservice/" class="active">微服务 总结</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/serviceGovernance/Overview/soaFeature/" class="">分布式服务框架功能</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <span>API Gateway</span>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/serviceGovernance/API-Gateway/apiGatawaySpringGateway/" class="">API 网关-SpringCloud Gateway</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/serviceGovernance/API-Gateway/apiGatawayApisix/" class="">API 网关-apisix</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/serviceGovernance/API-Gateway/apiGateway/" class="">API Gateway网关</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <span>Config &amp; Discovery</span>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/serviceGovernance/ConfigDiscovery/soaDiscovery/" class="">服务发现</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/serviceGovernance/ConfigDiscovery/config/" class="">服务治理-分布式配置</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <span>负载均衡</span>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/serviceGovernance/loadBalance/loadBalance/" class="">负载均衡-算法</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/serviceGovernance/loadBalance/nginxOptimize/" class="">Nginx优化</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/serviceGovernance/loadBalance/nginx/" class="">Nginx总结</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <span>线程模型</span>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/serviceGovernance/threadModel/jsfThreadModel/" class="">京东服务框架JSF服务提供者线程模型</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <span>容错&amp;限流</span>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <span>容错</span>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/serviceGovernance/faultTolerant/faultTolerant/soaTolerateFramework/" class="">容错框架</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/serviceGovernance/faultTolerant/faultTolerant/soaTimeout/" class="">超时和重试 总结</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/serviceGovernance/faultTolerant/faultTolerant/soaTolerate/" class="">分布式服务框架 容错机制</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <span>限流</span>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/serviceGovernance/faultTolerant/throttle/ratelimitSentinel/" class="">流量治理-Sentinel</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/serviceGovernance/faultTolerant/throttle/ratelimit/" class="">限流-总结</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/serviceGovernance/faultTolerant/soaGracefulStart/" class="">优雅启动</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/serviceGovernance/faultTolerant/soaGracefulClose/" class="">优雅关闭</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <span>Spring Cloud</span>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/serviceGovernance/Springcloud/springTransactionInvalid/" class="">Spring  Transaction  失效</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/serviceGovernance/Springcloud/springCloud/" class="">SpringCloud</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/serviceGovernance/Springcloud/springboot/" class="">SpringBoot</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/serviceGovernance/Springcloud/springTransaction/" class="">Spring事务</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <span>灰度发布</span>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/serviceGovernance/Gray/apiGatewayGray/" class="">API 网关-灰度发布</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <span>安全</span>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/serviceGovernance/security/soaAuth/" class="">服务治理-鉴权</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/serviceGovernance/security/securityOAuth2/" class="">安全-OAuth2</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</nav>
+
+
+
+
+  <script>(function(){var e=document.querySelector("aside .book-menu-content");addEventListener("beforeunload",function(){localStorage.setItem("menu.scrollTop",e.scrollTop)}),e.scrollTop=localStorage.getItem("menu.scrollTop")})()</script>
+
+
+ 
+      </div>
+    </aside>
+
+    <div class="book-page">
+      <header class="book-header">
+        
+  <div class="flex align-center justify-between">
+  <label for="menu-control">
+    <img src="/svg/menu.svg" class="book-icon" alt="Menu" />
+  </label>
+
+  <h3>微服务 总结</h3>
+
+  <label for="toc-control">
+    
+    <img src="/svg/toc.svg" class="book-icon" alt="Table of Contents" />
+    
+  </label>
+</div>
+
+
+  
+  <aside class="hidden clearfix">
+    
+  
+<nav id="TableOfContents">
+  <ul>
+    <li>
+      <ul>
+        <li><a href="#目录">目录</a></li>
+      </ul>
+    </li>
+    <li><a href="#微服务-定义">微服务 定义</a></li>
+    <li><a href="#core">Core</a>
+      <ul>
+        <li>
+          <ul>
+            <li><a href="#api网关">API网关</a></li>
+            <li><a href="#服务容错">服务容错</a></li>
+            <li><a href="#服务注册和发现">服务注册和发现</a></li>
+            <li><a href="#服务间调用">服务间调用</a></li>
+            <li><a href="#服务部署和发布">服务部署和发布</a></li>
+          </ul>
+        </li>
+      </ul>
+    </li>
+    <li><a href="#design">Design</a>
+      <ul>
+        <li>
+          <ul>
+            <li><a href="#服务划分和组合">服务划分和组合</a></li>
+            <li><a href="#服务分层">服务分层</a></li>
+          </ul>
+        </li>
+      </ul>
+    </li>
+    <li><a href="#design-微服务设计模式">Design-微服务设计模式</a>
+      <ul>
+        <li>
+          <ul>
+            <li><a href="#overview">Overview</a></li>
+            <li><a href="#sidecar-11">Sidecar [11]</a></li>
+          </ul>
+        </li>
+      </ul>
+    </li>
+    <li><a href="#the-scale-cube-可伸缩性">The Scale Cube 可伸缩性</a></li>
+    <li><a href="#微服务的优势和代价">微服务的优势和代价</a></li>
+    <li><a href="#原则和缺点挑战">原则和缺点（挑战）</a></li>
+    <li><a href="#soa微服务云原生演进">SOA、微服务、云原生演进</a></li>
+    <li><a href="#参考">参考</a></li>
+  </ul>
+</nav>
+
+
+
+  </aside>
+  
+ 
+      </header>
+
+      
+      
+  <article class="markdown book-article"><p></p>
+<!-- more -->
+<h2 id="目录">
+  目录
+  <a class="anchor" href="#%e7%9b%ae%e5%bd%95">#</a>
+</h2>
+<!-- toc -->
+<h1 id="微服务-定义">
+  微服务 定义
+  <a class="anchor" href="#%e5%be%ae%e6%9c%8d%e5%8a%a1-%e5%ae%9a%e4%b9%89">#</a>
+</h1>
+<p>In short, the microservice architectural style [1] is an approach to developing a single application as a suite of <strong>small services</strong>, <strong>each running in its own process</strong> and <strong>communicating with lightweight mechanisms</strong>, often an HTTP resource API. These services are built around business capabilities and <strong>independently deployable</strong> by fully automated deployment machinery. There is a bare minimum of centralized management of these services, which may be written in different programming languages and use different data storage technologies.   &ndash;  [Martin Fowler]</p>
+<h1 id="core">
+  Core
+  <a class="anchor" href="#core">#</a>
+</h1>
+<h3 id="api网关">
+  API网关
+  <a class="anchor" href="#api%e7%bd%91%e5%85%b3">#</a>
+</h3>
+<p>
+  <a href="../serviceGovernanceSummary/_index.md">serviceGovernanceSummary</a>   self</p>
+<h3 id="服务容错">
+  服务容错
+  <a class="anchor" href="#%e6%9c%8d%e5%8a%a1%e5%ae%b9%e9%94%99">#</a>
+</h3>
+<p>
+  <a href="../serviceGovernanceSummary/_index.md">serviceGovernanceSummary</a> self</p>
+<h3 id="服务注册和发现">
+  服务注册和发现
+  <a class="anchor" href="#%e6%9c%8d%e5%8a%a1%e6%b3%a8%e5%86%8c%e5%92%8c%e5%8f%91%e7%8e%b0">#</a>
+</h3>
+<p>
+  <a href="../serviceGovernanceSummary/_index.md">serviceGovernanceSummary</a>  self</p>
+<h3 id="服务间调用">
+  服务间调用
+  <a class="anchor" href="#%e6%9c%8d%e5%8a%a1%e9%97%b4%e8%b0%83%e7%94%a8">#</a>
+</h3>
+<p>
+  <a href="https://yobriefca.se/blog/2013/04/29/micro-service-architecture/">Micro Service Architecture</a>
+
+  <a href="http://blog.csdn.net/mindfloating/article/details/51221780">Microservice 微服务的理论模型和现实路径</a></p>
+<h5 id="服务契约">
+  服务契约
+  <a class="anchor" href="#%e6%9c%8d%e5%8a%a1%e5%a5%91%e7%ba%a6">#</a>
+</h5>
+<ul>
+<li>API，具体接口的 API 接入技术说明。</li>
+<li>能力，服务能力的描述。</li>
+<li>契约，提供这些能力所约定的一些限制条件说明。</li>
+<li>版本，支持的最新和历史的版本说明。</li>
+</ul>
+<h5 id="调用协议">
+  调用协议
+  <a class="anchor" href="#%e8%b0%83%e7%94%a8%e5%8d%8f%e8%ae%ae">#</a>
+</h5>
+<ul>
+<li>
+<p>同步 HTTP
+REST（JAX-RS）
+RPC（Dubbo）</p>
+</li>
+<li>
+<p>异步消息
+Kafka, RabbitMQ, Notify
+AMQP, MQTT, STOMP</p>
+ <div style="text-align: center;">
+<p>
+  <img src="https://user-images.githubusercontent.com/5608425/66257280-8528d800-e7c9-11e9-95f4-bfe436d9d283.png" alt="micro-service-architecture-comms" /></p>
+ </div>
+</li>
+</ul>
+<h3 id="服务部署和发布">
+  服务部署和发布
+  <a class="anchor" href="#%e6%9c%8d%e5%8a%a1%e9%83%a8%e7%bd%b2%e5%92%8c%e5%8f%91%e5%b8%83">#</a>
+</h3>
+<p>
+  <a href="https://my.oschina.net/xiaominmin/blog/3070053">微服务部署：蓝绿部署、滚动部署、灰度发布、金丝雀发布</a></p>
+<ul>
+<li>部署模式</li>
+<li>Single Service per Host</li>
+<li>Multiple Services per Host patterns</li>
+</ul>
+<h1 id="design">
+  Design
+  <a class="anchor" href="#design">#</a>
+</h1>
+<h3 id="服务划分和组合">
+  服务划分和组合
+  <a class="anchor" href="#%e6%9c%8d%e5%8a%a1%e5%88%92%e5%88%86%e5%92%8c%e7%bb%84%e5%90%88">#</a>
+</h3>
+<blockquote>
+<p>微服务不是指&quot;微小&quot;的服务, 而是如何&quot;拆分&quot;服务,然后&quot;组合&quot;服务.</p>
+</blockquote>
+<ul>
+<li>DDD 领域驱动设计, 上下文划分（context）</li>
+<li>康威定律</li>
+</ul>
+<h3 id="服务分层">
+  服务分层
+  <a class="anchor" href="#%e6%9c%8d%e5%8a%a1%e5%88%86%e5%b1%82">#</a>
+</h3>
+<h5 id="上层-聚合服务适配服务-边界服务">
+  上层: 聚合服务（适配服务， 边界服务）
+  <a class="anchor" href="#%e4%b8%8a%e5%b1%82-%e8%81%9a%e5%90%88%e6%9c%8d%e5%8a%a1%e9%80%82%e9%85%8d%e6%9c%8d%e5%8a%a1-%e8%be%b9%e7%95%8c%e6%9c%8d%e5%8a%a1">#</a>
+</h5>
+<pre><code>比如：pc和mobile服务对商品服务返回内容的裁剪。
+      聚合商品服务和目录服务的内容。   
+</code></pre>
+<h5 id="下层-基础服务核心领域服务-公共服务">
+  下层: 基础服务（核心领域服务， 公共服务）
+  <a class="anchor" href="#%e4%b8%8b%e5%b1%82-%e5%9f%ba%e7%a1%80%e6%9c%8d%e5%8a%a1%e6%a0%b8%e5%bf%83%e9%a2%86%e5%9f%9f%e6%9c%8d%e5%8a%a1-%e5%85%ac%e5%85%b1%e6%9c%8d%e5%8a%a1">#</a>
+</h5>
+<pre><code>比如：电商的商品服务， 目录服务， 订单服务
+</code></pre>
+<h1 id="design-微服务设计模式">
+  Design-微服务设计模式
+  <a class="anchor" href="#design-%e5%be%ae%e6%9c%8d%e5%8a%a1%e8%ae%be%e8%ae%a1%e6%a8%a1%e5%bc%8f">#</a>
+</h1>
+<h3 id="overview">
+  Overview
+  <a class="anchor" href="#overview">#</a>
+</h3>
+<p>
+  <img src="./images/MicroservicePatternLanguage.jpg" alt="MicroservicePatternLanguage" /></p>
+<h3 id="sidecar-11">
+  Sidecar [11]
+  <a class="anchor" href="#sidecar-11">#</a>
+</h3>
+<p>分离业务逻辑与路由，流控，熔断，幂等，服务发现，鉴权等控制组件。</p>
+<p>适用场景：
+老系统改造扩展，Sidebar 进程与服务进程部署在同一个节点；
+多语言混合分布式系统扩展；</p>
+<p>Eg. k8s pod中日志采集sidecar</p>
+<h1 id="the-scale-cube-可伸缩性">
+  The Scale Cube 可伸缩性
+  <a class="anchor" href="#the-scale-cube-%e5%8f%af%e4%bc%b8%e7%bc%a9%e6%80%a7">#</a>
+</h1>
+<p>
+  <a href="https://akfpartners.com/techblog/2008/05/08/splitting-applications-or-services-for-scale/">The Scale Cube</a></p>
+<blockquote>
+<p>X-Axis: Horizontal Duplication and Cloning of services and data
+Y-Axis: Functional Decomposition and Segmentation - Microservices (or micro-services)
+Z-Axis: Service and Data Partitioning along Customer Boundaries - Shards/Pods</p>
+</blockquote>
+<blockquote>
+<p>X-Axis: Replicate &amp;&amp; Load Balance
+Y-Axis: Servcie
+Z-Axis: Data Sharding</p>
+</blockquote>
+<h1 id="微服务的优势和代价">
+  微服务的优势和代价
+  <a class="anchor" href="#%e5%be%ae%e6%9c%8d%e5%8a%a1%e7%9a%84%e4%bc%98%e5%8a%bf%e5%92%8c%e4%bb%a3%e4%bb%b7">#</a>
+</h1>
+<p>
+  <a href="https://martinfowler.com/bliki/MicroservicePremium.html">MicroservicePremium</a> Martin Fowler.</p>
+<div style="text-align: center;">
+<p>
+  <img src="https://user-images.githubusercontent.com/5608425/66262608-af54b700-e816-11e9-9e16-3b95d76e14e2.png" alt="productivity" />
+生产率和复杂度之间的关系。</p>
+</div>
+<blockquote>
+<p>在不复杂的系统中， 更适合monolithic的应用。
+复杂度增长时， 微服务的生产率能持续保持，在生产率方面是可伸缩的。</p>
+</blockquote>
+<h1 id="原则和缺点挑战">
+  原则和缺点（挑战）
+  <a class="anchor" href="#%e5%8e%9f%e5%88%99%e5%92%8c%e7%bc%ba%e7%82%b9%e6%8c%91%e6%88%98">#</a>
+</h1>
+<p>
+  <a href="https://www.phodal.com/blog/microservices-is-not-a-free-lunch/">微服务架构——不是免费的午餐</a>
+
+  <a href="http://www.infoq.com/cn/news/2014/05/micro-server-architecture-debate">有关微服务架构的争论：更简单还是更复杂？</a></p>
+<table>
+<thead>
+<tr>
+<th style="text-align:center">原则</th>
+<th style="text-align:center">优点</th>
+<th style="text-align:center">缺点</th>
+<th style="text-align:center">挑战</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:center"><strong>分布式</strong>服务组成的系统； 去中心化</td>
+<td style="text-align:center">可用性高</td>
+<td style="text-align:center">多服务运维难度</td>
+<td style="text-align:center">分布式系统的复杂性（容错，延迟，分布式事务）</td>
+</tr>
+<tr>
+<td style="text-align:center">按照业务而不是技术来划分组织</td>
+<td style="text-align:center">服务独立无依赖</td>
+<td style="text-align:center">系统部署依赖</td>
+<td style="text-align:center">事务、异步、测试面临挑战</td>
+</tr>
+<tr>
+<td style="text-align:center">做有生命的<strong>产品</strong>而不是项目</td>
+<td style="text-align:center">技术栈灵活</td>
+<td style="text-align:center"></td>
+<td style="text-align:center">运营开销</td>
+</tr>
+<tr>
+<td style="text-align:center">Smart endpoints and dumb pipes（强服务个体和轻量级通信）; 可组合的服务</td>
+<td style="text-align:center">独立按需扩展和伸缩</td>
+<td style="text-align:center">服务间通信成本</td>
+<td style="text-align:center">隐式接口[接口变更成本]</td>
+</tr>
+<tr>
+<td style="text-align:center">自动化运维（<strong>DevOps</strong>）</td>
+<td style="text-align:center"></td>
+<td style="text-align:center">系统集成测试</td>
+<td style="text-align:center">DevOps 要求</td>
+</tr>
+<tr>
+<td style="text-align:center"><strong>容错</strong></td>
+<td style="text-align:center">可用性高</td>
+<td style="text-align:center">数据一致性</td>
+<td style="text-align:center">性能监控; 分布式系统的复杂性</td>
+</tr>
+<tr>
+<td style="text-align:center">快速<strong>演化</strong></td>
+<td style="text-align:center">开发简单</td>
+<td style="text-align:center">重复工作</td>
+<td style="text-align:center">系统集成测试</td>
+</tr>
+</tbody>
+</table>
+<h1 id="soa微服务云原生演进">
+  SOA、微服务、云原生演进
+  <a class="anchor" href="#soa%e5%be%ae%e6%9c%8d%e5%8a%a1%e4%ba%91%e5%8e%9f%e7%94%9f%e6%bc%94%e8%bf%9b">#</a>
+</h1>
+<table>
+<thead>
+<tr>
+<th style="text-align:center">关注点</th>
+<th style="text-align:center">SOA</th>
+<th style="text-align:center">微服务</th>
+<th style="text-align:center">云原生</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:center">研发过程</td>
+<td style="text-align:center">CMM/RUP</td>
+<td style="text-align:center">Agile</td>
+<td style="text-align:center">Agile</td>
+</tr>
+<tr>
+<td style="text-align:center">交付流程</td>
+<td style="text-align:center">手工/自动化</td>
+<td style="text-align:center">DevOps<br>DevSecOps</td>
+<td style="text-align:center">GitOps[12]<br>AIOps<br>NoOps(Serverless)</td>
+</tr>
+<tr>
+<td style="text-align:center">服务通信</td>
+<td style="text-align:center">Web Service（WSDL，Soap）</td>
+<td style="text-align:center">REST/私有RPC协议（Dubbo）</td>
+<td style="text-align:center">REST/gRPC,Envoy xDS， MSI协议等开放协议</td>
+</tr>
+<tr>
+<td style="text-align:center">功能扩展性-filter</td>
+<td style="text-align:center">x</td>
+<td style="text-align:center">AOP filter<br> Dubbo filter chain<br>   WEB filter/lisnter</td>
+<td style="text-align:center">Envoy filter</td>
+</tr>
+<tr>
+<td style="text-align:center">功能扩展性-微内核</td>
+<td style="text-align:center">x</td>
+<td style="text-align:center">Dubbo SPI</td>
+<td style="text-align:center">K8s CRD, Operator</td>
+</tr>
+<tr>
+<td style="text-align:center">服务治理</td>
+<td style="text-align:center">ESB</td>
+<td style="text-align:center">微服务/API网关（SpringCloud），去中心化, sidecar</td>
+<td style="text-align:center">服务网格（ 
+  <a href="../../../../2019/07/02/istio/">istio</a> ， Linked） 分布式</td>
+</tr>
+<tr>
+<td style="text-align:center">应用运行环境</td>
+<td style="text-align:center">物理机/虚拟机</td>
+<td style="text-align:center">虚拟机/容器</td>
+<td style="text-align:center">Kubernete（操作系统）+ Serverless（Knative）</td>
+</tr>
+<tr>
+<td style="text-align:center">基础设施</td>
+<td style="text-align:center">IDC</td>
+<td style="text-align:center">公有云/私有云</td>
+<td style="text-align:center">无边界的云（多云/混合云、 云+边+端）</td>
+</tr>
+<tr>
+<td style="text-align:center">总结</td>
+<td style="text-align:center">重</td>
+<td style="text-align:center">轻, 快速</td>
+<td style="text-align:center">开放、融合</td>
+</tr>
+</tbody>
+</table>
+<h1 id="参考">
+  参考
+  <a class="anchor" href="#%e5%8f%82%e8%80%83">#</a>
+</h1>
+<ol>
+<li>
+<p>
+  <a href="https://www.nginx.com/blog/introduction-to-microservices/">Introduction to Microservices</a>  英文</p>
+</li>
+<li>
+<p>
+  <a href="https://kb.cnblogs.com/page/521880/">Introduction to Microservices</a>  中文  优缺点</p>
+</li>
+<li>
+<p>
+  <a href="https://yq.aliyun.com/articles/2764?spm=5176.100239.blogcont59193.8.R9MzN9">微服务（Microservice）那点事</a> ***</p>
+</li>
+<li>
+<p>
+  <a href="https://microservices.io/patterns/microservices.html">Pattern: Microservice Architecture</a>  ***</p>
+</li>
+<li>
+<p>
+  <a href="../../../2016/02/09/consistent/">一致性</a>  self</p>
+</li>
+<li>
+<p>
+  <a href="http://www.infoq.com/cn/articles/microservices-intro">微服务：分解应用以实现可部署性和可扩展性</a>  Chris Richardson</p>
+</li>
+<li>
+<p>
+  <a href="https://www.cnblogs.com/suter/p/3401952.html">《Linux/Unix设计思想》随笔 ——Linux/Unix哲学概述</a>  未</p>
+</li>
+<li>
+<p>
+  <a href="https://www.infoq.cn/article/2014/07/microservice-learning-resources/">微服务学习资料汇总</a>  ***</p>
+</li>
+<li>
+<p>
+  <a href="https://www.infoq.cn/article/micro-service-technology-stack/?utm_source=infoq&amp;utm_medium=popular_widget&amp;utm_campaign=popular_content_list&amp;utm_content=homepage">微服务架构技术栈选型手册</a> 未</p>
+</li>
+<li>
+<p>
+  <a href="https://mp.weixin.qq.com/s/zl0Z-bCoLDFGD8GFYh68CQ">从 SOA 到微服务，企业分布式应用架构在云原生时代如何重塑？</a> 阿里 易立  ***</p>
+</li>
+<li>
+<p>
+  <a href="https://mp.weixin.qq.com/s?__biz=MzUzNzYxNjAzMg==&amp;mid=2247486600&amp;idx=1&amp;sn=0ad92a1fe535f141fe2e8c87ffbd1229&amp;chksm=fae50747cd928e51c05c41d2cc206069babbe9dfdba5957c52ac6e77cb754192169bb6b3e898&amp;scene=0&amp;xtrack=1#rd">云原生时代，分布式系统设计必备知识图谱（内含22个知识点）</a> 杨泽强（竹涧） ***</p>
+</li>
+<li>
+<p>
+  <a href="https://www.servicemesher.com/blog/202003-gitops-progressive-delivery-with-asm/">使用托管服务网格实现应用在多集群中的 GitOps 全自动化渐进式发布</a>  郝树伟 阿里云容器服务</p>
+<p>​</p>
+</li>
+</ol>
+</article>
+ 
+      
+
+      <footer class="book-footer">
+        
+  <div class="flex flex-wrap justify-between">
+
+
+
+
+
+</div>
+
+
+
+  <script>(function(){function e(e){const t=window.getSelection(),n=document.createRange();n.selectNodeContents(e),t.removeAllRanges(),t.addRange(n)}document.querySelectorAll("pre code").forEach(t=>{t.addEventListener("click",function(){if(window.getSelection().toString())return;e(t.parentElement),navigator.clipboard&&navigator.clipboard.writeText(t.parentElement.textContent)})})})()</script>
+
+
+ 
+        
+      </footer>
+
+      
+  
+  <div class="book-comments">
+
+</div>
+  
+ 
+
+      <label for="menu-control" class="hidden book-menu-overlay"></label>
+    </div>
+
+    
+    <aside class="book-toc">
+      <div class="book-toc-content">
+        
+  
+<nav id="TableOfContents">
+  <ul>
+    <li>
+      <ul>
+        <li><a href="#目录">目录</a></li>
+      </ul>
+    </li>
+    <li><a href="#微服务-定义">微服务 定义</a></li>
+    <li><a href="#core">Core</a>
+      <ul>
+        <li>
+          <ul>
+            <li><a href="#api网关">API网关</a></li>
+            <li><a href="#服务容错">服务容错</a></li>
+            <li><a href="#服务注册和发现">服务注册和发现</a></li>
+            <li><a href="#服务间调用">服务间调用</a></li>
+            <li><a href="#服务部署和发布">服务部署和发布</a></li>
+          </ul>
+        </li>
+      </ul>
+    </li>
+    <li><a href="#design">Design</a>
+      <ul>
+        <li>
+          <ul>
+            <li><a href="#服务划分和组合">服务划分和组合</a></li>
+            <li><a href="#服务分层">服务分层</a></li>
+          </ul>
+        </li>
+      </ul>
+    </li>
+    <li><a href="#design-微服务设计模式">Design-微服务设计模式</a>
+      <ul>
+        <li>
+          <ul>
+            <li><a href="#overview">Overview</a></li>
+            <li><a href="#sidecar-11">Sidecar [11]</a></li>
+          </ul>
+        </li>
+      </ul>
+    </li>
+    <li><a href="#the-scale-cube-可伸缩性">The Scale Cube 可伸缩性</a></li>
+    <li><a href="#微服务的优势和代价">微服务的优势和代价</a></li>
+    <li><a href="#原则和缺点挑战">原则和缺点（挑战）</a></li>
+    <li><a href="#soa微服务云原生演进">SOA、微服务、云原生演进</a></li>
+    <li><a href="#参考">参考</a></li>
+  </ul>
+</nav>
+
+
+ 
+      </div>
+    </aside>
+    
+  </main>
+
+  
+</body>
+</html>
+
+
+
+
+
+
+
+
+
+
+
+

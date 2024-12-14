@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>微服务 on Hugo Book</title>
+    <link>http://localhost:1313/categories/%E5%BE%AE%E6%9C%8D%E5%8A%A1/</link>
+    <description>Recent content in 微服务 on Hugo Book</description>
+    <generator>Hugo</generator>
+    <language>en</language>
+    <lastBuildDate>Mon, 09 Sep 2019 15:02:28 +0000</lastBuildDate>
+    <atom:link href="http://localhost:1313/categories/%E5%BE%AE%E6%9C%8D%E5%8A%A1/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>微服务 总结</title>
+      <link>http://localhost:1313/docs/serviceGovernance/Overview/microservice/</link>
+      <pubDate>Mon, 09 Sep 2019 15:02:28 +0000</pubDate>
+      <guid>http://localhost:1313/docs/serviceGovernance/Overview/microservice/</guid>
+      <description>目录&#xD;#&#xD;微服务 定义&#xD;#&#xD;In short, the microservice architectural style [1] is an approach to developing a single application as a suite of small services, each running in its own process and communicating with lightweight mechanisms, often an HTTP resource API. These services are built around business capabilities and independently deployable by fully automated deployment machinery. There is a bare minimum of centralized management of these services, which may be written in different programming languages and use different data storage technologies.</description>
+    </item>
+  </channel>
+</rss>

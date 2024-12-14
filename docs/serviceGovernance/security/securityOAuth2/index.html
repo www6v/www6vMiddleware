@@ -1,0 +1,1095 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head><script src="/livereload.js?mindelay=10&amp;v=2&amp;port=1313&amp;path=livereload" data-no-instant defer></script>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="目录#OAuth 2.0 授权类型 [1][4]#授权码模式-用的多 Authorization Code 授权码 ***
+客户端模式 Client Credentials
+The Client Credentials grant is used when applications request an access token to access their own resources, not on behalf of a user.
+xxx Refresh Token *** 动态token
+密码模式-Legacy Password Grant
+基于OAuth2 的微服务 参考架构 [3]#Overview#网关 令牌的校验和转换，将前端传递过来的 OAuth 2.0 访问令牌，通过调用 IDP 进 行校验，并转换为包含用户和权限信息的 JWT 令牌，再将 JWT 令牌向后台微服务传 递。 IDP 服务 IDP 是 Identity Provider 的简称，主要负责 OAuth 2.">
+<meta name="theme-color" media="(prefers-color-scheme: light)" content="#ffffff">
+<meta name="theme-color" media="(prefers-color-scheme: dark)" content="#343a40">
+<meta name="color-scheme" content="light dark"><meta property="og:url" content="http://localhost:1313/docs/serviceGovernance/security/securityOAuth2/">
+  <meta property="og:site_name" content="Hugo Book">
+  <meta property="og:title" content="安全-OAuth2">
+  <meta property="og:description" content="目录#OAuth 2.0 授权类型 [1][4]#授权码模式-用的多 Authorization Code 授权码 ***
+客户端模式 Client Credentials
+The Client Credentials grant is used when applications request an access token to access their own resources, not on behalf of a user.
+xxx Refresh Token *** 动态token
+密码模式-Legacy Password Grant
+基于OAuth2 的微服务 参考架构 [3]#Overview#网关 令牌的校验和转换，将前端传递过来的 OAuth 2.0 访问令牌，通过调用 IDP 进 行校验，并转换为包含用户和权限信息的 JWT 令牌，再将 JWT 令牌向后台微服务传 递。 IDP 服务 IDP 是 Identity Provider 的简称，主要负责 OAuth 2.">
+  <meta property="og:locale" content="en">
+  <meta property="og:type" content="website">
+<title>安全-OAuth2 | Hugo Book</title>
+<link rel="icon" href="/favicon.png" >
+<link rel="manifest" href="/manifest.json">
+<link rel="canonical" href="http://localhost:1313/docs/serviceGovernance/security/securityOAuth2/">
+<link rel="stylesheet" href="/book.min.6c8b9d2a1fc95075ed7da46ca81060b39add8fff6741ac51259f768929281e2c.css" integrity="sha256-bIudKh/JUHXtfaRsqBBgs5rdj/9nQaxRJZ92iSkoHiw=" crossorigin="anonymous">
+  <script defer src="/fuse.min.js"></script>
+  <script defer src="/en.search.min.00f24245ba145350d6a7d4627a067b10704a773920b0be54d269e10ef5c946e1.js" integrity="sha256-APJCRboUU1DWp9RiegZ7EHBKdzkgsL5U0mnhDvXJRuE=" crossorigin="anonymous"></script>
+
+  <script defer src="/sw.min.6f6f90fcb8eb1c49ec389838e6b801d0de19430b8e516902f8d75c3c8bd98739.js" integrity="sha256-b2&#43;Q/LjrHEnsOJg45rgB0N4ZQwuOUWkC&#43;NdcPIvZhzk=" crossorigin="anonymous"></script>
+
+  
+
+<link rel="alternate" type="application/rss+xml" href="http://localhost:1313/docs/serviceGovernance/security/securityOAuth2/index.xml" title="Hugo Book" />
+<!--
+Made with Book Theme
+https://github.com/alex-shpak/hugo-book
+-->
+  
+</head>
+<body dir="ltr">
+  <input type="checkbox" class="hidden toggle" id="menu-control" />
+  <input type="checkbox" class="hidden toggle" id="toc-control" />
+  <main class="container flex">
+    <aside class="book-menu">
+      <div class="book-menu-content">
+        
+  <nav>
+<h2 class="book-brand">
+  <a class="flex align-center" href="/"><span>Hugo Book</span>
+  </a>
+</h2>
+
+
+<div class="book-search hidden">
+  <input type="text" id="book-search-input" placeholder="Search" aria-label="Search" maxlength="64" data-hotkeys="s/" />
+  <div class="book-search-spinner hidden"></div>
+  <ul id="book-search-results"></ul>
+</div>
+<script>document.querySelector(".book-search").classList.remove("hidden")</script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <span>服务治理</span>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <span>Overview</span>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/serviceGovernance/Overview/microservice/" class="">微服务 总结</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/serviceGovernance/Overview/soaFeature/" class="">分布式服务框架功能</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <span>API Gateway</span>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/serviceGovernance/API-Gateway/apiGatawaySpringGateway/" class="">API 网关-SpringCloud Gateway</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/serviceGovernance/API-Gateway/apiGatawayApisix/" class="">API 网关-apisix</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/serviceGovernance/API-Gateway/apiGateway/" class="">API Gateway网关</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <span>Config &amp; Discovery</span>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/serviceGovernance/ConfigDiscovery/soaDiscovery/" class="">服务发现</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/serviceGovernance/ConfigDiscovery/config/" class="">服务治理-分布式配置</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <span>负载均衡</span>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/serviceGovernance/loadBalance/loadBalance/" class="">负载均衡-算法</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/serviceGovernance/loadBalance/nginxOptimize/" class="">Nginx优化</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/serviceGovernance/loadBalance/nginx/" class="">Nginx总结</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <span>线程模型</span>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/serviceGovernance/threadModel/jsfThreadModel/" class="">京东服务框架JSF服务提供者线程模型</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <span>容错&amp;限流</span>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <span>容错</span>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/serviceGovernance/faultTolerant/faultTolerant/soaTolerateFramework/" class="">容错框架</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/serviceGovernance/faultTolerant/faultTolerant/soaTimeout/" class="">超时和重试 总结</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/serviceGovernance/faultTolerant/faultTolerant/soaTolerate/" class="">分布式服务框架 容错机制</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <span>限流</span>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/serviceGovernance/faultTolerant/throttle/ratelimitSentinel/" class="">流量治理-Sentinel</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/serviceGovernance/faultTolerant/throttle/ratelimit/" class="">限流-总结</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/serviceGovernance/faultTolerant/soaGracefulStart/" class="">优雅启动</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/serviceGovernance/faultTolerant/soaGracefulClose/" class="">优雅关闭</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <span>Spring Cloud</span>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/serviceGovernance/Springcloud/springTransactionInvalid/" class="">Spring  Transaction  失效</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/serviceGovernance/Springcloud/springCloud/" class="">SpringCloud</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/serviceGovernance/Springcloud/springboot/" class="">SpringBoot</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/serviceGovernance/Springcloud/springTransaction/" class="">Spring事务</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <span>灰度发布</span>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/serviceGovernance/Gray/apiGatewayGray/" class="">API 网关-灰度发布</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <span>安全</span>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/serviceGovernance/security/soaAuth/" class="">服务治理-鉴权</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/serviceGovernance/security/securityOAuth2/" class="active">安全-OAuth2</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</nav>
+
+
+
+
+  <script>(function(){var e=document.querySelector("aside .book-menu-content");addEventListener("beforeunload",function(){localStorage.setItem("menu.scrollTop",e.scrollTop)}),e.scrollTop=localStorage.getItem("menu.scrollTop")})()</script>
+
+
+ 
+      </div>
+    </aside>
+
+    <div class="book-page">
+      <header class="book-header">
+        
+  <div class="flex align-center justify-between">
+  <label for="menu-control">
+    <img src="/svg/menu.svg" class="book-icon" alt="Menu" />
+  </label>
+
+  <h3>安全-OAuth2</h3>
+
+  <label for="toc-control">
+    
+    <img src="/svg/toc.svg" class="book-icon" alt="Table of Contents" />
+    
+  </label>
+</div>
+
+
+  
+  <aside class="hidden clearfix">
+    
+  
+<nav id="TableOfContents">
+  <ul>
+    <li>
+      <ul>
+        <li><a href="#目录">目录</a></li>
+      </ul>
+    </li>
+    <li><a href="#oauth-20--授权类型-14">OAuth 2.0  授权类型 [1][4]</a></li>
+    <li><a href="#基于oauth2-的微服务-参考架构-3">基于OAuth2 的微服务 参考架构 [3]</a>
+      <ul>
+        <li>
+          <ul>
+            <li><a href="#overview">Overview</a></li>
+            <li><a href="#oauth2-与微服务进行集成">OAuth2 与微服务进行集成</a></li>
+            <li><a href="#各大开放平台是如何使用-oauth-20-的-2">各大开放平台是如何使用 OAuth 2.0 的 [2]</a></li>
+            <li><a href="#网关集成oauth20-5">网关集成OAuth2.0 [5]</a></li>
+          </ul>
+        </li>
+      </ul>
+    </li>
+    <li><a href="#oidc-2">OIDC [2]</a>
+      <ul>
+        <li>
+          <ul>
+            <li><a href="#什么是-oidc">什么是 OIDC</a></li>
+            <li><a href="#oidc-核心概念">OIDC 核心概念</a></li>
+            <li><a href="#oidc-示例">OIDC 示例</a></li>
+          </ul>
+        </li>
+      </ul>
+    </li>
+    <li><a href="#参考">参考</a></li>
+  </ul>
+</nav>
+
+
+
+  </aside>
+  
+ 
+      </header>
+
+      
+      
+  <article class="markdown book-article"><p></p>
+<!-- more -->
+<h2 id="目录">
+  目录
+  <a class="anchor" href="#%e7%9b%ae%e5%bd%95">#</a>
+</h2>
+<!-- toc -->
+<h1 id="oauth-20--授权类型-14">
+  OAuth 2.0  授权类型 [1][4]
+  <a class="anchor" href="#oauth-20--%e6%8e%88%e6%9d%83%e7%b1%bb%e5%9e%8b-14">#</a>
+</h1>
+<ul>
+<li>
+<p>授权码模式-用的多
+
+  <a href="https://oauth.net/2/grant-types/authorization-code/">Authorization Code</a> 授权码 ***</p>
+</li>
+<li>
+<p>客户端模式
+
+  <a href="https://oauth.net/2/grant-types/client-credentials/">Client Credentials</a></p>
+<p>The Client Credentials grant is used when applications request an access token to access their own resources, <strong>not on behalf of a user</strong>.</p>
+</li>
+<li>
+<p>xxx
+
+  <a href="https://oauth.net/2/grant-types/refresh-token/">Refresh Token</a>  ***
+动态token</p>
+</li>
+<li>
+<p>密码模式-Legacy
+
+  <a href="https://oauth.net/2/grant-types/password/">Password Grant</a></p>
+</li>
+</ul>
+<h1 id="基于oauth2-的微服务-参考架构-3">
+  基于OAuth2 的微服务 参考架构 [3]
+  <a class="anchor" href="#%e5%9f%ba%e4%ba%8eoauth2-%e7%9a%84%e5%be%ae%e6%9c%8d%e5%8a%a1-%e5%8f%82%e8%80%83%e6%9e%b6%e6%9e%84-3">#</a>
+</h1>
+<h3 id="overview">
+  Overview
+  <a class="anchor" href="#overview">#</a>
+</h3>
+<p>
+  <img src="./images/microservice-oauth2.jpg" alt="基于OAuth 2.0的微服务参考架构" /></p>
+<ul>
+<li>网关
+令牌的校验和转换，将前端传递过来的 OAuth 2.0 访问令牌，通过调用 IDP 进
+行校验，并转换为包含用户和权限信息的 JWT 令牌，再将 JWT 令牌向后台微服务传
+递。</li>
+<li>IDP 服务
+IDP 是 Identity Provider 的简称，主要负责 OAuth 2.0 授权协议处理，OAuth 2.0 和
+JWT 令牌颁发和管理，以及用户认证等功能。IDP 使用后台的 Login-Service 进行用户认
+证。
+选型:   Spring Security OAuth  or KeyCloak(RedHat)</li>
+</ul>
+<h3 id="oauth2-与微服务进行集成">
+  OAuth2 与微服务进行集成
+  <a class="anchor" href="#oauth2-%e4%b8%8e%e5%be%ae%e6%9c%8d%e5%8a%a1%e8%bf%9b%e8%a1%8c%e9%9b%86%e6%88%90">#</a>
+</h3>
+<ul>
+<li>第三方 Web 应用 + 授权码模式
+
+  <img src="./images/microservice-oauth2-pattern.jpg" alt="第三方 Web 应用 &#43; 授权码模式" /></li>
+</ul>
+<h3 id="各大开放平台是如何使用-oauth-20-的-2">
+  各大开放平台是如何使用 OAuth 2.0 的 [2]
+  <a class="anchor" href="#%e5%90%84%e5%a4%a7%e5%bc%80%e6%94%be%e5%b9%b3%e5%8f%b0%e6%98%af%e5%a6%82%e4%bd%95%e4%bd%bf%e7%94%a8-oauth-20-%e7%9a%84-2">#</a>
+</h3>
+<p>
+  <img src="./images/wechat-oauth2.jpg" alt="微信" /></p>
+<h3 id="网关集成oauth20-5">
+  网关集成OAuth2.0 [5]
+  <a class="anchor" href="#%e7%bd%91%e5%85%b3%e9%9b%86%e6%88%90oauth20-5">#</a>
+</h3>
+<p>
+  <img src="./images/gateway-oauth2.png" alt="gateway-oauth2" /></p>
+<h1 id="oidc-2">
+  OIDC [2]
+  <a class="anchor" href="#oidc-2">#</a>
+</h1>
+<p>
+  <img src="./images/OIDC.jpg" alt="OIDC" /></p>
+<h3 id="什么是-oidc">
+  什么是 OIDC
+  <a class="anchor" href="#%e4%bb%80%e4%b9%88%e6%98%af-oidc">#</a>
+</h3>
+<ul>
+<li>什么是 OIDC？
+<ul>
+<li>EU：End User</li>
+<li>RP：Relying Party</li>
+<li>OP：OpenID Provider</li>
+<li>ID Token</li>
+<li>UserInfo Endpoint</li>
+</ul>
+</li>
+</ul>
+<p>OIDC 是 OpenID Connect 的简称，OIDC=(Identity, Authentication) + OAuth 2.0。它在 OAuth2 上构建了一个身份层，是一个基于 OAuth2 协议的身份认证标准协议。OAuth2 是一个授权协议，它无法提供完善的身份认证功能，OIDC 使用 OAuth2 的授权服务器来为第三方客户端提供用户的身份认证，并把对应的身份认证信息传递给客户端.</p>
+<p>OAuth2 提供了<strong>Access Token</strong>来解决授权第三方客户端访问受保护资源的问题；OIDC 在这个基础上提供了<strong>ID Token</strong> 来解决第三方客户端标识用户身份认证的问题。</p>
+<h3 id="oidc-核心概念">
+  OIDC 核心概念
+  <a class="anchor" href="#oidc-%e6%a0%b8%e5%bf%83%e6%a6%82%e5%bf%b5">#</a>
+</h3>
+<ul>
+<li>OIDC 核心概念
+<ul>
+<li>主要术语</li>
+<li>OIDC 工作流程</li>
+<li>ID Token</li>
+<li>认证
+基于 Authorization Code 的认证请求
+获取 ID Token
+Implicit Flow 和 Hybrid Flow</li>
+<li>UserInfo Endpoint</li>
+</ul>
+</li>
+</ul>
+<h3 id="oidc-示例">
+  OIDC 示例
+  <a class="anchor" href="#oidc-%e7%a4%ba%e4%be%8b">#</a>
+</h3>
+<pre tabindex="0"><code>OIDC 示例
+
++ 请求示例：
+  POST /auth/realms/ccm/protocol/openid-connect/token HTTP/1.1
+  Host: server.example.com
+  Content-Type: application/x-www-form-urlencoded
+  Authorization: Basic d2ViX2FwcDp3ZWJfYXBw
+
+  grant_type=**authorization_code**&amp;code=7138b4b3-8c2b-4016-ad98-01c4938750c6.c110ddc8-c6c1-4a95-bd9e-cd8d84b4dd70.1eabef67-6473-4ba8-b07c-14bdbae4aaed&amp;redirect_uri=https%3A%2F%2Fclient.example.org%2Fcb
+
++ 响应示例：
+ HTTP/1.1 200 OK
+  Content-Type: application/json
+  Cache-Control: no-store
+  Pragma: no-cache
+
+  {
+   **&#34;access_token&#34;**: &#34;SlAV32hkKG&#34;,
+   &#34;token_type&#34;: &#34;Bearer&#34;,
+   &#34;refresh_token&#34;: &#34;8xLOxBtZp8&#34;,
+   &#34;expires_in&#34;: 3600,
+   **&#34;id_token&#34;**: &#34;eyJhbGciOiJSUzI1NiIsImtpZCI6IjFlOWdkazcifQ.ewogImlzc
+     yI6ICJodHRwOi8vc2VydmVyLmV4YW1wbGUuY29tIiwKICJzdWIiOiAiMjQ4Mjg5
+     NzYxMDAxIiwKICJhdWQiOiAiczZCaGRSa3F0MyIsCiAibm9uY2UiOiAibi0wUzZ
+     fV3pBMk1qIiwKICJleHAiOiAxMzExMjgxOTcwLAogImlhdCI6IDEzMTEyODA5Nz
+     AKfQ.ggW8hZ1EuVLuxNuuIJKX_V8a_OMXzR0EHR9R6jgdqrOOF4daGU96Sr_P6q
+     Jp6IcmD3HP99Obi1PRs-cwh3LO-p146waJ8IhehcwL7F09JdijmBqkvPeB2T9CJ
+     NqeGpe-gccMg4vfKjkM8FcGvnzZUN4_KSP0aAp1tOJ1zZwgjxqGByKHiOtX7Tpd
+     QyHE5lcMiKPXfEIQILVq0pc_E2DzL7emopWoaoZTF_m0_N0YzFC6g6EJbOEoRoS
+     K5hoDalrcvRYLSrQAZZKflyuVCyixEoV9GfNQC3_osjzw2PAithfubEEBLuVVk4
+     XUVrWOLrLl0nx7RkKU8NXNHq-rvKMzqg&#34;
+  }
+</code></pre><h1 id="参考">
+  参考
+  <a class="anchor" href="#%e5%8f%82%e8%80%83">#</a>
+</h1>
+<ol>
+<li>
+  <a href="https://deepzz.com/post/what-is-oauth2-protocol.html">10 分钟理解什么是 OAuth 2.0 协议</a> ***</li>
+<li>
+  <a href="http://koca.szkingdom.com/forum/t/topic/139">OAuth2.0 + OIDC 技术规范及应用场景</a> ***</li>
+<li>&laquo;12 | 架构案例：基于OAuth 2.0/JWT的微服务参考架构&raquo;  杨波 ***</li>
+<li>
+  <a href="https://java-family.cn/#/OAuth2.0/04-%e5%9b%9b%e7%a7%8d%e6%8e%88%e6%9d%83%e6%a8%a1%e5%bc%8f%e6%bc%94%e7%a4%ba?id=oauth20%e7%9a%84%e5%9b%9b%e7%a7%8d%e6%a8%a1%e5%bc%8f%e6%b5%8b%e8%af%95">OAuth2.0的四种模式测试</a></li>
+<li>
+  <a href="https://java-family.cn/#/OAuth2.0/07-Spring-Cloud-Gateway%E9%9B%86%E6%88%90OAuth2.0">07  网关集成OAuth2.0实现统一认证鉴权</a>  代码</li>
+</ol>
+</article>
+ 
+      
+
+      <footer class="book-footer">
+        
+  <div class="flex flex-wrap justify-between">
+
+
+
+
+
+</div>
+
+
+
+  <script>(function(){function e(e){const t=window.getSelection(),n=document.createRange();n.selectNodeContents(e),t.removeAllRanges(),t.addRange(n)}document.querySelectorAll("pre code").forEach(t=>{t.addEventListener("click",function(){if(window.getSelection().toString())return;e(t.parentElement),navigator.clipboard&&navigator.clipboard.writeText(t.parentElement.textContent)})})})()</script>
+
+
+ 
+        
+      </footer>
+
+      
+  
+  <div class="book-comments">
+
+</div>
+  
+ 
+
+      <label for="menu-control" class="hidden book-menu-overlay"></label>
+    </div>
+
+    
+    <aside class="book-toc">
+      <div class="book-toc-content">
+        
+  
+<nav id="TableOfContents">
+  <ul>
+    <li>
+      <ul>
+        <li><a href="#目录">目录</a></li>
+      </ul>
+    </li>
+    <li><a href="#oauth-20--授权类型-14">OAuth 2.0  授权类型 [1][4]</a></li>
+    <li><a href="#基于oauth2-的微服务-参考架构-3">基于OAuth2 的微服务 参考架构 [3]</a>
+      <ul>
+        <li>
+          <ul>
+            <li><a href="#overview">Overview</a></li>
+            <li><a href="#oauth2-与微服务进行集成">OAuth2 与微服务进行集成</a></li>
+            <li><a href="#各大开放平台是如何使用-oauth-20-的-2">各大开放平台是如何使用 OAuth 2.0 的 [2]</a></li>
+            <li><a href="#网关集成oauth20-5">网关集成OAuth2.0 [5]</a></li>
+          </ul>
+        </li>
+      </ul>
+    </li>
+    <li><a href="#oidc-2">OIDC [2]</a>
+      <ul>
+        <li>
+          <ul>
+            <li><a href="#什么是-oidc">什么是 OIDC</a></li>
+            <li><a href="#oidc-核心概念">OIDC 核心概念</a></li>
+            <li><a href="#oidc-示例">OIDC 示例</a></li>
+          </ul>
+        </li>
+      </ul>
+    </li>
+    <li><a href="#参考">参考</a></li>
+  </ul>
+</nav>
+
+
+ 
+      </div>
+    </aside>
+    
+  </main>
+
+  
+</body>
+</html>
+
+
+
+
+
+
+
+
+
+
+
+

@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Nginx on Hugo Book</title>
+    <link>http://localhost:1313/categories/nginx/</link>
+    <description>Recent content in Nginx on Hugo Book</description>
+    <generator>Hugo</generator>
+    <language>en</language>
+    <lastBuildDate>Thu, 26 Mar 2020 12:07:27 +0000</lastBuildDate>
+    <atom:link href="http://localhost:1313/categories/nginx/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>Nginx优化</title>
+      <link>http://localhost:1313/docs/serviceGovernance/loadBalance/nginxOptimize/</link>
+      <pubDate>Thu, 26 Mar 2020 12:07:27 +0000</pubDate>
+      <guid>http://localhost:1313/docs/serviceGovernance/loadBalance/nginxOptimize/</guid>
+      <description>Nginx 参数优化&#xD;#&#xD;反向代理&#xD;#&#xD;proxy_cache: 10M(重要) proxy_cache_path /data/nginx_cache/ levels=1:2 keys_zone=my_zone:10m inactive=300s max_size=5g; tls ssl&#xD;#&#xD;ssl_session_cache builtin:1000 shared:SSL:10m; /// 一天内连接上的用户， 不需要再协商秘钥 ssl_session_cache builtin:1000 shared:SSL:10m; /// 1m -&amp;gt; 4000个https连接 ssl_session_timeout 10m; /// 10分钟 ssl_protocols TLSv1.2; /// 版本号 非安全请求重定向&#xD;#&#xD;No redirect: 无重定向 Redirect： 301-302 -》 转到https站点 gzip&#xD;#&#xD;gzip on; gzip_comp_level 5; gzip_http_version 1.1; /// 注意：gzip 在1.1上有效， http2.0上是无效的 gzip_min_length 256; gzip_types application/atom+xml ... gzip_proxied any; gzip_vary on; worker&#xD;#&#xD;worker_connections 16384; /// 一个worker有 16384/2=8192 ‬个链接 .</description>
+    </item>
+    <item>
+      <title>Nginx总结</title>
+      <link>http://localhost:1313/docs/serviceGovernance/loadBalance/nginx/</link>
+      <pubDate>Thu, 22 Aug 2019 02:17:53 +0000</pubDate>
+      <guid>http://localhost:1313/docs/serviceGovernance/loadBalance/nginx/</guid>
+      <description>Nginx总结&#xD;#&#xD;Nginx架构&#xD;#&#xD;共享内存 Slab 分页 4K， 8K， 16K Nginx反向代理&#xD;#&#xD;类型&#xD;#&#xD;带权重的round-robin算法是基础 hash负载均衡算法 ip-hash算法 -&amp;gt; real-ip hash算法 -&amp;gt; 自定义可以hash的参数（比如?userName） 问题: 如果有upstream的机器宕机， hash算法还会路由到这台机器 解决方案：使用一致性hash(consistent),hash 环&#xA;least-connection算法， 如果所有节点的connection都一致， 会退化成为round-robin算法。 可扩展立方体&#xD;#&#xD;X-axis 基于round-robin或者least-connected算法分发请求 -&amp;gt; 相对简单 Y-axis 基于URL对功能进行分发。 -&amp;gt; 相对复杂 Z-axis 将用户IP地址或者其他信息映射到某个特定的服务或者集群 -&amp;gt; 相对简单 多种协议反向代理&#xD;#&#xD;tcp udp 透传 http -&amp;gt; memcached , scgi, fastcgi, uwsgi, grpc, http, websocket 反向代理流程&#xD;#&#xD;修改发送到upstream机器的请求的nginx指令。&#xA;节点热更新&#xD;#&#xD;master节点热更新&#xD;#&#xD;worker节点热更新&#xD;#&#xD;域名转发到其他域名[2]&#xD;#&#xD;return 指令 rewrite proxy_pass 文件下载&#xD;#&#xD;nginx.</description>
+    </item>
+  </channel>
+</rss>

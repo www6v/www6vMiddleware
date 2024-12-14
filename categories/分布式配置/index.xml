@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>分布式配置 on Hugo Book</title>
+    <link>http://localhost:1313/categories/%E5%88%86%E5%B8%83%E5%BC%8F%E9%85%8D%E7%BD%AE/</link>
+    <description>Recent content in 分布式配置 on Hugo Book</description>
+    <generator>Hugo</generator>
+    <language>en</language>
+    <lastBuildDate>Mon, 27 Jul 2020 22:11:35 +0000</lastBuildDate>
+    <atom:link href="http://localhost:1313/categories/%E5%88%86%E5%B8%83%E5%BC%8F%E9%85%8D%E7%BD%AE/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>服务治理-分布式配置</title>
+      <link>http://localhost:1313/docs/serviceGovernance/ConfigDiscovery/config/</link>
+      <pubDate>Mon, 27 Jul 2020 22:11:35 +0000</pubDate>
+      <guid>http://localhost:1313/docs/serviceGovernance/ConfigDiscovery/config/</guid>
+      <description>&#xA;需求&#xD;#&#xD;对实时性要求不高 对可用性要求高 产品&#xD;#&#xD;产品 存储 Disconf 百度 mysql Apollo 携程 mysql QConf 360 zookeeper 微博 redis 美图 etcd spring cloud config git 参考：&#xD;#&#xD;Spring Boot与Kubernetes云原生微服务实践 杨波 </description>
+    </item>
+  </channel>
+</rss>

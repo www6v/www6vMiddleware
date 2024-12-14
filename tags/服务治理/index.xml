@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>服务治理 on Hugo Book</title>
+    <link>http://localhost:1313/tags/%E6%9C%8D%E5%8A%A1%E6%B2%BB%E7%90%86/</link>
+    <description>Recent content in 服务治理 on Hugo Book</description>
+    <generator>Hugo</generator>
+    <language>en</language>
+    <lastBuildDate>Sun, 14 Aug 2022 19:20:42 +0000</lastBuildDate>
+    <atom:link href="http://localhost:1313/tags/%E6%9C%8D%E5%8A%A1%E6%B2%BB%E7%90%86/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>服务发现</title>
+      <link>http://localhost:1313/docs/serviceGovernance/ConfigDiscovery/soaDiscovery/</link>
+      <pubDate>Sun, 14 Aug 2022 19:20:42 +0000</pubDate>
+      <guid>http://localhost:1313/docs/serviceGovernance/ConfigDiscovery/soaDiscovery/</guid>
+      <description>&#xA;机制&#xD;#&#xD;Overview&#xD;#&#xD;服务注册和发现&#xA;模式&#xD;#&#xD;Client-side Discovery Server-side Discovery patterns 实现&#xD;#&#xD;需求 [1]&#xD;#&#xD;RPC 框架依赖的注册中心的服务数据的一致性其实并不需要满足 CP，只要满足 AP 即可。&#xA;Framework&#xD;#&#xD;etcd - CP nacos 基于raft协议 zk - CP eureka - AP 参考&#xD;#&#xD;《08 | 服务发现：到底是要CP还是AP？》 </description>
+    </item>
+    <item>
+      <title>服务治理-鉴权</title>
+      <link>http://localhost:1313/docs/serviceGovernance/security/soaAuth/</link>
+      <pubDate>Wed, 10 Aug 2022 09:29:10 +0000</pubDate>
+      <guid>http://localhost:1313/docs/serviceGovernance/security/soaAuth/</guid>
+      <description>&#xA;备选方案 [1]&#xD;#&#xD;分布式 Session OAuth2.0 JWT CAS OAuth2 和 JWT的关系[gpt4]&#xD;#&#xD;OAuth2和JWT都是用于实现网络应用中的授权和身份验证的技术。但是，它们在实现方式和使用场景上有所不同。&#xA;OAuth2是一个授权框架，它允许第三方应用在用户的许可下访问其私有资源。例如，一个应用可以使用OAuth2获取用户的Facebook或Google账户信息，而无需用户提供他们的用户名和密码。&#xA;JWT（JSON Web Token）则是一种开放标准（RFC 7519），它定义了一种紧凑且自包含的方式，用于在各方之间安全地传输信息作为JSON对象。这些信息可以被验证和信任，因为它们是数字签名的。&#xA;OAuth2和JWT可以一起使用。例如，当一个应用使用OAuth2获取用户的授权时，它可能会接收到一个包含JWT的访问令牌。应用可以解码这个JWT，以获取关于用户的信息，如他们的用户名或电子邮件地址。同时，因为JWT是签名的，应用可以信任这些信息的准确性。&#xA;总的来说，OAuth2和JWT都是实现网络应用授权和身份验证的重要工具，但它们在实现细节和使用方式上有所不同。&#xA;参考&#xD;#&#xD;微服务之用户鉴权中心 {% post_link &amp;lsquo;securityOAuth2&amp;rsquo; %} self </description>
+    </item>
+    <item>
+      <title>容错框架</title>
+      <link>http://localhost:1313/docs/serviceGovernance/faultTolerant/faultTolerant/soaTolerateFramework/</link>
+      <pubDate>Fri, 07 Oct 2016 06:40:26 +0000</pubDate>
+      <guid>http://localhost:1313/docs/serviceGovernance/faultTolerant/faultTolerant/soaTolerateFramework/</guid>
+      <description>&#xA;Hystrix实现和容错模式&#xD;#&#xD;Hystrix实现和容错模式 熔断【熔断器模式】 三个状态 开 闭 半开 模块 熔断请求判断机制算法 维护10个bucket,每秒一个bucket,每个blucket记录成功,失败,超时,拒绝的状态。 超时【超时与重试模式】 失败（异常） 成功 拒绝 线程池拒绝【1】 信号量拒绝【2】 默认错误超过50%且10秒内超过20个请求进行中断拦截 熔断恢复 每隔5s允许部分请求通过，若请求都是健康的（RT&amp;lt;250ms）则对请求健康恢复 熔断报警和Metric上报 流控【限流模式】 控制速率 控制并发 隔离【舱壁隔离模式】 Hystrix实现 线程池隔离 【1】 信号量隔离【2】 回退【回退模式】 快速失败（Fail Fast ） 无声失败（Fail Silent ） 返回默认值（Fallback Static ） Resilience4j [1]&#xD;#&#xD;断路器（Circuit Breaker） 重试（Retry） 限时器（Time Limiter） 限流器（Rate Limiter） 隔板（BulkHead） 参考&#xD;#&#xD;Hystrix&#xD;#&#xD;微服务熔断与隔离 楚岩 Hystrix技术解析 王新栋 &amp;laquo;亿级流量网站架构核心技术&amp;raquo; 5.8节 张开涛 Hystrix 使用与分析 zhangyijun Resilience4j&#xD;#&#xD;Resilience4j 比 Hystrix 好在哪里？ </description>
+    </item>
+  </channel>
+</rss>

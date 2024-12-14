@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>OAuth2 on Hugo Book</title>
+    <link>http://localhost:1313/categories/OAuth2/</link>
+    <description>Recent content in OAuth2 on Hugo Book</description>
+    <generator>Hugo</generator>
+    <language>en</language>
+    <lastBuildDate>Fri, 20 Mar 2020 17:28:48 +0000</lastBuildDate>
+    <atom:link href="http://localhost:1313/categories/OAuth2/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>安全-OAuth2</title>
+      <link>http://localhost:1313/docs/serviceGovernance/security/securityOAuth2/</link>
+      <pubDate>Fri, 20 Mar 2020 17:28:48 +0000</pubDate>
+      <guid>http://localhost:1313/docs/serviceGovernance/security/securityOAuth2/</guid>
+      <description>目录&#xD;#&#xD;OAuth 2.0 授权类型 [1][4]&#xD;#&#xD;授权码模式-用的多 Authorization Code 授权码 ***&#xA;客户端模式 Client Credentials&#xA;The Client Credentials grant is used when applications request an access token to access their own resources, not on behalf of a user.&#xA;xxx Refresh Token *** 动态token&#xA;密码模式-Legacy Password Grant&#xA;基于OAuth2 的微服务 参考架构 [3]&#xD;#&#xD;Overview&#xD;#&#xD;网关 令牌的校验和转换，将前端传递过来的 OAuth 2.0 访问令牌，通过调用 IDP 进 行校验，并转换为包含用户和权限信息的 JWT 令牌，再将 JWT 令牌向后台微服务传 递。 IDP 服务 IDP 是 Identity Provider 的简称，主要负责 OAuth 2.</description>
+    </item>
+  </channel>
+</rss>
