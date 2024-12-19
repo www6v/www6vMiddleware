@@ -1,0 +1,1522 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="MySQL Log和事务[0]#redo log#有了redolog之后，当对缓冲区的数据进行增删改之后，会首先将操作的数据页的变化，记录在redo log buffer中。在事务提交时，会将redo log buffer中的数据刷新到redo log磁盘文件中。过一段时间之后，如果刷新缓冲区的脏页到磁盘时，发生错误，此时就可以借助于redo log进行数据恢复，这样就保证了事务的持久性。 因为在业务操作中，我们操作数据一般都是随机读写磁盘的，而不是顺序读写磁盘。 而redo log在往磁盘文件中写入数据，由于是日志文件，所以都是顺序写的。顺序写的效率，要远大于随机写。 这种先写日志的方式，称之为** WAL（Write-Ahead Logging）**。 undo log#回滚日志，用于记录数据被修改前的信息 , 作用包含两个 : **提供回滚(保证事务的原子性) 和MVCC(多版本并发控制) **。
+undo log和redo log记录物理日志不一样，它是逻辑日志。可以认为当delete一条记录时，undolog中会记录一条对应的insert记录，反之亦然，当update一条记录时，它记录一条对应相反的update记录。
+总结#Log 性质 记录内容 ACID redo log 物理日志[记录内容] wal 保证事务的持久性[D] undo log 物理日志[记录内容] 被修改前的信息，提供回滚 保证事务的原子性[A] ​ binlog 逻辑日志[记录操作]
+MySQL Log和可靠性#binlog的三种格式[1]#statement
+row格式
+mixed格式: statement or row格式
+因为有些statement格式的binlog可能会导致主备不一致，所以要使用row格式。 但row格式的缺点是，很占空间。比如你用一个delete语句删掉10万行数据，用statement的话就是一个SQL语句被记录到binlog中，占用几十个字节的空间。但如果用row格式的binlog，就要把这10万条记录都写到binlog中。这样做，不仅会占用更大的空间，同时写binlog也要耗费IO资源，影响执行速度。 所以，MySQL就取了个折中方案，也就是有了mixed格式的binlog。mixed格式的意思是，MySQL自己会判断这条SQL语句是否可能引起主备不一致，如果有可能，就用row格式，否则就用statement格式。 也就是说，mixed格式可以利用statment格式的优点，同时又避免了数据不一致的风险.因此，如果你的线上MySQL设置的binlog格式是statement的话，那基本上就可以认为这是一个不合理的设置。你至少应该把binlog的格式设置为mixed。
+redo log 和 undo log [4]#redo Log">
+<meta name="theme-color" media="(prefers-color-scheme: light)" content="#ffffff">
+<meta name="theme-color" media="(prefers-color-scheme: dark)" content="#343a40">
+<meta name="color-scheme" content="light dark"><meta property="og:url" content="https://www6v.github.io/www6vMiddleware/docs/RMDB/%E5%8D%95%E6%9C%BA/mysqlLog/">
+  <meta property="og:site_name" content="中间件">
+  <meta property="og:title" content="MySQL Logs">
+  <meta property="og:description" content="MySQL Log和事务[0]#redo log#有了redolog之后，当对缓冲区的数据进行增删改之后，会首先将操作的数据页的变化，记录在redo log buffer中。在事务提交时，会将redo log buffer中的数据刷新到redo log磁盘文件中。过一段时间之后，如果刷新缓冲区的脏页到磁盘时，发生错误，此时就可以借助于redo log进行数据恢复，这样就保证了事务的持久性。 因为在业务操作中，我们操作数据一般都是随机读写磁盘的，而不是顺序读写磁盘。 而redo log在往磁盘文件中写入数据，由于是日志文件，所以都是顺序写的。顺序写的效率，要远大于随机写。 这种先写日志的方式，称之为** WAL（Write-Ahead Logging）**。 undo log#回滚日志，用于记录数据被修改前的信息 , 作用包含两个 : **提供回滚(保证事务的原子性) 和MVCC(多版本并发控制) **。
+undo log和redo log记录物理日志不一样，它是逻辑日志。可以认为当delete一条记录时，undolog中会记录一条对应的insert记录，反之亦然，当update一条记录时，它记录一条对应相反的update记录。
+总结#Log 性质 记录内容 ACID redo log 物理日志[记录内容] wal 保证事务的持久性[D] undo log 物理日志[记录内容] 被修改前的信息，提供回滚 保证事务的原子性[A] ​ binlog 逻辑日志[记录操作]
+MySQL Log和可靠性#binlog的三种格式[1]#statement
+row格式
+mixed格式: statement or row格式
+因为有些statement格式的binlog可能会导致主备不一致，所以要使用row格式。 但row格式的缺点是，很占空间。比如你用一个delete语句删掉10万行数据，用statement的话就是一个SQL语句被记录到binlog中，占用几十个字节的空间。但如果用row格式的binlog，就要把这10万条记录都写到binlog中。这样做，不仅会占用更大的空间，同时写binlog也要耗费IO资源，影响执行速度。 所以，MySQL就取了个折中方案，也就是有了mixed格式的binlog。mixed格式的意思是，MySQL自己会判断这条SQL语句是否可能引起主备不一致，如果有可能，就用row格式，否则就用statement格式。 也就是说，mixed格式可以利用statment格式的优点，同时又避免了数据不一致的风险.因此，如果你的线上MySQL设置的binlog格式是statement的话，那基本上就可以认为这是一个不合理的设置。你至少应该把binlog的格式设置为mixed。
+redo log 和 undo log [4]#redo Log">
+  <meta property="og:locale" content="en">
+  <meta property="og:type" content="website">
+<title>MySQL Logs | 中间件</title>
+<link rel="icon" href="/www6vMiddleware/favicon.png" >
+<link rel="manifest" href="/www6vMiddleware/manifest.json">
+<link rel="canonical" href="https://www6v.github.io/www6vMiddleware/docs/RMDB/%E5%8D%95%E6%9C%BA/mysqlLog/">
+<link rel="stylesheet" href="/www6vMiddleware/book.min.6c8b9d2a1fc95075ed7da46ca81060b39add8fff6741ac51259f768929281e2c.css" integrity="sha256-bIudKh/JUHXtfaRsqBBgs5rdj/9nQaxRJZ92iSkoHiw=" crossorigin="anonymous">
+  <script defer src="/www6vMiddleware/fuse.min.js"></script>
+  <script defer src="/www6vMiddleware/en.search.min.b4c267b63bd2d996b53b827d5c011566787dec45d285c3f0bde3536ffcdedffc.js" integrity="sha256-tMJntjvS2Za1O4J9XAEVZnh97EXShcPwveNTb/ze3/w=" crossorigin="anonymous"></script>
+
+  
+
+<link rel="alternate" type="application/rss+xml" href="https://www6v.github.io/www6vMiddleware/docs/RMDB/%E5%8D%95%E6%9C%BA/mysqlLog/index.xml" title="中间件" />
+<!--
+Made with Book Theme
+https://github.com/alex-shpak/hugo-book
+-->
+  
+</head>
+<body dir="ltr">
+  <input type="checkbox" class="hidden toggle" id="menu-control" />
+  <input type="checkbox" class="hidden toggle" id="toc-control" />
+  <main class="container flex">
+    <aside class="book-menu">
+      <div class="book-menu-content">
+        
+  <nav>
+<h2 class="book-brand">
+  <a class="flex align-center" href="/www6vMiddleware/"><span>中间件</span>
+  </a>
+</h2>
+
+
+<div class="book-search hidden">
+  <input type="text" id="book-search-input" placeholder="Search" aria-label="Search" maxlength="64" data-hotkeys="s/" />
+  <div class="book-search-spinner hidden"></div>
+  <ul id="book-search-results"></ul>
+</div>
+<script>document.querySelector(".book-search").classList.remove("hidden")</script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <span>(服务治理)</span>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <span>Overview</span>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMiddleware/docs/serviceGovernance/Overview/microservice/" class="">微服务 总结</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMiddleware/docs/serviceGovernance/Overview/soaFeature/" class="">分布式服务框架功能</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <span>API Gateway</span>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMiddleware/docs/serviceGovernance/API-Gateway/apiGatawaySpringGateway/" class="">API 网关-SpringCloud Gateway</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMiddleware/docs/serviceGovernance/API-Gateway/apiGatawayApisix/" class="">API 网关-apisix</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMiddleware/docs/serviceGovernance/API-Gateway/apiGateway/" class="">API Gateway网关</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <span>Config &amp; Discovery</span>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMiddleware/docs/serviceGovernance/ConfigDiscovery/soaDiscovery/" class="">服务发现</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMiddleware/docs/serviceGovernance/ConfigDiscovery/config/" class="">服务治理-分布式配置</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <span>负载均衡</span>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMiddleware/docs/serviceGovernance/loadBalance/loadBalance/" class="">负载均衡-算法</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMiddleware/docs/serviceGovernance/loadBalance/nginxOptimize/" class="">Nginx优化</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMiddleware/docs/serviceGovernance/loadBalance/nginx/" class="">Nginx总结</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <span>线程模型</span>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMiddleware/docs/serviceGovernance/threadModel/jsfThreadModel/" class="">京东服务框架JSF服务提供者线程模型</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <span>容错&amp;限流</span>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <span>容错</span>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMiddleware/docs/serviceGovernance/faultTolerant/faultTolerant/soaTolerateFramework/" class="">容错框架</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMiddleware/docs/serviceGovernance/faultTolerant/faultTolerant/soaTimeout/" class="">超时和重试 总结</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMiddleware/docs/serviceGovernance/faultTolerant/faultTolerant/soaTolerate/" class="">分布式服务框架 容错机制</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <span>限流</span>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMiddleware/docs/serviceGovernance/faultTolerant/throttle/ratelimitSentinel/" class="">流量治理-Sentinel</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMiddleware/docs/serviceGovernance/faultTolerant/throttle/ratelimit/" class="">限流-总结</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMiddleware/docs/serviceGovernance/faultTolerant/soaGracefulStart/" class="">优雅启动</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMiddleware/docs/serviceGovernance/faultTolerant/soaGracefulClose/" class="">优雅关闭</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <span>Spring Cloud</span>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMiddleware/docs/serviceGovernance/Springcloud/springTransactionInvalid/" class="">Spring  Transaction  失效</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMiddleware/docs/serviceGovernance/Springcloud/springCloud/" class="">SpringCloud</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMiddleware/docs/serviceGovernance/Springcloud/springboot/" class="">SpringBoot</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMiddleware/docs/serviceGovernance/Springcloud/springTransaction/" class="">Spring事务</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <span>灰度发布</span>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMiddleware/docs/serviceGovernance/Gray/apiGatewayGray/" class="">API 网关-灰度发布</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <span>安全</span>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMiddleware/docs/serviceGovernance/security/soaAuth/" class="">服务治理-鉴权</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMiddleware/docs/serviceGovernance/security/securityOAuth2/" class="">安全-OAuth2</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <span>(消息系统)</span>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <span>Overview</span>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMiddleware/docs/message/Overview/mq/" class="">消息中间件总结</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMiddleware/docs/message/Overview/mqCompare/" class="">MQ总结(Kafka, Rocketmq, Rabbitmq)</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMiddleware/docs/message/Overview/mqOrdering/" class="">消息系统 顺序消息</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <span>Kafka</span>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMiddleware/docs/message/Kafka/kafka/" class="">Kafka总结</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMiddleware/docs/message/Kafka/kafkaProducer/" class="">Kafka Producer生产者</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMiddleware/docs/message/Kafka/kafkaConsumer/" class="">Kafka消费者总结</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMiddleware/docs/message/Kafka/kafkaRebalance/" class="">Kafka消费者-Rebalance机制</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMiddleware/docs/message/Kafka/kafkaReliability/" class="">Kafka 可靠性总结</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMiddleware/docs/message/Kafka/kafkaIndex/" class="">Kafka 索引</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMiddleware/docs/message/Kafka/kafkaZeroCopy/" class="">Kafka-ZeroCopy</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMiddleware/docs/message/Kafka/kafkaController/" class="">Kafka Controller-控制器</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMiddleware/docs/message/Kafka/kafkaReplica/" class="">Kafka Replication-副本机制</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMiddleware/docs/message/Kafka/kafkaElection/" class="">Kafka 中的选主</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMiddleware/docs/message/Kafka/kafkaQ-A/" class="">Kafka  Q&amp;A</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMiddleware/docs/message/Kafka/kafkaTransaction/" class="">Kafka 幂等性和事务</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <span>(关系型数据库)</span>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <span>单机</span>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMiddleware/docs/RMDB/%E5%8D%95%E6%9C%BA/mysqlTransactionAndLock/" class="">MySQL 事务-隔离性</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMiddleware/docs/RMDB/%E5%8D%95%E6%9C%BA/mysqlUpdate/" class="">MySQL中的SQL更新语句</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMiddleware/docs/RMDB/%E5%8D%95%E6%9C%BA/mysqlReliability/" class="">MySQL的主从 高可用 容灾</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMiddleware/docs/RMDB/%E5%8D%95%E6%9C%BA/mysqlIndex/" class="">MySQL的索引和优化</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMiddleware/docs/RMDB/%E5%8D%95%E6%9C%BA/mysqlTransaction/" class="">MySQL事务-总结</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMiddleware/docs/RMDB/%E5%8D%95%E6%9C%BA/mysqlLog/" class="active">MySQL Logs</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMiddleware/docs/RMDB/%E5%8D%95%E6%9C%BA/mysqlDeadLock/" class="">MySQL  锁和死锁</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMiddleware/docs/RMDB/%E5%8D%95%E6%9C%BA/mysqlMasterSlaveDelay/" class="">MySQL 主从延迟</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</nav>
+
+
+
+
+  <script>(function(){var e=document.querySelector("aside .book-menu-content");addEventListener("beforeunload",function(){localStorage.setItem("menu.scrollTop",e.scrollTop)}),e.scrollTop=localStorage.getItem("menu.scrollTop")})()</script>
+
+
+ 
+      </div>
+    </aside>
+
+    <div class="book-page">
+      <header class="book-header">
+        
+  <div class="flex align-center justify-between">
+  <label for="menu-control">
+    <img src="/www6vMiddleware/svg/menu.svg" class="book-icon" alt="Menu" />
+  </label>
+
+  <h3>MySQL Logs</h3>
+
+  <label for="toc-control">
+    
+    <img src="/www6vMiddleware/svg/toc.svg" class="book-icon" alt="Table of Contents" />
+    
+  </label>
+</div>
+
+
+  
+  <aside class="hidden clearfix">
+    
+  
+<nav id="TableOfContents">
+  <ul>
+    <li>
+      <ul>
+        <li><a href="#mysql-log和事务0">MySQL Log和事务[0]</a>
+          <ul>
+            <li></li>
+          </ul>
+        </li>
+        <li><a href="#mysql-log和可靠性">MySQL Log和可靠性</a>
+          <ul>
+            <li></li>
+          </ul>
+        </li>
+        <li><a href="#参考">参考</a></li>
+      </ul>
+    </li>
+  </ul>
+</nav>
+
+
+
+  </aside>
+  
+ 
+      </header>
+
+      
+      
+  <article class="markdown book-article"><p></p>
+<!-- more -->
+<h2 id="mysql-log和事务0">
+  MySQL Log和事务[0]
+  <a class="anchor" href="#mysql-log%e5%92%8c%e4%ba%8b%e5%8a%a10">#</a>
+</h2>
+<h5 id="redo-log">
+  redo log
+  <a class="anchor" href="#redo-log">#</a>
+</h5>
+<ul>
+<li>有了redolog之后，当对缓冲区的数据进行增删改之后，会首先将操作的数据页的变化，记录在redo log buffer中。在事务提交时，会将redo log buffer中的数据刷新到redo log磁盘文件中。过一段时间之后，如果刷新缓冲区的脏页到磁盘时，<strong>发生错误，此时就可以借助于redo log进行数据恢复，这样就保证了事务的持久性</strong>。</li>
+<li>因为在业务操作中，我们操作数据一般都是<strong>随机读写磁盘</strong>的，而不是顺序读写磁盘。 而redo log在往磁盘文件中写入数据，由于是日志文件，所以都是<strong>顺序写</strong>的。顺序写的效率，要远大于随机写。 这种先写日志的方式，称之为** WAL（Write-Ahead Logging）**。</li>
+</ul>
+<h5 id="undo-log">
+  undo log
+  <a class="anchor" href="#undo-log">#</a>
+</h5>
+<p>回滚日志，用于记录数据被修改前的信息 , 作用包含两个 : **提供回滚(保证事务的原子性) 和MVCC(多版本并发控制) **。</p>
+<p>undo log和redo log记录物理日志不一样，它是逻辑日志。可以认为当delete一条记录时，undolog中会记录一条对应的insert记录，反之亦然，当update一条记录时，它记录一条对应相反的update记录。</p>
+<h5 id="总结">
+  总结
+  <a class="anchor" href="#%e6%80%bb%e7%bb%93">#</a>
+</h5>
+<table>
+<thead>
+<tr>
+<th>Log</th>
+<th>性质</th>
+<th>记录内容</th>
+<th>ACID</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>redo log</td>
+<td>物理日志[记录内容]</td>
+<td>wal</td>
+<td>保证事务的持久性[D]</td>
+</tr>
+<tr>
+<td>undo log</td>
+<td>物理日志[记录内容]</td>
+<td>被修改前的信息，提供回滚</td>
+<td>保证事务的原子性[A]</td>
+</tr>
+</tbody>
+</table>
+<p>​    binlog                 逻辑日志[记录操作]</p>
+<h2 id="mysql-log和可靠性">
+  MySQL Log和可靠性
+  <a class="anchor" href="#mysql-log%e5%92%8c%e5%8f%af%e9%9d%a0%e6%80%a7">#</a>
+</h2>
+<h5 id="binlog的三种格式1">
+  binlog的三种格式[1]
+  <a class="anchor" href="#binlog%e7%9a%84%e4%b8%89%e7%a7%8d%e6%a0%bc%e5%bc%8f1">#</a>
+</h5>
+<ul>
+<li>
+<p>statement</p>
+</li>
+<li>
+<p>row格式</p>
+</li>
+<li>
+<p>mixed格式: statement or row格式</p>
+<p>因为有些<strong>statement格式</strong>的binlog可能会<strong>导致主备不一致</strong>，所以要使用row格式。
+但<strong>row格式的缺点是，很占空间</strong>。比如你用一个delete语句删掉10万行数据，用statement的话就是一个SQL语句被记录到binlog中，占用几十个字节的空间。但如果用row格式的binlog，就要把这10万条记录都写到binlog中。这样做，不仅会占用更大的空间，同时写binlog也要耗费IO资源，影响执行速度。
+所以，MySQL就取了个<strong>折中方案</strong>，也就是有了mixed格式的binlog。<strong>mixed格式</strong>的意思是，MySQL自己会判断这条SQL语句是否可能引起主备不一致，如果有可能，就用row格式，否则就用statement格式。
+也就是说，mixed格式<strong>可以利用statment格式的优点，同时又避免了数据不一致的风险</strong>.因此，如果你的线上MySQL设置的binlog格式是statement的话，那基本上就可以认为这是一个不合理的设置。你至少应该把binlog的格式设置为mixed。</p>
+</li>
+</ul>
+<h5 id="redo-log-和-undo-log-4">
+  redo log 和 undo log [4]
+  <a class="anchor" href="#redo-log-%e5%92%8c-undo-log-4">#</a>
+</h5>
+<ul>
+<li>
+<p>redo Log</p>
+<ul>
+<li>WAL日志，保证事务持久性</li>
+<li>buffer楼盘之前数据库意外宕机， 可以进行数据的恢复</li>
+</ul>
+</li>
+<li>
+<p>undo log</p>
+<ul>
+<li>保证事务原子性， 回滚或者事务异常，可以回滚到历史版本</li>
+<li>实现MVCC的必要条件</li>
+</ul>
+</li>
+</ul>
+<pre tabindex="0"><code>  事务开始.
+      记录A=1到undo log.
+      修改A=3.
+      记录A=3到redo log.( 先写内存， 后同步到磁盘中)
+
+      记录B=2到undo log.
+      修改B=4.
+      记录B=4到redo log.( 先写内存， 后同步到磁盘中)
+
+      将redo log写入磁盘。
+  事务提交
+</code></pre><h2 id="参考">
+  参考
+  <a class="anchor" href="#%e5%8f%82%e8%80%83">#</a>
+</h2>
+<ol start="0">
+<li>
+<p><a href="https://www.bilibili.com/video/BV1Kr4y1i7ru?p=78">黑马程序员 MySQL数据库入门到精通</a>  P138 - P140
+<a href="https://github.com/www6v/mysql_note">mysql_note</a> 笔记1
+<a href="https://frxcat.fun/database/MySQL/MySQL_Advanced_index/">MySQL 索引</a> 笔记2 ***</p>
+</li>
+<li>
+<p>《MySQL是怎么保证主备一致的？》 MySQL实战45讲  丁奇</p>
+</li>
+<li>
+<p>《云数据库架构》 1.1.5  1.1.7 - 阿里云</p>
+</li>
+</ol>
+</article>
+ 
+      
+
+      <footer class="book-footer">
+        
+  <div class="flex flex-wrap justify-between">
+
+
+
+
+
+</div>
+
+
+
+  <script>(function(){function e(e){const t=window.getSelection(),n=document.createRange();n.selectNodeContents(e),t.removeAllRanges(),t.addRange(n)}document.querySelectorAll("pre code").forEach(t=>{t.addEventListener("click",function(){if(window.getSelection().toString())return;e(t.parentElement),navigator.clipboard&&navigator.clipboard.writeText(t.parentElement.textContent)})})})()</script>
+
+
+ 
+        
+      </footer>
+
+      
+  
+  <div class="book-comments">
+
+</div>
+  
+ 
+
+      <label for="menu-control" class="hidden book-menu-overlay"></label>
+    </div>
+
+    
+    <aside class="book-toc">
+      <div class="book-toc-content">
+        
+  
+<nav id="TableOfContents">
+  <ul>
+    <li>
+      <ul>
+        <li><a href="#mysql-log和事务0">MySQL Log和事务[0]</a>
+          <ul>
+            <li></li>
+          </ul>
+        </li>
+        <li><a href="#mysql-log和可靠性">MySQL Log和可靠性</a>
+          <ul>
+            <li></li>
+          </ul>
+        </li>
+        <li><a href="#参考">参考</a></li>
+      </ul>
+    </li>
+  </ul>
+</nav>
+
+
+ 
+      </div>
+    </aside>
+    
+  </main>
+
+  
+</body>
+</html>
+
+
+
+
+
+
+
+
+
+
+
+

@@ -1,0 +1,1764 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="索引-结构#索引分类[7]#分类 含义 特点 关键字 主键索引 针对于表中主键创建的索引 默认自动创建，只能有一个 PRIMARY 唯一索引 避免同一个表中某数据列中的值重复 可以有多个 UNIQUE 常规索引 快速定位特定数据 可以有多个 全文索引 全文索引查找的是文本中的关键词，而不是比较索引中的值 可以有多个 FULLTEXT 分类 含义 特点 聚集索引(Clustered Index) 将数据存储与索引放一块，索引结构的叶子节点保存了行数据 必须有，而且只有一个 二级索引(Secondary Index) 将数据与索引分开存储，索引结构的叶子节点关联的是对应的主键 可以存在多个 聚集索引选取规则: 如果存在主键，主键索引就是聚集索引 如果不存在主键，将使用第一个唯一（UNIQUE）索引作为聚集索引。 如果表没有主键，或没有合适的唯一索引，则InnoDB会自动生成一个rowid作为隐藏的聚集索 引。 索引结构和存储引擎 [3]#索引的数据结构： B&#43;树能够很好地配合磁盘的读写特性，减少单次查询的磁盘访问次数
+index MyISAM InnoDB Memory B-Tree
+（balanced 平衡的） 支持 支持 支持 Hash 不支持 不支持 支持 R-Tree 空间索引 支持 不支持 不支持 Full-text 支持 支持 不支持 复合索引的数据结构#create table people {last_name,first_name,dob,gender,key(last_name, first_name, dob)} 索引- 使用#索引的使用场景#索引的使用场景 例子 匹配全值 index (a,b,c) a=1 and b=2 and c=3 范围查找 index a&gt;1 and b&lt;3 匹配最左前缀 index(a，b，c) a OR a，b OR a、b、c OR a，c 会使用 b、c 不使用 仅对索引列进行查询（覆盖索引） index a a=1 匹配列前缀 index （a， b） a like &lsquo;WEER%&rsquo; Index Condition Pushdown（ICP） 减少回表IO 索引的失效 [12][7]#非复合索引">
+<meta name="theme-color" media="(prefers-color-scheme: light)" content="#ffffff">
+<meta name="theme-color" media="(prefers-color-scheme: dark)" content="#343a40">
+<meta name="color-scheme" content="light dark"><meta property="og:url" content="https://www6v.github.io/www6vMiddleware/docs/RMDB/%E5%8D%95%E6%9C%BA/mysqlIndex/">
+  <meta property="og:site_name" content="中间件">
+  <meta property="og:title" content="MySQL的索引和优化">
+  <meta property="og:description" content="索引-结构#索引分类[7]#分类 含义 特点 关键字 主键索引 针对于表中主键创建的索引 默认自动创建，只能有一个 PRIMARY 唯一索引 避免同一个表中某数据列中的值重复 可以有多个 UNIQUE 常规索引 快速定位特定数据 可以有多个 全文索引 全文索引查找的是文本中的关键词，而不是比较索引中的值 可以有多个 FULLTEXT 分类 含义 特点 聚集索引(Clustered Index) 将数据存储与索引放一块，索引结构的叶子节点保存了行数据 必须有，而且只有一个 二级索引(Secondary Index) 将数据与索引分开存储，索引结构的叶子节点关联的是对应的主键 可以存在多个 聚集索引选取规则: 如果存在主键，主键索引就是聚集索引 如果不存在主键，将使用第一个唯一（UNIQUE）索引作为聚集索引。 如果表没有主键，或没有合适的唯一索引，则InnoDB会自动生成一个rowid作为隐藏的聚集索 引。 索引结构和存储引擎 [3]#索引的数据结构： B&#43;树能够很好地配合磁盘的读写特性，减少单次查询的磁盘访问次数
+index MyISAM InnoDB Memory B-Tree
+（balanced 平衡的） 支持 支持 支持 Hash 不支持 不支持 支持 R-Tree 空间索引 支持 不支持 不支持 Full-text 支持 支持 不支持 复合索引的数据结构#create table people {last_name,first_name,dob,gender,key(last_name, first_name, dob)} 索引- 使用#索引的使用场景#索引的使用场景 例子 匹配全值 index (a,b,c) a=1 and b=2 and c=3 范围查找 index a&gt;1 and b&lt;3 匹配最左前缀 index(a，b，c) a OR a，b OR a、b、c OR a，c 会使用 b、c 不使用 仅对索引列进行查询（覆盖索引） index a a=1 匹配列前缀 index （a， b） a like ‘WEER%’ Index Condition Pushdown（ICP） 减少回表IO 索引的失效 [12][7]#非复合索引">
+  <meta property="og:locale" content="en">
+  <meta property="og:type" content="website">
+<title>MySQL的索引和优化 | 中间件</title>
+<link rel="icon" href="/www6vMiddleware/favicon.png" >
+<link rel="manifest" href="/www6vMiddleware/manifest.json">
+<link rel="canonical" href="https://www6v.github.io/www6vMiddleware/docs/RMDB/%E5%8D%95%E6%9C%BA/mysqlIndex/">
+<link rel="stylesheet" href="/www6vMiddleware/book.min.6c8b9d2a1fc95075ed7da46ca81060b39add8fff6741ac51259f768929281e2c.css" integrity="sha256-bIudKh/JUHXtfaRsqBBgs5rdj/9nQaxRJZ92iSkoHiw=" crossorigin="anonymous">
+  <script defer src="/www6vMiddleware/fuse.min.js"></script>
+  <script defer src="/www6vMiddleware/en.search.min.b4c267b63bd2d996b53b827d5c011566787dec45d285c3f0bde3536ffcdedffc.js" integrity="sha256-tMJntjvS2Za1O4J9XAEVZnh97EXShcPwveNTb/ze3/w=" crossorigin="anonymous"></script>
+
+  
+
+<link rel="alternate" type="application/rss+xml" href="https://www6v.github.io/www6vMiddleware/docs/RMDB/%E5%8D%95%E6%9C%BA/mysqlIndex/index.xml" title="中间件" />
+<!--
+Made with Book Theme
+https://github.com/alex-shpak/hugo-book
+-->
+  
+</head>
+<body dir="ltr">
+  <input type="checkbox" class="hidden toggle" id="menu-control" />
+  <input type="checkbox" class="hidden toggle" id="toc-control" />
+  <main class="container flex">
+    <aside class="book-menu">
+      <div class="book-menu-content">
+        
+  <nav>
+<h2 class="book-brand">
+  <a class="flex align-center" href="/www6vMiddleware/"><span>中间件</span>
+  </a>
+</h2>
+
+
+<div class="book-search hidden">
+  <input type="text" id="book-search-input" placeholder="Search" aria-label="Search" maxlength="64" data-hotkeys="s/" />
+  <div class="book-search-spinner hidden"></div>
+  <ul id="book-search-results"></ul>
+</div>
+<script>document.querySelector(".book-search").classList.remove("hidden")</script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <span>(服务治理)</span>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <span>Overview</span>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMiddleware/docs/serviceGovernance/Overview/microservice/" class="">微服务 总结</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMiddleware/docs/serviceGovernance/Overview/soaFeature/" class="">分布式服务框架功能</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <span>API Gateway</span>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMiddleware/docs/serviceGovernance/API-Gateway/apiGatawaySpringGateway/" class="">API 网关-SpringCloud Gateway</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMiddleware/docs/serviceGovernance/API-Gateway/apiGatawayApisix/" class="">API 网关-apisix</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMiddleware/docs/serviceGovernance/API-Gateway/apiGateway/" class="">API Gateway网关</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <span>Config &amp; Discovery</span>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMiddleware/docs/serviceGovernance/ConfigDiscovery/soaDiscovery/" class="">服务发现</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMiddleware/docs/serviceGovernance/ConfigDiscovery/config/" class="">服务治理-分布式配置</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <span>负载均衡</span>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMiddleware/docs/serviceGovernance/loadBalance/loadBalance/" class="">负载均衡-算法</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMiddleware/docs/serviceGovernance/loadBalance/nginxOptimize/" class="">Nginx优化</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMiddleware/docs/serviceGovernance/loadBalance/nginx/" class="">Nginx总结</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <span>线程模型</span>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMiddleware/docs/serviceGovernance/threadModel/jsfThreadModel/" class="">京东服务框架JSF服务提供者线程模型</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <span>容错&amp;限流</span>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <span>容错</span>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMiddleware/docs/serviceGovernance/faultTolerant/faultTolerant/soaTolerateFramework/" class="">容错框架</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMiddleware/docs/serviceGovernance/faultTolerant/faultTolerant/soaTimeout/" class="">超时和重试 总结</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMiddleware/docs/serviceGovernance/faultTolerant/faultTolerant/soaTolerate/" class="">分布式服务框架 容错机制</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <span>限流</span>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMiddleware/docs/serviceGovernance/faultTolerant/throttle/ratelimitSentinel/" class="">流量治理-Sentinel</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMiddleware/docs/serviceGovernance/faultTolerant/throttle/ratelimit/" class="">限流-总结</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMiddleware/docs/serviceGovernance/faultTolerant/soaGracefulStart/" class="">优雅启动</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMiddleware/docs/serviceGovernance/faultTolerant/soaGracefulClose/" class="">优雅关闭</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <span>Spring Cloud</span>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMiddleware/docs/serviceGovernance/Springcloud/springTransactionInvalid/" class="">Spring  Transaction  失效</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMiddleware/docs/serviceGovernance/Springcloud/springCloud/" class="">SpringCloud</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMiddleware/docs/serviceGovernance/Springcloud/springboot/" class="">SpringBoot</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMiddleware/docs/serviceGovernance/Springcloud/springTransaction/" class="">Spring事务</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <span>灰度发布</span>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMiddleware/docs/serviceGovernance/Gray/apiGatewayGray/" class="">API 网关-灰度发布</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <span>安全</span>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMiddleware/docs/serviceGovernance/security/soaAuth/" class="">服务治理-鉴权</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMiddleware/docs/serviceGovernance/security/securityOAuth2/" class="">安全-OAuth2</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <span>(消息系统)</span>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <span>Overview</span>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMiddleware/docs/message/Overview/mq/" class="">消息中间件总结</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMiddleware/docs/message/Overview/mqCompare/" class="">MQ总结(Kafka, Rocketmq, Rabbitmq)</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMiddleware/docs/message/Overview/mqOrdering/" class="">消息系统 顺序消息</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <span>Kafka</span>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMiddleware/docs/message/Kafka/kafka/" class="">Kafka总结</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMiddleware/docs/message/Kafka/kafkaProducer/" class="">Kafka Producer生产者</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMiddleware/docs/message/Kafka/kafkaConsumer/" class="">Kafka消费者总结</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMiddleware/docs/message/Kafka/kafkaRebalance/" class="">Kafka消费者-Rebalance机制</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMiddleware/docs/message/Kafka/kafkaReliability/" class="">Kafka 可靠性总结</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMiddleware/docs/message/Kafka/kafkaIndex/" class="">Kafka 索引</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMiddleware/docs/message/Kafka/kafkaZeroCopy/" class="">Kafka-ZeroCopy</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMiddleware/docs/message/Kafka/kafkaController/" class="">Kafka Controller-控制器</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMiddleware/docs/message/Kafka/kafkaReplica/" class="">Kafka Replication-副本机制</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMiddleware/docs/message/Kafka/kafkaElection/" class="">Kafka 中的选主</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMiddleware/docs/message/Kafka/kafkaQ-A/" class="">Kafka  Q&amp;A</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMiddleware/docs/message/Kafka/kafkaTransaction/" class="">Kafka 幂等性和事务</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <span>(关系型数据库)</span>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <span>单机</span>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMiddleware/docs/RMDB/%E5%8D%95%E6%9C%BA/mysqlTransactionAndLock/" class="">MySQL 事务-隔离性</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMiddleware/docs/RMDB/%E5%8D%95%E6%9C%BA/mysqlUpdate/" class="">MySQL中的SQL更新语句</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMiddleware/docs/RMDB/%E5%8D%95%E6%9C%BA/mysqlReliability/" class="">MySQL的主从 高可用 容灾</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMiddleware/docs/RMDB/%E5%8D%95%E6%9C%BA/mysqlIndex/" class="active">MySQL的索引和优化</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMiddleware/docs/RMDB/%E5%8D%95%E6%9C%BA/mysqlTransaction/" class="">MySQL事务-总结</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMiddleware/docs/RMDB/%E5%8D%95%E6%9C%BA/mysqlLog/" class="">MySQL Logs</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMiddleware/docs/RMDB/%E5%8D%95%E6%9C%BA/mysqlDeadLock/" class="">MySQL  锁和死锁</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMiddleware/docs/RMDB/%E5%8D%95%E6%9C%BA/mysqlMasterSlaveDelay/" class="">MySQL 主从延迟</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</nav>
+
+
+
+
+  <script>(function(){var e=document.querySelector("aside .book-menu-content");addEventListener("beforeunload",function(){localStorage.setItem("menu.scrollTop",e.scrollTop)}),e.scrollTop=localStorage.getItem("menu.scrollTop")})()</script>
+
+
+ 
+      </div>
+    </aside>
+
+    <div class="book-page">
+      <header class="book-header">
+        
+  <div class="flex align-center justify-between">
+  <label for="menu-control">
+    <img src="/www6vMiddleware/svg/menu.svg" class="book-icon" alt="Menu" />
+  </label>
+
+  <h3>MySQL的索引和优化</h3>
+
+  <label for="toc-control">
+    
+    <img src="/www6vMiddleware/svg/toc.svg" class="book-icon" alt="Table of Contents" />
+    
+  </label>
+</div>
+
+
+  
+  <aside class="hidden clearfix">
+    
+  
+<nav id="TableOfContents">
+  <ul>
+    <li>
+      <ul>
+        <li><a href="#索引-结构">索引-结构</a>
+          <ul>
+            <li></li>
+          </ul>
+        </li>
+        <li><a href="#索引--使用">索引- 使用</a>
+          <ul>
+            <li></li>
+          </ul>
+        </li>
+        <li><a href="#索引-优化">索引-优化</a>
+          <ul>
+            <li></li>
+          </ul>
+        </li>
+        <li><a href="#索引-性能分析7">索引-性能分析[7]</a>
+          <ul>
+            <li></li>
+          </ul>
+        </li>
+        <li><a href="#参考">参考</a></li>
+      </ul>
+    </li>
+  </ul>
+</nav>
+
+
+
+  </aside>
+  
+ 
+      </header>
+
+      
+      
+  <article class="markdown book-article"><p></p>
+<!-- more -->
+<h2 id="索引-结构">
+  索引-结构
+  <a class="anchor" href="#%e7%b4%a2%e5%bc%95-%e7%bb%93%e6%9e%84">#</a>
+</h2>
+<h5 id="索引分类7">
+  索引分类[7]
+  <a class="anchor" href="#%e7%b4%a2%e5%bc%95%e5%88%86%e7%b1%bb7">#</a>
+</h5>
+<table>
+<thead>
+<tr>
+<th>分类</th>
+<th>含义</th>
+<th>特点</th>
+<th>关键字</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>主键索引</strong></td>
+<td>针对于表中主键创建的索引</td>
+<td>默认自动创建，只能有一个</td>
+<td><strong>PRIMARY</strong></td>
+</tr>
+<tr>
+<td><strong>唯一索引</strong></td>
+<td>避免同一个表中某数据列中的值重复</td>
+<td>可以有多个</td>
+<td><strong>UNIQUE</strong></td>
+</tr>
+<tr>
+<td>常规索引</td>
+<td>快速定位特定数据</td>
+<td>可以有多个</td>
+<td></td>
+</tr>
+<tr>
+<td>全文索引</td>
+<td>全文索引查找的是文本中的关键词，而不是比较索引中的值</td>
+<td>可以有多个</td>
+<td>FULLTEXT</td>
+</tr>
+</tbody>
+</table>
+<table>
+<thead>
+<tr>
+<th>分类</th>
+<th>含义</th>
+<th>特点</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>聚集索引(Clustered Index)</strong></td>
+<td>将数据存储与索引放一块，索引结构的叶子节点保存了行数据</td>
+<td><strong>必须有，而且只有一个</strong></td>
+</tr>
+<tr>
+<td><strong>二级索引(Secondary Index)</strong></td>
+<td>将数据与索引分开存储，索引结构的叶子节点关联的是对应的主键</td>
+<td>可以存在多个</td>
+</tr>
+</tbody>
+</table>
+<ul>
+<li>聚集索引选取规则:
+<ul>
+<li>如果存在主键，主键索引就是聚集索引</li>
+<li>如果不存在主键，将使用第一个唯一（UNIQUE）索引作为聚集索引。</li>
+<li>如果表没有主键，或没有合适的唯一索引，则InnoDB会自动生成一个rowid作为隐藏的聚集索 引。</li>
+</ul>
+</li>
+</ul>
+<h5 id="索引结构和存储引擎-3">
+  索引结构和存储引擎 [3]
+  <a class="anchor" href="#%e7%b4%a2%e5%bc%95%e7%bb%93%e6%9e%84%e5%92%8c%e5%ad%98%e5%82%a8%e5%bc%95%e6%93%8e-3">#</a>
+</h5>
+<p>索引的数据结构： B+树能够很好地配合磁盘的读写特性，减少单次查询的磁盘访问次数</p>
+<p><img src="./mysqlIndex/mysql-index.jpg" alt="Innodb和MyISAM中的聚集索引和非聚集索引(二级索引)" /></p>
+<table>
+<thead>
+<tr>
+<th style="text-align:center">index</th>
+<th style="text-align:center">MyISAM</th>
+<th style="text-align:center">InnoDB</th>
+<th style="text-align:center">Memory</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:center">B-Tree<br>（balanced 平衡的）</td>
+<td style="text-align:center">支持</td>
+<td style="text-align:center">支持</td>
+<td style="text-align:center">支持</td>
+</tr>
+<tr>
+<td style="text-align:center">Hash</td>
+<td style="text-align:center">不支持</td>
+<td style="text-align:center">不支持</td>
+<td style="text-align:center">支持</td>
+</tr>
+<tr>
+<td style="text-align:center">R-Tree <br>空间索引</td>
+<td style="text-align:center">支持</td>
+<td style="text-align:center">不支持</td>
+<td style="text-align:center">不支持</td>
+</tr>
+<tr>
+<td style="text-align:center">Full-text</td>
+<td style="text-align:center">支持</td>
+<td style="text-align:center">支持</td>
+<td style="text-align:center">不支持</td>
+</tr>
+</tbody>
+</table>
+<h5 id="复合索引的数据结构">
+  复合索引的数据结构
+  <a class="anchor" href="#%e5%a4%8d%e5%90%88%e7%b4%a2%e5%bc%95%e7%9a%84%e6%95%b0%e6%8d%ae%e7%bb%93%e6%9e%84">#</a>
+</h5>
+<pre tabindex="0"><code>create table people {
+  last_name,
+  first_name,
+  dob,
+  gender,
+  key(last_name, first_name, dob)
+}
+</code></pre><p><img src="./mysqlIndex/compositeIndex.JPG" alt="复合索引的数据结构" /></p>
+<h2 id="索引--使用">
+  索引- 使用
+  <a class="anchor" href="#%e7%b4%a2%e5%bc%95--%e4%bd%bf%e7%94%a8">#</a>
+</h2>
+<h5 id="索引的使用场景">
+  索引的使用场景
+  <a class="anchor" href="#%e7%b4%a2%e5%bc%95%e7%9a%84%e4%bd%bf%e7%94%a8%e5%9c%ba%e6%99%af">#</a>
+</h5>
+<table>
+<thead>
+<tr>
+<th style="text-align:center">索引的使用场景</th>
+<th style="text-align:center">例子</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:center">匹配全值</td>
+<td style="text-align:center">index (a,b,c) <br> a=1 and b=2 and c=3</td>
+</tr>
+<tr>
+<td style="text-align:center">范围查找</td>
+<td style="text-align:center">index a&gt;1 and b&lt;3</td>
+</tr>
+<tr>
+<td style="text-align:center">匹配最左前缀</td>
+<td style="text-align:center">index(a，b，c)  <br> a OR a，b OR a、b、c OR a，c 会使用 <br>  b、c 不使用</td>
+</tr>
+<tr>
+<td style="text-align:center">仅对索引列进行查询（覆盖索引）</td>
+<td style="text-align:center">index  a <br> a=1</td>
+</tr>
+<tr>
+<td style="text-align:center">匹配列前缀</td>
+<td style="text-align:center">index （a， b） <br> a like &lsquo;WEER%&rsquo;</td>
+</tr>
+<tr>
+<td style="text-align:center">Index Condition Pushdown（ICP）</td>
+<td style="text-align:center">减少回表IO</td>
+</tr>
+</tbody>
+</table>
+<h5 id="索引的失效---127">
+  索引的失效   [12][7]
+  <a class="anchor" href="#%e7%b4%a2%e5%bc%95%e7%9a%84%e5%a4%b1%e6%95%88---127">#</a>
+</h5>
+<ul>
+<li>
+<p>非复合索引</p>
+<table>
+<thead>
+<tr>
+<th style="text-align:center">索引失效(不会使用index的场景)</th>
+<th style="text-align:center">例子</th>
+<th style="text-align:center">解释</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:center">在索引列上进行运算操作</td>
+<td style="text-align:center">substring(phone,10,2)</td>
+<td style="text-align:center"><strong>对索引字段做函数操作，可能会破坏索引值的有序性，因此优化器就决定放弃走树搜索功能。</strong></td>
+</tr>
+<tr>
+<td style="text-align:center">模糊查询, 头部模糊匹配</td>
+<td style="text-align:center">like &ldquo;%NI&rdquo;</td>
+<td></td>
+</tr>
+<tr>
+<td style="text-align:center">字符串类型字段使用时，不加引号[隐式转换]</td>
+<td style="text-align:center">lastname=1  不使用索引 <br>lastname=&lsquo;1&rsquo;  使用索引</td>
+<td style="text-align:center"><strong>隐式类型转换</strong>， <strong>隐式字符编码转换</strong>，等价于在索引字段上做函数操作而导致了全索引扫描。</td>
+</tr>
+<tr>
+<td style="text-align:center">or连接条件</td>
+<td style="text-align:center">index a <br>  a=3 or c=6 or d=9</td>
+<td style="text-align:center">如果or前的条件中的列有索引，而后面的列中没有索引，那么涉及的索引都不会被用到. 当or连接的条件，左右两侧字段都有索引时，索引才会生效。</td>
+</tr>
+</tbody>
+</table>
+</li>
+<li>
+<p>复合索引[7]</p>
+<ul>
+<li>最左前缀原则
+如果索引关联了多列（联合索引），要遵守最左前缀法则，最左前缀法则指的是查询从索引的最左列开始，并且不跳过索引中的列。<strong>如果跳跃某一列，索引将部分失效（后面的字段索引失效）。</strong></li>
+<li>范围查询
+联合索引中，<strong>出现范围查询(&gt;,&lt;)，范围查询右侧的列索引失效</strong>。
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-mysql" data-lang="mysql"><span style="display:flex;"><span><span style="color:#66d9ef">explain</span> <span style="color:#66d9ef">select</span> <span style="color:#f92672">*</span> <span style="color:#66d9ef">from</span> tb_user <span style="color:#66d9ef">where</span> profession <span style="color:#f92672">=</span> <span style="color:#e6db74">&#39;软件工程&#39;</span> <span style="color:#66d9ef">and</span> age <span style="color:#f92672">&gt;=</span> <span style="color:#ae81ff">30</span> <span style="color:#66d9ef">and</span> status <span style="color:#f92672">=</span> <span style="color:#e6db74">&#39;0&#39;</span>;
+</span></span></code></pre></div></li>
+</ul>
+</li>
+</ul>
+<h2 id="索引-优化">
+  索引-优化
+  <a class="anchor" href="#%e7%b4%a2%e5%bc%95-%e4%bc%98%e5%8c%96">#</a>
+</h2>
+<h5 id="索引维护">
+  索引维护
+  <a class="anchor" href="#%e7%b4%a2%e5%bc%95%e7%bb%b4%e6%8a%a4">#</a>
+</h5>
+<p><strong>页分裂</strong>， 性能会受影响， 整体空间利用率降低大约50%。
+页合并，页分裂的逆过程。</p>
+<h5 id="自增主键">
+  自增主键
+  <a class="anchor" href="#%e8%87%aa%e5%a2%9e%e4%b8%bb%e9%94%ae">#</a>
+</h5>
+<p>自增主键的插入数据模式，正符合了递增插入的场景。每次插入一条
+新记录，都是追加操作，都不涉及到挪动其他记录，也不会触发叶子节点的分裂。
+而有业务逻辑的字段做主键，则往往不容易保证有序插入，这样写数据成本相对较高。</p>
+<p>除了考虑性能外，我们还可以从存储空间的角度来看。假设你的表中确实有一个唯一字段，比如
+字符串类型的身份证号，那应该用身份证号做主键，还是用自增字段做主键呢？
+由于每个非主键索引的叶子节点上都是主键的值。如果用身份证号做主键，那么每个二级索引的
+叶子节点占用约20个字节，而如果用整型做主键，则只要4个字节，如果是长整型（bigint）则是
+8个字节。显然，主键长度越小，普通索引的叶子节点就越小，普通索引占用的空间也就越小。
+这样，非主键索引占用的空间最小。</p>
+<p>所以，从性能和存储空间方面考量，自增主键往往是更合理的选择。
+<strong>[自增主键使得索引值是顺序插入的，而不是随机插入的， insert时性能更高。 顺序插入同时也减少了页分裂]</strong></p>
+<h5 id="覆盖索引优化手段">
+  覆盖索引(优化手段)
+  <a class="anchor" href="#%e8%a6%86%e7%9b%96%e7%b4%a2%e5%bc%95%e4%bc%98%e5%8c%96%e6%89%8b%e6%ae%b5">#</a>
+</h5>
+<p>如果执行的语句是select ID from T where k between 3 and 5，这时只需要查ID的值，而ID的值
+已经在k索引树上了，因此可以直接提供查询结果，不需要回表。也就是说，在这个查询里面，
+索引k已经“覆盖了”我们的查询需求，我们称为覆盖索引.</p>
+<p>覆盖索引可以减少树的搜索次数，显著提升查询性能，所以使用<strong>覆盖索引</strong>是一个常用的性能<strong>优化手段</strong>.
+<strong>[不需要回表， 不需要回到聚集索引里查询]</strong></p>
+<h5 id="索引下推-icp-14">
+  索引下推 ICP [14]
+  <a class="anchor" href="#%e7%b4%a2%e5%bc%95%e4%b8%8b%e6%8e%a8-icp-14">#</a>
+</h5>
+<h2 id="索引-性能分析7">
+  索引-性能分析[7]
+  <a class="anchor" href="#%e7%b4%a2%e5%bc%95-%e6%80%a7%e8%83%bd%e5%88%86%e6%9e%907">#</a>
+</h2>
+<h5 id="查看执行频次">
+  查看执行频次
+  <a class="anchor" href="#%e6%9f%a5%e7%9c%8b%e6%89%a7%e8%a1%8c%e9%a2%91%e6%ac%a1">#</a>
+</h5>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-mysql" data-lang="mysql"><span style="display:flex;"><span><span style="color:#66d9ef">SHOW</span> GLOBAL STATUS <span style="color:#66d9ef">LIKE</span> <span style="color:#e6db74">&#39;Com_______&#39;</span>;
+</span></span></code></pre></div><h5 id="慢查询日志">
+  慢查询日志
+  <a class="anchor" href="#%e6%85%a2%e6%9f%a5%e8%af%a2%e6%97%a5%e5%bf%97">#</a>
+</h5>
+<h5 id="show-profiles">
+  show profiles
+  <a class="anchor" href="#show-profiles">#</a>
+</h5>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-mysql" data-lang="mysql"><span style="display:flex;"><span><span style="color:#75715e">## 查看每一条SQL的耗时情况:
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>mysql<span style="color:#f92672">&gt;</span> <span style="color:#66d9ef">show</span> profiles;
+</span></span></code></pre></div><h5 id="explain">
+  explain
+  <a class="anchor" href="#explain">#</a>
+</h5>
+<p><img src="./mysqlIndex/sql-explain.jpg" alt="执行计划" /></p>
+<ul>
+<li><strong>type</strong>：表示连接类型，性能由好到差的连接类型为 NULL、system、const、eq_ref、ref、range、index、all</li>
+<li>possible_key：可能应用在这张表上的索引，一个或多个</li>
+<li>Key：<strong>实际使用的索引</strong>，如果为 NULL，则没有使用索引</li>
+<li>Key_len：表示索引中使用的字节数，该值为索引字段最大可能长度，并非实际使用长度，在不损失精确性的前提下，长度越短越好</li>
+<li>rows：MySQL认为必须要执行的行数，在InnoDB引擎的表中，是一个估计值，可能并不总是准确的</li>
+</ul>
+<h2 id="参考">
+  参考
+  <a class="anchor" href="#%e5%8f%82%e8%80%83">#</a>
+</h2>
+<ol>
+<li>
+<p>《深入浅出MySQL：数据库开发、优化与管理维护》</p>
+</li>
+<li>
+<p><a href="http://blog.codinglabs.org/articles/theory-of-mysql-index.html">MySQL索引背后的数据结构及算法原理</a></p>
+</li>
+<li>
+<p><a href="https://www.cnblogs.com/hustcat/archive/2009/10/28/1591648.html">理解MySQL——索引与优化</a></p>
+</li>
+<li>
+<p>xxx</p>
+</li>
+<li>
+<p><a href="https://blog.csdn.net/voidccc/article/details/40077329">剖析Mysql的InnoDB索引</a>  ***</p>
+</li>
+<li>
+<p><a href="https://mp.weixin.qq.com/s/M1dLLuePpdM9vA3F1uJGyw">可能是全网最好的MySQL重要知识点</a>  已失效</p>
+</li>
+<li>
+<p><a href="https://www.bilibili.com/video/BV1Kr4y1i7ru?p=78">黑马程序员 MySQL数据库入门到精通</a> P75-P82 P72
+<a href="https://github.com/www6v/mysql_note">mysql_note</a> 笔记1
+<a href="https://frxcat.fun/database/MySQL/MySQL_Advanced_index/">MySQL 索引</a> 笔记2</p>
+</li>
+<li>
+<p>xxx</p>
+</li>
+<li>
+<p><a href="https://github.com/alibaba/canal">ali canal</a></p>
+</li>
+<li>
+<p>《MySQL实战45讲 - 深入浅出索引（上）》   丁奇</p>
+</li>
+<li>
+<p>《MySQL实战45讲 - 深入浅出索引（下）》   丁奇</p>
+</li>
+<li>
+<p>《Java性能调优实战 - 34 | MySQL调优之索引：索引的失效与优化》  刘超  还要再整理</p>
+</li>
+<li>
+<p><a href="https://www.cnblogs.com/tongongV/p/10952102.html">MySQL索引（二）B+树在磁盘中的存储</a></p>
+<blockquote>
+<p>B+树索引并不能直接找到行，只是找到行所在的页，通过把整页读入内存，再在内存中查找。
+聚集索引的存储在物理上并不是连续的，每个数据页在不同的磁盘块，通过一个双向链表来进行连接。</p>
+</blockquote>
+</li>
+<li>
+<p><a href="https://juejin.cn/post/7005794550862053412">五分钟搞懂MySQL索引下推</a></p>
+</li>
+<li>
+<p><a href="https://tech.meituan.com/2014/06/30/mysql-index.html">MySQL索引原理及慢查询优化</a>   美团 未  ***</p>
+</li>
+<li>
+<p><a href="https://mp.weixin.qq.com/s/h99sXP4mvVFsJw6Oh3aU5A">业界难题-“跨库分页”的四种方案</a>  58沈剑  未</p>
+</li>
+</ol>
+</article>
+ 
+      
+
+      <footer class="book-footer">
+        
+  <div class="flex flex-wrap justify-between">
+
+
+
+
+
+</div>
+
+
+
+  <script>(function(){function e(e){const t=window.getSelection(),n=document.createRange();n.selectNodeContents(e),t.removeAllRanges(),t.addRange(n)}document.querySelectorAll("pre code").forEach(t=>{t.addEventListener("click",function(){if(window.getSelection().toString())return;e(t.parentElement),navigator.clipboard&&navigator.clipboard.writeText(t.parentElement.textContent)})})})()</script>
+
+
+ 
+        
+      </footer>
+
+      
+  
+  <div class="book-comments">
+
+</div>
+  
+ 
+
+      <label for="menu-control" class="hidden book-menu-overlay"></label>
+    </div>
+
+    
+    <aside class="book-toc">
+      <div class="book-toc-content">
+        
+  
+<nav id="TableOfContents">
+  <ul>
+    <li>
+      <ul>
+        <li><a href="#索引-结构">索引-结构</a>
+          <ul>
+            <li></li>
+          </ul>
+        </li>
+        <li><a href="#索引--使用">索引- 使用</a>
+          <ul>
+            <li></li>
+          </ul>
+        </li>
+        <li><a href="#索引-优化">索引-优化</a>
+          <ul>
+            <li></li>
+          </ul>
+        </li>
+        <li><a href="#索引-性能分析7">索引-性能分析[7]</a>
+          <ul>
+            <li></li>
+          </ul>
+        </li>
+        <li><a href="#参考">参考</a></li>
+      </ul>
+    </li>
+  </ul>
+</nav>
+
+
+ 
+      </div>
+    </aside>
+    
+  </main>
+
+  
+</body>
+</html>
+
+
+
+
+
+
+
+
+
+
+
+
