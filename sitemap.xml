@@ -34,13 +34,13 @@
   </url><url>
     <loc>https://www6v.github.io/www6vMiddleware/demo/chaptor2/</loc>
   </url><url>
-    <loc>https://www6v.github.io/www6vMiddleware/docs/message/</loc>
-    <lastmod>2022-05-15T23:05:40+00:00</lastmod>
-  </url><url>
     <loc>https://www6v.github.io/www6vMiddleware/docs/message/Kafka/</loc>
     <lastmod>2022-05-15T23:05:40+00:00</lastmod>
   </url><url>
     <loc>https://www6v.github.io/www6vMiddleware/docs/message/Kafka/kafkaProducer/</loc>
+    <lastmod>2022-05-15T23:05:40+00:00</lastmod>
+  </url><url>
+    <loc>https://www6v.github.io/www6vMiddleware/docs/message/</loc>
     <lastmod>2022-05-15T23:05:40+00:00</lastmod>
   </url><url>
     <loc>https://www6v.github.io/www6vMiddleware/docs/message/Overview/mqCompare/</loc>
