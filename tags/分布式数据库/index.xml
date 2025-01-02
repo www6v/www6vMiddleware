@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>分布式数据库 on 中间件</title>
+    <link>https://www6v.github.io/www6vMiddleware/tags/%E5%88%86%E5%B8%83%E5%BC%8F%E6%95%B0%E6%8D%AE%E5%BA%93/</link>
+    <description>Recent content in 分布式数据库 on 中间件</description>
+    <generator>Hugo</generator>
+    <language>en</language>
+    <lastBuildDate>Mon, 10 Apr 2023 15:43:51 +0000</lastBuildDate>
+    <atom:link href="https://www6v.github.io/www6vMiddleware/tags/%E5%88%86%E5%B8%83%E5%BC%8F%E6%95%B0%E6%8D%AE%E5%BA%93/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>分布式 数据库 总结</title>
+      <link>https://www6v.github.io/www6vMiddleware/docs/RMDB/%E5%88%86%E5%B8%83%E5%BC%8F/distributedDatabase/</link>
+      <pubDate>Wed, 09 Feb 2022 12:31:58 +0000</pubDate>
+      <guid>https://www6v.github.io/www6vMiddleware/docs/RMDB/%E5%88%86%E5%B8%83%E5%BC%8F/distributedDatabase/</guid>
+      <description>参考&#xD;#&#xD;&amp;laquo;分布式数据库30讲&amp;raquo;&#xA;{% post_link &amp;lsquo;distributedDatabaseGlobalTime&amp;rsquo; %} self</description>
+    </item>
+    <item>
+      <title>分布式 数据库 比较</title>
+      <link>https://www6v.github.io/www6vMiddleware/docs/RMDB/%E5%88%86%E5%B8%83%E5%BC%8F/distributedDatabaseCompare/</link>
+      <pubDate>Fri, 11 Mar 2022 20:13:01 +0000</pubDate>
+      <guid>https://www6v.github.io/www6vMiddleware/docs/RMDB/%E5%88%86%E5%B8%83%E5%BC%8F/distributedDatabaseCompare/</guid>
+      <description>分布式 数据库 比较 [1]&#xD;#&#xD;PolarDB-X TiDB CockroachDB Spanner 分布式事务 MVCC+TSO MVCC+TSO [Percolator][5][6] MVCC+HLC[2][3][4] MVCC+TrueTime API 存储引擎 InnoDB/x-engine&#xA;HEX2(列存) RocksDBTiFlash(列存) RocksDB Colossus 高可用 计算无状态集群&#xA;存储Multi-Paxos 计算无状态集群&#xA;存储Raft 计算存储一体化 集群化 存储Raft 计算存储一体化 集群化 存储Multi-Paxos 数据分区 Hash/List/Range Range/Hash Range/Hash Range/Hash 全局索引 √ √ √ √ HTAP 强隔离 强一致&#xA;MPP并行 强隔离 强一致&#xA;Spark 混合负载&#xA;MPP并行 混合负载&#xA;MPP并行 生态兼容性 基本兼容MySQL 基本兼容MySQL 基本兼容PGSQL 非标准SQL 元数据DDL 全局一致 + Online 全局一致 + Online 全局一致 + Online 全局一致 + Online 全局日志 √ √ √（企业版） × 备份恢复 √ √ √ √ 参考&#xD;#&#xD;《云数据库架构》 2.</description>
+    </item>
+    <item>
+      <title>TiKV Transaction-MVCC&#43;TSO</title>
+      <link>https://www6v.github.io/www6vMiddleware/docs/RMDB/%E5%88%86%E5%B8%83%E5%BC%8F/tikvMVCCTransaction/</link>
+      <pubDate>Mon, 10 Apr 2023 15:43:51 +0000</pubDate>
+      <guid>https://www6v.github.io/www6vMiddleware/docs/RMDB/%E5%88%86%E5%B8%83%E5%BC%8F/tikvMVCCTransaction/</guid>
+      <description>原理&#xD;#&#xD;Percolator [1]&#xD;#&#xD;总体来说就是一个经过优化的 2PC 的实现，依赖一个单点的授时服务 TSO 来实现单调递增的事务编号生成，提供SI 的隔离级别。&#xA;TiKV 的写事务分为两个阶段 [1]&#xD;#&#xD;1、Prewrite 阶段 MVCC 在对应传统 2PC 的第一阶段的 prewrite 流程。 首先选出一个 primary row 和其他的 secondary rows，然后对 primary row 进行上锁，再对 secondary rows 进行类似的上锁流程。如果任何一步出错，都会进行回滚。完成 prewrite 阶段后，进入 commit 阶段，当前时间戳为 commitTs，TSO 会保证 commitTs &amp;gt; startTs。&#xA;2、Commit 阶段 MVCC 中的 Commit 流程，包括在 primary 上写入 meta，删除 Lock 标记，以及异步提交 secondaries。如果 primary row 提交失败，则整个事务回滚。如果成功，则标志着整个事务提交成功。&#xA;Tidb乐观锁 [2] Tidb悲观锁 [2] TiKV 的读事务 [1]&#xD;#&#xD;在事务中进行读操作的过程。 首先，需要检查行是否被锁定，如果被锁定，则需要等待或者清除锁。然后，需要读取最新的数据版本，方法是读取元数据并找到最大的时间戳。 锁分为两级，Primary和Secondary row，只有Primary row的锁被释放，事务才算提交成功。Secondary row的提交可以异步进行，但在此过程中可能需要清理锁。即使Secondary row提交失败，也可以通过锁找到Primary row，并根据元数据确定事务是回滚还是提交成功。</description>
+    </item>
+    <item>
+      <title>分布式数据库-全局时钟</title>
+      <link>https://www6v.github.io/www6vMiddleware/docs/RMDB/%E5%88%86%E5%B8%83%E5%BC%8F/distributedDatabaseGlobalTime/</link>
+      <pubDate>Mon, 11 Apr 2022 11:11:25 +0000</pubDate>
+      <guid>https://www6v.github.io/www6vMiddleware/docs/RMDB/%E5%88%86%E5%B8%83%E5%BC%8F/distributedDatabaseGlobalTime/</guid>
+      <description>Overview [2]&#xD;#&#xD;TSO 和 HLC 的区别[N AI]&#xD;#&#xD;TSO (Timestamp Ordering) 和 HLC (Hybrid Logical Clock) 都是两种分布式系统中用于解决事件顺序问题的算法。 虽然两种算法都是基于时间戳的，但它们也有着一些区别。&#xA;时间同步&#xD;#&#xD;TSO 需要依赖全局的时间同步服务，如 NTP (Network Time Protocol)，保证所有机器的时钟是一致的。而 HLC 可以在没有全局时钟同步服务的情况下，通过增加逻辑时钟来维护全局时钟的顺序。 这就使得 HLC 比 TSO 更加灵活和适用于更多的场景。&#xA;时钟漂移&#xD;#&#xD;TSO 可能会受到时钟漂移的影响，当时钟出现漂移时，事件的顺序可能会受到影响。而 HLC 可以通过逻辑时钟来解决时钟漂移的问题。这使得 HLC 更加鲁棒，并且可以在更长的时间内保持正确的事件顺序。&#xA;时间精度&#xD;#&#xD;TSO 采用 64 位的时间戳，精度为纳秒级别。而 HLC 采用 64 位的时间戳和 16 位的逻辑时钟，精度为微秒级别，比 TSO 更高。这意味着 HLC 可以更准确地记录事件发生的顺序。&#xA;HLC&#xD;#&#xD;HLC的特点和缺点 [1]&#xD;#&#xD;HLC（Hybrid Logical Clock 混合逻辑时钟）结合了物理时间和逻辑时钟的优点，提供了下面3个特性：&#xA;如果a happened-before b, 则hlc(a) &amp;lt; hlc(b)。不过反之不成立 HLC的时间戳占用的bit数不变 误差有上届。（其实就是NTP的最大误差，也就是所有机器的物理时间的最大误差） HLC本质上来说还是一个逻辑时钟，所以它只能提供partial ordering，而不能提供total ordering。所以2个节点中发生的独立事件a和b，如果他们的timestamp在误差的上届范围内，是无法排序的。</description>
+    </item>
+  </channel>
+</rss>

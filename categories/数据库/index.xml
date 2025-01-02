@@ -9,11 +9,53 @@
     <lastBuildDate>Tue, 15 Aug 2023 12:42:56 +0000</lastBuildDate>
     <atom:link href="https://www6v.github.io/www6vMiddleware/categories/%E6%95%B0%E6%8D%AE%E5%BA%93/index.xml" rel="self" type="application/rss+xml" />
     <item>
+      <title>分布式 数据库 总结</title>
+      <link>https://www6v.github.io/www6vMiddleware/docs/RMDB/%E5%88%86%E5%B8%83%E5%BC%8F/distributedDatabase/</link>
+      <pubDate>Wed, 09 Feb 2022 12:31:58 +0000</pubDate>
+      <guid>https://www6v.github.io/www6vMiddleware/docs/RMDB/%E5%88%86%E5%B8%83%E5%BC%8F/distributedDatabase/</guid>
+      <description>参考&#xD;#&#xD;&amp;laquo;分布式数据库30讲&amp;raquo;&#xA;{% post_link &amp;lsquo;distributedDatabaseGlobalTime&amp;rsquo; %} self</description>
+    </item>
+    <item>
+      <title>Redis 架构</title>
+      <link>https://www6v.github.io/www6vMiddleware/docs/Redis&#43;%E7%BC%93%E5%AD%98/Redis-%E5%9F%BA%E7%A1%80/Arch-Redis-Cluster/redisArch/</link>
+      <pubDate>Tue, 25 May 2021 18:35:49 +0000</pubDate>
+      <guid>https://www6v.github.io/www6vMiddleware/docs/Redis&#43;%E7%BC%93%E5%AD%98/Redis-%E5%9F%BA%E7%A1%80/Arch-Redis-Cluster/redisArch/</guid>
+      <description>目录&#xD;#&#xD;Redis架构演进[1]&#xD;#&#xD;数据怕丢失 -&amp;gt; 持久化（RDB/AOF） 恢复时间久 -&amp;gt; 主从副本（副本随时可切） 故障手动切换慢 -&amp;gt; 哨兵集群（自动切换） 读存在压力 -&amp;gt; 扩容副本（读写分离） 写存在压力/容量瓶颈 -&amp;gt; 分片集群 分片集群社区方案 -&amp;gt; Twemproxy、Codis（Redis 节点之间无通信，需要部署哨兵，可横向扩容） 分片集群官方方案 -&amp;gt; Redis Cluster （Redis 节点之间 Gossip 协议，无需部署哨兵，可横向扩容） 业务侧升级困难 -&amp;gt; Proxy + Redis Cluster（不侵入业务侧） 主从架构&#xD;#&#xD;主从同步 异步方式来同步数据 最终一致性 分类 增量同步 （同步的是指令） 1.指令记录在master本地的内存 buffer 2.异步将 buffer 中的指令同步到从节点 类似 AOF 快照同步（同步的是内容，全量同步） bgsave存磁盘rdb，然后rdb发到slave，slave装载 优化: 2.8.18 版开始支持无盘复制 哨兵集群 sentinel&#xD;#&#xD;master-slave异步复制, 所以会丢消息&#xA;参数: # 至少有一个slave复制 min-slaves-to-write 1 # slave节点最大10s的延迟 min-slaves-max-lag 10 Redis cluster&#xD;#&#xD;整体架构</description>
+    </item>
+    <item>
       <title>MySQL 事务-隔离性</title>
       <link>https://www6v.github.io/www6vMiddleware/docs/RMDB/%E5%8D%95%E6%9C%BA/mysqlTransactionAndLock/</link>
       <pubDate>Fri, 14 Aug 2020 17:22:20 +0000</pubDate>
       <guid>https://www6v.github.io/www6vMiddleware/docs/RMDB/%E5%8D%95%E6%9C%BA/mysqlTransactionAndLock/</guid>
       <description>MyISAM vs. InnoDB&#xD;#&#xD;描述 MyISAM InnoDB 行锁(并发高，会死锁) × √ (默认支持)&#xA;Record lock: 锁记录&#xA;Gap lock: 锁范围，不锁记录&#xA;Next-key lock： 锁范围+锁记录 表锁(并发低，不会死锁) √ √ 事务和崩溃恢复 × √ 外键 × √ MVCC × √ 在READ COMMITTED 和 REPEATABLE READ时有效 事务隔离级别 [4]&#xD;#&#xD;隔离级别(从高到低) 脏读 不可重复读&#xA;（重点是修改） 幻影读&#xA;（重点是新增或者删除） SERIALIZABLE × × × REPEATABLE-READ&#xA;（InnoDB默认隔离级别） × × √ READ-COMMITTED × √ √ READ-UNCOMMITTED √ √ √ innodb对于行的查询使用next-key lock Next-locking keying、Gap锁为了解决Phantom Problem幻读问题 当查询的索引含有唯一属性时(单条记录)，将next-key lock降级为record key</description>
+    </item>
+    <item>
+      <title>Redis 总结</title>
+      <link>https://www6v.github.io/www6vMiddleware/docs/Redis&#43;%E7%BC%93%E5%AD%98/Redis-%E5%9F%BA%E7%A1%80/overview/redis/</link>
+      <pubDate>Sat, 12 Nov 2016 23:29:16 +0000</pubDate>
+      <guid>https://www6v.github.io/www6vMiddleware/docs/Redis&#43;%E7%BC%93%E5%AD%98/Redis-%E5%9F%BA%E7%A1%80/overview/redis/</guid>
+      <description>事务&#xD;#&#xD;- 原子性 一致性 隔离性 持久性 redis 一定的原子性，但不支持回滚 × √ 通过一定策略可以保证持久性 redis 没有进行回滚，不具备原子性.操作之后写AOF日志 aof可以保证，但从应用层看没有回滚和原子性，所以并不能保证一致性 单线程天然隔离 纯内存(×)RDB Bgsave(√) RDB 异步执行(×) mysql √ √ √ √ mysql undo log 锁 锁 redo log hash命令&#xD;#&#xD;redis hash的结构：一维数组+二维链表（和java的hashmap结构一样）&#xA;redis rehash: 渐进式rehash Java rehash： 一次性将旧数组下挂接的元素全部转移到新数组下面&#xA;IO模型和性能&#xD;#&#xD;非阻塞IO： read， write时不阻塞&#xA;事件轮询和多路复用[8]&#xA;redis性能 最低配置: 4GB， 2核， 链接数2w， QPS 16w&#xA;redis性能高的原因&#xA;高效的数据结构 多路复用IO模型 事件机制 总结:Reactor + 队列 [10] 大体上可以说 Redis 的工作模式是，reactor 模式配合一个队列，用一个 serverAccept 线程来处理建立请求的链接， 并且通过 IO 多路复用模型，让内核来监听这些 socket，一旦某些 socket 的读写事件准备就绪后就对应的事件压入队列中， 然后 worker 工作，由文件事件分派器从中获取事件交于对应的处理器去执行，当某个事件执行完成后文件事件分派器才会从队列中获取下一个事件进行处理。 可以类比在 netty 中，我们一般会设置 bossGroup 和 workerGroup 默认情况下 bossGroup 为 1，workerGroup = 2 * cpu 数量， 这样可以由多个线程来处理读写就绪的事件，但是其中不能有比较耗时的操作如果有的话需要将其放入线程池中，不然会降低其吐吞量。 在 Redis 中我们可以看做这二者的值都是 1。</description>
+    </item>
+    <item>
+      <title>Redis Error-MOVED和ASK指令</title>
+      <link>https://www6v.github.io/www6vMiddleware/docs/Redis&#43;%E7%BC%93%E5%AD%98/Redis-%E5%9F%BA%E7%A1%80/Arch-Redis-Cluster/redisError/</link>
+      <pubDate>Mon, 28 Mar 2022 10:47:56 +0000</pubDate>
+      <guid>https://www6v.github.io/www6vMiddleware/docs/Redis&#43;%E7%BC%93%E5%AD%98/Redis-%E5%9F%BA%E7%A1%80/Arch-Redis-Cluster/redisError/</guid>
+      <description>{% details 相关代码 %} cluster.c&#xA;/* Return the pointer to the cluster node that is able to serve the command. * For the function to succeed the command should only target either: * * 1) A single key (even multiple times like LPOPRPUSH mylist mylist). * 2) Multiple keys in the same hash slot, while the slot is stable (no * resharding in progress). * * On success the function returns the node that is able to serve the request.</description>
+    </item>
+    <item>
+      <title>分布式 数据库 比较</title>
+      <link>https://www6v.github.io/www6vMiddleware/docs/RMDB/%E5%88%86%E5%B8%83%E5%BC%8F/distributedDatabaseCompare/</link>
+      <pubDate>Fri, 11 Mar 2022 20:13:01 +0000</pubDate>
+      <guid>https://www6v.github.io/www6vMiddleware/docs/RMDB/%E5%88%86%E5%B8%83%E5%BC%8F/distributedDatabaseCompare/</guid>
+      <description>分布式 数据库 比较 [1]&#xD;#&#xD;PolarDB-X TiDB CockroachDB Spanner 分布式事务 MVCC+TSO MVCC+TSO [Percolator][5][6] MVCC+HLC[2][3][4] MVCC+TrueTime API 存储引擎 InnoDB/x-engine&#xA;HEX2(列存) RocksDBTiFlash(列存) RocksDB Colossus 高可用 计算无状态集群&#xA;存储Multi-Paxos 计算无状态集群&#xA;存储Raft 计算存储一体化 集群化 存储Raft 计算存储一体化 集群化 存储Multi-Paxos 数据分区 Hash/List/Range Range/Hash Range/Hash Range/Hash 全局索引 √ √ √ √ HTAP 强隔离 强一致&#xA;MPP并行 强隔离 强一致&#xA;Spark 混合负载&#xA;MPP并行 混合负载&#xA;MPP并行 生态兼容性 基本兼容MySQL 基本兼容MySQL 基本兼容PGSQL 非标准SQL 元数据DDL 全局一致 + Online 全局一致 + Online 全局一致 + Online 全局一致 + Online 全局日志 √ √ √（企业版） × 备份恢复 √ √ √ √ 参考&#xD;#&#xD;《云数据库架构》 2.</description>
+    </item>
+    <item>
+      <title>Redis 的IO模型</title>
+      <link>https://www6v.github.io/www6vMiddleware/docs/Redis&#43;%E7%BC%93%E5%AD%98/Redis-%E5%9F%BA%E7%A1%80/overview/redisIO/</link>
+      <pubDate>Tue, 18 Jan 2022 21:28:08 +0000</pubDate>
+      <guid>https://www6v.github.io/www6vMiddleware/docs/Redis&#43;%E7%BC%93%E5%AD%98/Redis-%E5%9F%BA%E7%A1%80/overview/redisIO/</guid>
+      <description>关键词： 单线程，事件， socket， 多路复用&#xD;#&#xD;Redis 的IO模型&#xD;#&#xD;Redis 是单线程，主要是指 Redis 的网络 IO 和键值对读写是由一个线程来完成的，这也是 Redis 对外提供键值存储服务的主要流程。 但 Redis 的其他功能，比如持久化、异步删除、集群数据同步等，其实是由额外的线程执 行的。&#xA;多路复用&#xD;#&#xD;Linux 中的 IO 多路复用机制是指一个线程处理多个 IO 流，就是我们经常听到的 select/epoll 机制。简单来说，在 Redis 只运行单线程的情况下，该机制允许内核中，同 时存在多个监听套接字和已连接套接字。内核会一直监听这些套接字上的连接请求或数据 请求。一旦有请求到达，就会交给 Redis 线程处理，这就实现了一个 Redis 线程处理多个 IO 流的效果。&#xA;为了在请求到达时能通知到 Redis 线程，select/epoll 提供了基于事件的回调机制，即针 对不同事件的发生，调用相应的处理函数。&#xA;epoll的API&#xD;#&#xD;int epoll_create(int size); int epoll_ctl(int epfd, int op, int fd, struct epoll_event *event); // 事件注册 int epoll_wait(int epfd, struct epoll_event * events, int maxevents, int timeout); // 事件分配、事件处理</description>
     </item>
     <item>
       <title>MySQL中的SQL更新语句</title>
@@ -23,11 +65,39 @@
       <description>&#xA;redo log &amp;amp;&amp;amp; bin log&#xD;#&#xD;有了redo log，InnoDB就可以保证即使数据库发生异常重启，之前提交的记录都不会丢失，这个 能力称为crash-safe。&#xA;\ redo log bin log where InnoDB引擎特有的 MySQL的Server层实现的 what 物理日志，记录的是“在某个数据页上做了什么修改” 逻辑日志，记录的是这个语句的原始逻辑 how 循环写的 追加写入的 update in Mysql&#xD;#&#xD;MySQL里的WAL(Write-Ahead Logging)技术，它的关键点就是先写日志，再写磁盘.&#xA;更新流程还涉及两个重要的日志模块，redo log（重做日志）和 binlog（归档日志）。&#xA;图中浅色框表示是在InnoDB内部执行的，深色框表示是在执行器中执行的。&#xA;redo log的写入拆成了两个步骤：prepare和commit，这就是&amp;quot;两阶段提交&amp;quot;, 让redo log和bin log之间的逻辑一致。&#xA;参考&#xD;#&#xD;《MySQL实战45讲 - 日志系统：一条SQL更新语句是如何执行的？》 丁奇 </description>
     </item>
     <item>
+      <title>TiKV Transaction-MVCC&#43;TSO</title>
+      <link>https://www6v.github.io/www6vMiddleware/docs/RMDB/%E5%88%86%E5%B8%83%E5%BC%8F/tikvMVCCTransaction/</link>
+      <pubDate>Mon, 10 Apr 2023 15:43:51 +0000</pubDate>
+      <guid>https://www6v.github.io/www6vMiddleware/docs/RMDB/%E5%88%86%E5%B8%83%E5%BC%8F/tikvMVCCTransaction/</guid>
+      <description>原理&#xD;#&#xD;Percolator [1]&#xD;#&#xD;总体来说就是一个经过优化的 2PC 的实现，依赖一个单点的授时服务 TSO 来实现单调递增的事务编号生成，提供SI 的隔离级别。&#xA;TiKV 的写事务分为两个阶段 [1]&#xD;#&#xD;1、Prewrite 阶段 MVCC 在对应传统 2PC 的第一阶段的 prewrite 流程。 首先选出一个 primary row 和其他的 secondary rows，然后对 primary row 进行上锁，再对 secondary rows 进行类似的上锁流程。如果任何一步出错，都会进行回滚。完成 prewrite 阶段后，进入 commit 阶段，当前时间戳为 commitTs，TSO 会保证 commitTs &amp;gt; startTs。&#xA;2、Commit 阶段 MVCC 中的 Commit 流程，包括在 primary 上写入 meta，删除 Lock 标记，以及异步提交 secondaries。如果 primary row 提交失败，则整个事务回滚。如果成功，则标志着整个事务提交成功。&#xA;Tidb乐观锁 [2] Tidb悲观锁 [2] TiKV 的读事务 [1]&#xD;#&#xD;在事务中进行读操作的过程。 首先，需要检查行是否被锁定，如果被锁定，则需要等待或者清除锁。然后，需要读取最新的数据版本，方法是读取元数据并找到最大的时间戳。 锁分为两级，Primary和Secondary row，只有Primary row的锁被释放，事务才算提交成功。Secondary row的提交可以异步进行，但在此过程中可能需要清理锁。即使Secondary row提交失败，也可以通过锁找到Primary row，并根据元数据确定事务是回滚还是提交成功。</description>
+    </item>
+    <item>
+      <title>Redis Cluster</title>
+      <link>https://www6v.github.io/www6vMiddleware/docs/Redis&#43;%E7%BC%93%E5%AD%98/Redis-%E5%9F%BA%E7%A1%80/Arch-Redis-Cluster/redisCluster/</link>
+      <pubDate>Mon, 11 Jul 2022 06:45:41 +0000</pubDate>
+      <guid>https://www6v.github.io/www6vMiddleware/docs/Redis&#43;%E7%BC%93%E5%AD%98/Redis-%E5%9F%BA%E7%A1%80/Arch-Redis-Cluster/redisCluster/</guid>
+      <description>目录&#xD;#&#xD;Cluster 功能 [1.1]&#xD;#&#xD;Redis Cluster支持多个master，每个master又可以挂载多个slave&#xA;读写分离 支持数据的高可用 故障转移， 高可用 由于Cluster自带Sentinel的故障转移机制，内置了高可用的支持， 无需再去使用哨兵功能&#xA;由对应的集群来负责维护节点、插槽和数据之间的关系&#xA;Slot&#xD;#&#xD;Redis集群有16384个哈希槽每个key通过CRC16校验后对16384取模来决定放置哪个槽，集群的每个节点负责一部分hash槽.&#xA;分片方式&#xD;#&#xD;crc（key）% 16384 映射关系&#xD;#&#xD;key （→ CRC） 分片 分片 (→ 映射关系) 实例&#xA;slot分配&#xD;#&#xD;自动分配slot create() 手动分配slot meet() addSlot() 指令&#xD;#&#xD;MOVED指令， ASK 指令 最大槽数是16384的原因 [1.3]&#xD;#&#xD;[ redis 作者解答] why redis-cluster use 16384 slots? #2576 antirez&#xA;[中文翻译] 正常的心跳数据包带有节点的完整配置，可以用幂等方式用旧的节点替换旧节点，以便更新旧的配置。 这意味着它们包含原始节点的插槽配置，该节点使用2k的空间和16k的插槽，但是会使用8k的空间（使用65k的插槽）。同时，由于其他设计折衷，Redis集群不太可能扩展到1000个以上的主节点。 因此16k处于正确的范围内，以确保每个主机具有足够的插槽，最多可容纳1000个矩阵，但数量足够少，可以轻松地将插槽配置作为原始位图传播。请注意，在小型群集中，位图将难以压缩，因为当N较小时，位图将设置的slot / N位占设置位的很大百分比。&#xA;[解读]&#xA;消息头太大， 发送的心跳包过于庞大 如果槽位为65536，发送心跳信息的消息头达8k，发送的心跳包过于庞大。 在消息头中最占空间的是myslots[CLUSTER_SLOTS/8]。当槽位为65536时，这块的大小是:65536÷8÷1024=8kb&#xA;在消息头中最占空间的是myslots[CLUSTER_SLOTS/8]。当槽位为16384时，这块的大小是:16384∶8∶1024=2kb</description>
+    </item>
+    <item>
       <title>MySQL的主从 高可用 容灾</title>
       <link>https://www6v.github.io/www6vMiddleware/docs/RMDB/%E5%8D%95%E6%9C%BA/mysqlReliability/</link>
       <pubDate>Sun, 21 Jun 2020 18:14:49 +0000</pubDate>
       <guid>https://www6v.github.io/www6vMiddleware/docs/RMDB/%E5%8D%95%E6%9C%BA/mysqlReliability/</guid>
       <description>MySQL主从复制原理&#xD;#&#xD;主从复制-流程&#xD;#&#xD;MySQL主从复制&#xA;MySQL master 将数据变更写入二进制日志( binary log, 其中记录叫做二进制日志事件binary log events，可以通过 show binlog events 进行查看) MySQL slave 将 master 的 binary log events 拷贝到它的中继日志(relay log) MySQL slave 重放 relay log 中事件，将数据变更反映它自己的数据 主从复制-类型 [6]&#xD;#&#xD;异步复制 半同步复制 MHA + 半同步复制 全同步复制 MGR + 全同步 主备切换 [1]&#xD;#&#xD;因为readonly设置对超级(super)权限用户是无效的，而用于同步更新的线程，就拥有超级权限。&#xA;一个事务日志同步的完整过程是这样的： 在备库B上通过change master命令，设置主库A的IP、端口、用户名、密码，以及要从哪个 位置开始请求binlog，这个位置包含文件名和日志偏移量。 在备库B上执行start slave命令，这时候备库会启动两个线程，就是图中的io_thread和 sql_thread。其中io_thread负责与主库建立连接。 主库A校验完用户名、密码后，开始按照备库B传过来的位置，从本地读取binlog，发给B。 备库B拿到binlog后，写到本地文件，称为中转日志（relay log）。 sql_thread读取中转日志，解析出日志里的命令，并执行。 Master-Master(双M)循环复制问题 [1]&#xD;#&#xD;如果设置了双M结构，日志的执行流就会变成这样： 从节点A更新的事务，binlog里面记的都是A的server id； 传到节点B执行一次以后，节点B生成的binlog 的server id也是A的server id； 再传回给节点A，A判断到这个server id与自己的相同，就不会再处理这个日志。所以，死循 环在这里就断掉了。 主备延迟 [2]&#xD;#&#xD;主备延迟原因 备库所在机器的性能要比主库所在的机器性能差 备库的压力大 解决方案: I.</description>
+    </item>
+    <item>
+      <title>Redis Cluster Spec</title>
+      <link>https://www6v.github.io/www6vMiddleware/docs/Redis&#43;%E7%BC%93%E5%AD%98/Redis-%E5%9F%BA%E7%A1%80/Arch-Redis-Cluster/redisClusterSpec/</link>
+      <pubDate>Mon, 11 Jul 2022 13:15:05 +0000</pubDate>
+      <guid>https://www6v.github.io/www6vMiddleware/docs/Redis&#43;%E7%BC%93%E5%AD%98/Redis-%E5%9F%BA%E7%A1%80/Arch-Redis-Cluster/redisClusterSpec/</guid>
+      <description>目录&#xD;#&#xD;设计目标和基本原理[bing]&#xD;#&#xD;高性能和线性扩展&#xD;#&#xD;Redis集群可以支持到1000个节点，使用异步复制和无代理的架构，避免了值合并的开销。&#xA;可接受的写安全性&#xD;#&#xD;Redis集群尽力保留与大多数主节点连接的客户端的写操作，但在分区窗口期内可能会丢失已确认的写操作。&#xA;可用性&#xD;#&#xD;Redis集群可以在大多数主节点可达且每个不可达主节点至少有一个可达副本的情况下存活，并且可以通过副本迁移来提高抗故障能力。&#xA;哈希槽分配&#xD;#&#xD;Redis集群将16384个哈希槽分配给不同的主节点，每个主节点负责存储和服务一部分哈希槽。客户端可以通过计算键的CRC16值对16384取模来得到对应的哈希槽。也可以使用哈希标签来强制将多个键分配到同一个哈希槽，以支持多键操作。&#xA;节点间通信&#xD;#&#xD;Redis集群节点之间使用一个TCP端口和一个二进制协议进行通信，称为集群总线。每个节点都与其他所有节点连接，使用gossip协议来传播集群的信息，如新节点、故障节点、配置变化等。&#xA;客户端重定向&#xD;#&#xD;Redis集群节点不会代理请求，而是根据自己的哈希槽映射表，将客户端重定向到正确的节点。客户端可能收到MOVED或ASK错误，表示需要重新发送请求到另一个节点。MOVED表示哈希槽被永久地分配给了另一个节点，ASK表示哈希槽正在被迁移，需要发送ASKING命令后再发送请求。&#xA;哈希槽迁移&#xD;#&#xD;Redis集群支持在运行时添加和删除节点，这是通过将哈希槽从一个节点移动到另一个节点来实现的。迁移过程中，源节点会将接收到的关于该哈希槽的请求重定向到目标节点，或者直接处理已存在键的请求。目标节点会接收到源节点通过MIGRATE命令发送过来的键，并在迁移完成后更新自己的配置。&#xA;故障检测和副本提升&#xD;#&#xD;Redis集群使用心跳包和gossip协议来检测节点是否可达，并使用PFAIL和FAIL两种标志来表示故障状态。当一个主节点被大多数主节点标记为FAIL时，它的一个副本会发起选举并请求投票。如果获得了大多数主节点的授权，该副本会提升为主节点，并生成一个新的配置版本号（configEpoch）。&#xA;副本选举和配置传播的机制[bing]&#xD;#&#xD;副本选举&#xD;#&#xD;当一个主节点失效时，它的一个副本会尝试发起选举，向其他主节点发送授权请求。如果获得了大多数主节点的回复，它就赢得了选举，并获得了一个新的唯一的配置版本号（configEpoch）。它会开始以主节点的身份广播心跳包，并通知其他节点更新配置。&#xA;配置传播&#xD;#&#xD;当一个节点收到一个心跳包或UPDATE消息时，它会根据一些规则来更新自己的哈希槽映射表。如果一个哈希槽是未分配的，或者有一个新的节点使用更高的configEpoch来声明它，那么接收者会将该哈希槽绑定到新的节点。这样可以保证最后一次故障转移胜出，并且所有节点最终会达成一致。&#xA;节点重置和遗忘&#xD;#&#xD;当一个节点需要从一个集群中移除或加入到另一个集群时，可以使用CLUSTER RESET命令来重置它的状态。这个命令有两种模式：软重置和硬重置。软重置会保留当前的configEpoch，而硬重置会将其设置为0。当一个节点被移除后，其他节点需要使用CLUSTER FORGET命令来删除它在节点表中的条目，并设置一个60秒的禁止期，防止因为gossip协议而重新添加它。&#xA;发布订阅&#xD;#&#xD;Redis集群支持发布订阅功能，客户端可以向任何节点发送SUBSCRIBE或PUBLISH命令。集群会将发布的消息转发到所有其他节点。Redis 7.0及以后版本还支持分片发布订阅功能，其中分片频道根据与键相同的算法分配到哈希槽。分片消息必须发送到拥有该哈希槽的节点，集群会将发布的分片消息转发到该哈希槽所在的分片中的所有节点。&#xA;CRC16算法&#xD;#&#xD;这篇文章最后给出了计算键对应哈希槽的CRC16算法的C语言实现代码。这个算法使用了1021作为多项式，并且不反转输入输出字节。&#xA;参考&#xD;#&#xD;Redis cluster specification ***</description>
+    </item>
+    <item>
+      <title>分布式数据库-全局时钟</title>
+      <link>https://www6v.github.io/www6vMiddleware/docs/RMDB/%E5%88%86%E5%B8%83%E5%BC%8F/distributedDatabaseGlobalTime/</link>
+      <pubDate>Mon, 11 Apr 2022 11:11:25 +0000</pubDate>
+      <guid>https://www6v.github.io/www6vMiddleware/docs/RMDB/%E5%88%86%E5%B8%83%E5%BC%8F/distributedDatabaseGlobalTime/</guid>
+      <description>Overview [2]&#xD;#&#xD;TSO 和 HLC 的区别[N AI]&#xD;#&#xD;TSO (Timestamp Ordering) 和 HLC (Hybrid Logical Clock) 都是两种分布式系统中用于解决事件顺序问题的算法。 虽然两种算法都是基于时间戳的，但它们也有着一些区别。&#xA;时间同步&#xD;#&#xD;TSO 需要依赖全局的时间同步服务，如 NTP (Network Time Protocol)，保证所有机器的时钟是一致的。而 HLC 可以在没有全局时钟同步服务的情况下，通过增加逻辑时钟来维护全局时钟的顺序。 这就使得 HLC 比 TSO 更加灵活和适用于更多的场景。&#xA;时钟漂移&#xD;#&#xD;TSO 可能会受到时钟漂移的影响，当时钟出现漂移时，事件的顺序可能会受到影响。而 HLC 可以通过逻辑时钟来解决时钟漂移的问题。这使得 HLC 更加鲁棒，并且可以在更长的时间内保持正确的事件顺序。&#xA;时间精度&#xD;#&#xD;TSO 采用 64 位的时间戳，精度为纳秒级别。而 HLC 采用 64 位的时间戳和 16 位的逻辑时钟，精度为微秒级别，比 TSO 更高。这意味着 HLC 可以更准确地记录事件发生的顺序。&#xA;HLC&#xD;#&#xD;HLC的特点和缺点 [1]&#xD;#&#xD;HLC（Hybrid Logical Clock 混合逻辑时钟）结合了物理时间和逻辑时钟的优点，提供了下面3个特性：&#xA;如果a happened-before b, 则hlc(a) &amp;lt; hlc(b)。不过反之不成立 HLC的时间戳占用的bit数不变 误差有上届。（其实就是NTP的最大误差，也就是所有机器的物理时间的最大误差） HLC本质上来说还是一个逻辑时钟，所以它只能提供partial ordering，而不能提供total ordering。所以2个节点中发生的独立事件a和b，如果他们的timestamp在误差的上届范围内，是无法排序的。</description>
     </item>
     <item>
       <title>MySQL的索引和优化</title>
@@ -37,11 +107,32 @@
       <description>索引-结构&#xD;#&#xD;索引分类[7]&#xD;#&#xD;分类 含义 特点 关键字 主键索引 针对于表中主键创建的索引 默认自动创建，只能有一个 PRIMARY 唯一索引 避免同一个表中某数据列中的值重复 可以有多个 UNIQUE 常规索引 快速定位特定数据 可以有多个 全文索引 全文索引查找的是文本中的关键词，而不是比较索引中的值 可以有多个 FULLTEXT 分类 含义 特点 聚集索引(Clustered Index) 将数据存储与索引放一块，索引结构的叶子节点保存了行数据 必须有，而且只有一个 二级索引(Secondary Index) 将数据与索引分开存储，索引结构的叶子节点关联的是对应的主键 可以存在多个 聚集索引选取规则: 如果存在主键，主键索引就是聚集索引 如果不存在主键，将使用第一个唯一（UNIQUE）索引作为聚集索引。 如果表没有主键，或没有合适的唯一索引，则InnoDB会自动生成一个rowid作为隐藏的聚集索 引。 索引结构和存储引擎 [3]&#xD;#&#xD;索引的数据结构： B+树能够很好地配合磁盘的读写特性，减少单次查询的磁盘访问次数&#xA;index MyISAM InnoDB Memory B-Tree&#xA;（balanced 平衡的） 支持 支持 支持 Hash 不支持 不支持 支持 R-Tree 空间索引 支持 不支持 不支持 Full-text 支持 支持 不支持 复合索引的数据结构&#xD;#&#xD;create table people {&#xD;last_name,&#xD;first_name,&#xD;dob,&#xD;gender,&#xD;key(last_name, first_name, dob)&#xD;} 索引- 使用&#xD;#&#xD;索引的使用场景&#xD;#&#xD;索引的使用场景 例子 匹配全值 index (a,b,c) a=1 and b=2 and c=3 范围查找 index a&amp;gt;1 and b&amp;lt;3 匹配最左前缀 index(a，b，c) a OR a，b OR a、b、c OR a，c 会使用 b、c 不使用 仅对索引列进行查询（覆盖索引） index a a=1 匹配列前缀 index （a， b） a like &amp;lsquo;WEER%&amp;rsquo; Index Condition Pushdown（ICP） 减少回表IO 索引的失效 [12][7]&#xD;#&#xD;非复合索引</description>
     </item>
     <item>
+      <title>Redis 集群  容灾（同城多活）</title>
+      <link>https://www6v.github.io/www6vMiddleware/docs/Redis&#43;%E7%BC%93%E5%AD%98/Redis-%E5%9F%BA%E7%A1%80/Arch-Redis-Cluster/redisHA/</link>
+      <pubDate>Sun, 31 Jul 2022 11:37:41 +0000</pubDate>
+      <guid>https://www6v.github.io/www6vMiddleware/docs/Redis&#43;%E7%BC%93%E5%AD%98/Redis-%E5%9F%BA%E7%A1%80/Arch-Redis-Cluster/redisHA/</guid>
+      <description>目录&#xD;#&#xD;1. 背景&#xD;#&#xD;Redis 集群自身已经具备了高可用的特性，即使几个Redis节点异常或者挂掉，Redis 集群也会实现故障自动转移，对应用方来说也可以在很短时间内恢复故障。 但是，如果发生了机房故障(断电、断网等极端情况)，Redis集群节点全部挂掉（过半主节点挂掉），会造成集群服务不可用，对于核心业务来说是不可接受的。 为了应对机房故障情况，保障在这种极端情况下，核心业务仍然可以正常访问 Redis 服务，本文将给出适合我司的 Redis 跨机房高可用解决方案。 2. 目标&#xD;#&#xD;保障单机房整体故障时 Redis 缓存服务正常运行。 单机房故障 RTO：30s，RPO：1s 3. 解决方案&#xD;#&#xD;3.1 核心能力&#xD;#&#xD;客户端流量路由：支持按一定的策略，把流量分流到不同机房；机房故障后，流量自动流向其他机房。 服务端故障转移：支持机房故障后，当前机房原来主节点的从节点，通过选举自动倒换成新的主节点。 管理平台正常服务：任一机房故障，Renault 管理平台使用不受影响。 3.2 工作模式&#xD;#&#xD;组件在机房高可用场景下一般有多种工作模式，典型的有单集群模式及多集群模式。本节描述组件在各种工作模式下的部署方式及工作机制。&#xA;部署方案 方案说明 跨机房混合部署 将Redis集群主节点平均分配到各个机房，主从节点在不同机房 各机房独立部署集群 + 数据单向同步 各机房均独立部署集群，集群为热备模式，写请求均写入同一个集群，然后同步到其他集群 各机房独立部署集群 + 数据双向同步 每个机房部署一套Redis集群，同步核心业务写请求 数据同步方法：&#xA;数据同步方案 方案说明 客户端双写 客户端同时写入到各个集群 客户端代理 Netflix开源实现的Dynomite，通过代理层接受数据后写入各个需要同步的节点&#xA;改造难度大&#xA;客户端需要优化添加Dyno Client服务端每个节点需要部署Dyno Node&#xA;read/write性能较原生差异较大，主要体现在write上，之间的差异随着node节点数越多越严重 伪从节点 基于Redis的Master-Slave复制协议，实现低延时、高可用的Redis多数据中心、跨公网数据复制携程开源系统：https://github.com/ctripcorp/x-pipe阿里RedisShake同步工具 写事件监听+MQ跨集群消息同步 读写在本机房，监听写事件 + MQ消息同步到其他机房需要开启事件通知（PUB），修改Redis配置文件中的 notify-keyspace-events 配置（默认的redis并没有开启这个功能）需要独立服务订阅写事件（SUB），并同步到其他集群依赖MQ组件 不考虑客户端代理、发布订阅写事件</description>
+    </item>
+    <item>
+      <title>数据库  关联查询</title>
+      <link>https://www6v.github.io/www6vMiddleware/docs/RMDB/%E5%88%86%E5%B8%83%E5%BC%8F/distributedDatabaseJoinQuery/</link>
+      <pubDate>Sun, 30 May 2021 12:05:34 +0000</pubDate>
+      <guid>https://www6v.github.io/www6vMiddleware/docs/RMDB/%E5%88%86%E5%B8%83%E5%BC%8F/distributedDatabaseJoinQuery/</guid>
+      <description>&#xA;TiDB 的 Join 算法[2][5]&#xD;#&#xD;TiDB 的 Join 算法包括如下几类：&#xA;Hash Join Merge Join Index Hash Join Index Merge Join TiDB 目前表 Join 的方式 [3][4]&#xA;Sort Merge Join Index Nested Loop Join Hash Join 参考&#xD;#&#xD;《20 | 关联查询：如何提升多表Join能力？ 》 TiDB 查询优化及调优系列（二）TiDB 查询计划简介 查看 Join 的执行计划 TiDB 源码阅读系列 TiDB 查询优化及调优系列（四）查询执行计划的调整及优化原理 JOIN 查询的执行计划 比较 </description>
+    </item>
+    <item>
       <title>MySQL事务-总结</title>
       <link>https://www6v.github.io/www6vMiddleware/docs/RMDB/%E5%8D%95%E6%9C%BA/mysqlTransaction/</link>
       <pubDate>Sat, 21 Feb 2015 14:44:33 +0000</pubDate>
       <guid>https://www6v.github.io/www6vMiddleware/docs/RMDB/%E5%8D%95%E6%9C%BA/mysqlTransaction/</guid>
       <description>&#xA;MySQL Log和事务&#xD;#&#xD;{% post_link &amp;lsquo;mysqlLog&amp;rsquo; %}&#xA;参考&#xD;#&#xD;拨开云雾见天日：剖析单机事务原理 CHEN川 *** 多版本并发控制(MVCC)在分布式系统中的应用 Todd 阿里云分布式缓存OCS与DB之间的数据一致性 杨成虎 乐观锁和 MVCC 的区别？ mysql可重复读和幻读实例 CWeeYii MySQL脏读、虚读、幻读 Eternity味道 MySQL 中事务的实现原理 失效 </description>
+    </item>
+    <item>
+      <title>全局二级索引-GSI</title>
+      <link>https://www6v.github.io/www6vMiddleware/docs/RMDB/%E5%88%86%E5%B8%83%E5%BC%8F/globalSecondaryIndex/</link>
+      <pubDate>Mon, 05 Jun 2023 14:50:16 +0000</pubDate>
+      <guid>https://www6v.github.io/www6vMiddleware/docs/RMDB/%E5%88%86%E5%B8%83%E5%BC%8F/globalSecondaryIndex/</guid>
+      <description>&#xA;场景&#xD;#&#xD;[Claude] 分布式数据库的全局二级索引主要有以下几个使用场景: 加速多表关联查询:用全局二级索引构建外键索引,可以有效地加速涉及多表关联的查询。 全表扫描查询:当需要做全表扫描时,使用全局二级索引可以跳过不需要的行,大幅降低扫描成本。 频繁查询的列上:对于数据库中经常需要根据某列进行查询的情况,建立该列的全局二级索引,可以大幅提高查询效率。 需要排序的查询:当需要查询结果按某个列排序时,全局二级索引可以加速排序。 模糊查询优化:通过部分键值匹配,全局二级索引可以优化like查询等模式查询。 分页查询优化:结合 Cursor 标记,全局二级索引可以有效的支持分页查询。&#xA;总的来说,对于需要高效查询、排序、混合查询等复杂查询的分布式数据库而言,引入全局二级索引可以大大提高性能。尤其是处理大规模数据时,二级索引发挥的作用更加明显。&#xA;全局二级索引能够解决什么问题 [1] 如果查询的维度与逻辑表的拆分维度不同，会产生跨分片查询。跨分片查询的增加会导致查询卡慢、连接池耗尽等性能问题。GSI能够通过增加拆分维度来减少跨分片查询，消除性能瓶颈。&#xA;增加拆分维度 [4] 例如，对于在线商城的订单表，假设按照买家用户维度拆分，那么对于卖家查询（例如，查询某个卖家的本月所有订单）就需要扫描所有分区。但是借助全局二级索引，可以仅仅扫描相应卖家所在的索引表分区，快速找到所需的订单信息。&#xA;全局唯一约束 [4] 例如，假设用户表是一张分布式表，按照用户ID分区。若要求用户手机号需要全局唯一，那么本地索引无法满足，必须构建一个按手机号作为索引键（同时也是分区键）的唯一索引。&#xA;全局索引 vs 局部索引 [1][2]&#xD;#&#xD;全局二级索引 [DDIA 基于关键词的二级索引分区] 数据行和对应的索引行保存在不同分片上&#xA;分类 [3] 全局非分区索引（Global Non-Partitioned Index） 全局分区索引（Global Partitioned Index） 局部索引 [DDIA 基于文档的二级索引分区] 如果数据行和对应的索引行保存在相同分片上&#xA;PolarDB 全局索引&#xD;#&#xD;PolarDB-X [1]&#xA;XA多写，保证主表与索引表数据强一致。[性能会不会慢] Online Schema Change，添加GSI不锁主表。 PolarDB-X GSI [4] 每个GSI对应一张分布式索引表，和其他分布式表一样，按照指定的分区规则水平拆分为多张物理表。PolarDB-X使用分布式事务维护主表和索引表之间数据强一致。&#xA;参考&#xD;#&#xD;全局二级索引 PolarDB 设计数据密集型应用-C6-分区和二级索引 DDIA 二级索引 OB 全局二级索引 PolarDB PolarDB-X 全局二级索引 未 PolarDB-X 数据分布解读（三） ：TPCC与透明分布式 未 </description>
     </item>
     <item>
       <title>MySQL Logs</title>

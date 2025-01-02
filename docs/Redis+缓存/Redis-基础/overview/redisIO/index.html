@@ -1,0 +1,1791 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="关键词： 单线程，事件， socket， 多路复用#Redis 的IO模型#Redis 是单线程，主要是指 Redis 的网络 IO 和键值对读写是由一个线程来完成的，这也是 Redis 对外提供键值存储服务的主要流程。 但 Redis 的其他功能，比如持久化、异步删除、集群数据同步等，其实是由额外的线程执 行的。
+多路复用#Linux 中的 IO 多路复用机制是指一个线程处理多个 IO 流，就是我们经常听到的 select/epoll 机制。简单来说，在 Redis 只运行单线程的情况下，该机制允许内核中，同 时存在多个监听套接字和已连接套接字。内核会一直监听这些套接字上的连接请求或数据 请求。一旦有请求到达，就会交给 Redis 线程处理，这就实现了一个 Redis 线程处理多个 IO 流的效果。
+为了在请求到达时能通知到 Redis 线程，select/epoll 提供了基于事件的回调机制，即针 对不同事件的发生，调用相应的处理函数。
+epoll的API#int epoll_create(int size); int epoll_ctl(int epfd, int op, int fd, struct epoll_event *event); // 事件注册 int epoll_wait(int epfd, struct epoll_event * events, int maxevents, int timeout); // 事件分配、事件处理">
+<meta name="theme-color" media="(prefers-color-scheme: light)" content="#ffffff">
+<meta name="theme-color" media="(prefers-color-scheme: dark)" content="#343a40">
+<meta name="color-scheme" content="light dark"><meta property="og:url" content="https://www6v.github.io/www6vMiddleware/docs/Redis&#43;%E7%BC%93%E5%AD%98/Redis-%E5%9F%BA%E7%A1%80/overview/redisIO/">
+  <meta property="og:site_name" content="中间件">
+  <meta property="og:title" content="Redis 的IO模型">
+  <meta property="og:description" content="关键词： 单线程，事件， socket， 多路复用#Redis 的IO模型#Redis 是单线程，主要是指 Redis 的网络 IO 和键值对读写是由一个线程来完成的，这也是 Redis 对外提供键值存储服务的主要流程。 但 Redis 的其他功能，比如持久化、异步删除、集群数据同步等，其实是由额外的线程执 行的。
+多路复用#Linux 中的 IO 多路复用机制是指一个线程处理多个 IO 流，就是我们经常听到的 select/epoll 机制。简单来说，在 Redis 只运行单线程的情况下，该机制允许内核中，同 时存在多个监听套接字和已连接套接字。内核会一直监听这些套接字上的连接请求或数据 请求。一旦有请求到达，就会交给 Redis 线程处理，这就实现了一个 Redis 线程处理多个 IO 流的效果。
+为了在请求到达时能通知到 Redis 线程，select/epoll 提供了基于事件的回调机制，即针 对不同事件的发生，调用相应的处理函数。
+epoll的API#int epoll_create(int size); int epoll_ctl(int epfd, int op, int fd, struct epoll_event *event); // 事件注册 int epoll_wait(int epfd, struct epoll_event * events, int maxevents, int timeout); // 事件分配、事件处理">
+  <meta property="og:locale" content="en">
+  <meta property="og:type" content="website">
+<title>Redis 的IO模型 | 中间件</title>
+<link rel="icon" href="/www6vMiddleware/favicon.png" >
+<link rel="manifest" href="/www6vMiddleware/manifest.json">
+<link rel="canonical" href="https://www6v.github.io/www6vMiddleware/docs/Redis&#43;%E7%BC%93%E5%AD%98/Redis-%E5%9F%BA%E7%A1%80/overview/redisIO/">
+<link rel="stylesheet" href="/www6vMiddleware/book.min.6c8b9d2a1fc95075ed7da46ca81060b39add8fff6741ac51259f768929281e2c.css" integrity="sha256-bIudKh/JUHXtfaRsqBBgs5rdj/9nQaxRJZ92iSkoHiw=" crossorigin="anonymous">
+  <script defer src="/www6vMiddleware/fuse.min.js"></script>
+  <script defer src="/www6vMiddleware/en.search.min.f6813f7eef06cff0da9e0cee91e7083d3b28a78c3d9761745c2f9bfbe926ffe8.js" integrity="sha256-9oE/fu8Gz/DangzukecIPTsop4w9l2F0XC&#43;b&#43;&#43;km/&#43;g=" crossorigin="anonymous"></script>
+
+  
+
+<link rel="alternate" type="application/rss+xml" href="https://www6v.github.io/www6vMiddleware/docs/Redis+%E7%BC%93%E5%AD%98/Redis-%E5%9F%BA%E7%A1%80/overview/redisIO/index.xml" title="中间件" />
+<!--
+Made with Book Theme
+https://github.com/alex-shpak/hugo-book
+-->
+  
+</head>
+<body dir="ltr">
+  <input type="checkbox" class="hidden toggle" id="menu-control" />
+  <input type="checkbox" class="hidden toggle" id="toc-control" />
+  <main class="container flex">
+    <aside class="book-menu">
+      <div class="book-menu-content">
+        
+  <nav>
+<h2 class="book-brand">
+  <a class="flex align-center" href="/www6vMiddleware/"><span>中间件</span>
+  </a>
+</h2>
+
+
+<div class="book-search hidden">
+  <input type="text" id="book-search-input" placeholder="Search" aria-label="Search" maxlength="64" data-hotkeys="s/" />
+  <div class="book-search-spinner hidden"></div>
+  <ul id="book-search-results"></ul>
+</div>
+<script>document.querySelector(".book-search").classList.remove("hidden")</script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  <ul>
+    
+      
+        <li class="book-section-flat" >
+          
+  
+  
+
+  
+    <input type="checkbox" id="section-b13c95c069c614e8c16265f1c191a430" class="toggle"  />
+    <label for="section-b13c95c069c614e8c16265f1c191a430" class="flex justify-between">
+      <a role="button" class="">服务治理</a>
+    </label>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <span>Overview</span>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMiddleware/docs/serviceGovernance/Overview/microservice/" class="">微服务 总结</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMiddleware/docs/serviceGovernance/Overview/soaFeature/" class="">分布式服务框架功能</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <span>API Gateway</span>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMiddleware/docs/serviceGovernance/API-Gateway/apiGatawaySpringGateway/" class="">API 网关-SpringCloud Gateway</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMiddleware/docs/serviceGovernance/API-Gateway/apiGatawayApisix/" class="">API 网关-apisix</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMiddleware/docs/serviceGovernance/API-Gateway/apiGateway/" class="">API Gateway网关</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <span>Config &amp; Discovery</span>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMiddleware/docs/serviceGovernance/ConfigDiscovery/soaDiscovery/" class="">服务发现</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMiddleware/docs/serviceGovernance/ConfigDiscovery/config/" class="">服务治理-分布式配置</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <span>负载均衡</span>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMiddleware/docs/serviceGovernance/loadBalance/loadBalance/" class="">负载均衡-算法</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMiddleware/docs/serviceGovernance/loadBalance/nginxOptimize/" class="">Nginx优化</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMiddleware/docs/serviceGovernance/loadBalance/nginx/" class="">Nginx总结</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <span>线程模型</span>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMiddleware/docs/serviceGovernance/threadModel/jsfThreadModel/" class="">京东服务框架JSF服务提供者线程模型</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <span>容错&amp;限流</span>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <span>容错</span>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMiddleware/docs/serviceGovernance/faultTolerant/faultTolerant/soaTolerateFramework/" class="">容错框架</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMiddleware/docs/serviceGovernance/faultTolerant/faultTolerant/soaTimeout/" class="">超时和重试 总结</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMiddleware/docs/serviceGovernance/faultTolerant/faultTolerant/soaTolerate/" class="">分布式服务框架 容错机制</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <span>限流</span>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMiddleware/docs/serviceGovernance/faultTolerant/throttle/ratelimitSentinel/" class="">流量治理-Sentinel</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMiddleware/docs/serviceGovernance/faultTolerant/throttle/ratelimit/" class="">限流-总结</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMiddleware/docs/serviceGovernance/faultTolerant/soaGracefulStart/" class="">优雅启动</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMiddleware/docs/serviceGovernance/faultTolerant/soaGracefulClose/" class="">优雅关闭</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <span>Spring Cloud</span>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMiddleware/docs/serviceGovernance/Springcloud/springTransactionInvalid/" class="">Spring  Transaction  失效</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMiddleware/docs/serviceGovernance/Springcloud/springCloud/" class="">SpringCloud</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMiddleware/docs/serviceGovernance/Springcloud/springboot/" class="">SpringBoot</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMiddleware/docs/serviceGovernance/Springcloud/springTransaction/" class="">Spring事务</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <span>灰度发布</span>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMiddleware/docs/serviceGovernance/Gray/apiGatewayGray/" class="">API 网关-灰度发布</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <span>安全</span>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMiddleware/docs/serviceGovernance/security/soaAuth/" class="">服务治理-鉴权</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMiddleware/docs/serviceGovernance/security/securityOAuth2/" class="">安全-OAuth2</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li class="book-section-flat" >
+          
+  
+  
+
+  
+    <input type="checkbox" id="section-619f87396da4f22c9e982ebbcfb80a1d" class="toggle"  />
+    <label for="section-619f87396da4f22c9e982ebbcfb80a1d" class="flex justify-between">
+      <a role="button" class="">消息系统</a>
+    </label>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <span>Overview</span>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMiddleware/docs/message/Overview/mq/" class="">消息中间件总结</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMiddleware/docs/message/Overview/mqCompare/" class="">MQ总结(Kafka, Rocketmq, Rabbitmq)</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMiddleware/docs/message/Overview/mqOrdering/" class="">消息系统 顺序消息</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <span>Kafka</span>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMiddleware/docs/message/Kafka/kafka/" class="">Kafka总结</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMiddleware/docs/message/Kafka/kafkaProducer/" class="">Kafka Producer生产者</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMiddleware/docs/message/Kafka/kafkaConsumer/" class="">Kafka消费者总结</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMiddleware/docs/message/Kafka/kafkaRebalance/" class="">Kafka消费者-Rebalance机制</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMiddleware/docs/message/Kafka/kafkaReliability/" class="">Kafka 可靠性总结</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMiddleware/docs/message/Kafka/kafkaIndex/" class="">Kafka 索引</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMiddleware/docs/message/Kafka/kafkaZeroCopy/" class="">Kafka-ZeroCopy</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMiddleware/docs/message/Kafka/kafkaController/" class="">Kafka Controller-控制器</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMiddleware/docs/message/Kafka/kafkaReplica/" class="">Kafka Replication-副本机制</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMiddleware/docs/message/Kafka/kafkaElection/" class="">Kafka 中的选主</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMiddleware/docs/message/Kafka/kafkaQ-A/" class="">Kafka  Q&amp;A</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMiddleware/docs/message/Kafka/kafkaTransaction/" class="">Kafka 幂等性和事务</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li class="book-section-flat" >
+          
+  
+  
+
+  
+    <input type="checkbox" id="section-c8ef6724255360cd9e1bb212713f9134" class="toggle"  />
+    <label for="section-c8ef6724255360cd9e1bb212713f9134" class="flex justify-between">
+      <a role="button" class="">关系型数据库</a>
+    </label>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <span>单机</span>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMiddleware/docs/RMDB/%E5%8D%95%E6%9C%BA/mysqlTransactionAndLock/" class="">MySQL 事务-隔离性</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMiddleware/docs/RMDB/%E5%8D%95%E6%9C%BA/mysqlUpdate/" class="">MySQL中的SQL更新语句</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMiddleware/docs/RMDB/%E5%8D%95%E6%9C%BA/mysqlReliability/" class="">MySQL的主从 高可用 容灾</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMiddleware/docs/RMDB/%E5%8D%95%E6%9C%BA/mysqlIndex/" class="">MySQL的索引和优化</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMiddleware/docs/RMDB/%E5%8D%95%E6%9C%BA/mysqlTransaction/" class="">MySQL事务-总结</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMiddleware/docs/RMDB/%E5%8D%95%E6%9C%BA/mysqlLog/" class="">MySQL Logs</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMiddleware/docs/RMDB/%E5%8D%95%E6%9C%BA/mysqlDeadLock/" class="">MySQL  锁和死锁</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMiddleware/docs/RMDB/%E5%8D%95%E6%9C%BA/mysqlMasterSlaveDelay/" class="">MySQL 主从延迟</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <span>分布式</span>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMiddleware/docs/RMDB/%E5%88%86%E5%B8%83%E5%BC%8F/distributedDatabase/" class="">分布式 数据库 总结</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMiddleware/docs/RMDB/%E5%88%86%E5%B8%83%E5%BC%8F/distributedDatabaseCompare/" class="">分布式 数据库 比较</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMiddleware/docs/RMDB/%E5%88%86%E5%B8%83%E5%BC%8F/tikvMVCCTransaction/" class="">TiKV Transaction-MVCC&#43;TSO</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMiddleware/docs/RMDB/%E5%88%86%E5%B8%83%E5%BC%8F/distributedDatabaseGlobalTime/" class="">分布式数据库-全局时钟</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMiddleware/docs/RMDB/%E5%88%86%E5%B8%83%E5%BC%8F/distributedDatabaseJoinQuery/" class="">数据库  关联查询</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMiddleware/docs/RMDB/%E5%88%86%E5%B8%83%E5%BC%8F/globalSecondaryIndex/" class="">全局二级索引-GSI</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li class="book-section-flat" >
+          
+  
+  
+
+  
+    <input type="checkbox" id="section-10fff53c331fc90701f5c89a3d268231" class="toggle" checked />
+    <label for="section-10fff53c331fc90701f5c89a3d268231" class="flex justify-between">
+      <a role="button" class="">Redis&#43;缓存</a>
+    </label>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <span>Redis 基础</span>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <span>overview</span>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMiddleware/docs/Redis&#43;%E7%BC%93%E5%AD%98/Redis-%E5%9F%BA%E7%A1%80/overview/redis/" class="">Redis 总结</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMiddleware/docs/Redis&#43;%E7%BC%93%E5%AD%98/Redis-%E5%9F%BA%E7%A1%80/overview/redisIO/" class="active">Redis 的IO模型</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <span>Arch &amp; Redis Cluster</span>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMiddleware/docs/Redis&#43;%E7%BC%93%E5%AD%98/Redis-%E5%9F%BA%E7%A1%80/Arch-Redis-Cluster/redisArch/" class="">Redis 架构</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMiddleware/docs/Redis&#43;%E7%BC%93%E5%AD%98/Redis-%E5%9F%BA%E7%A1%80/Arch-Redis-Cluster/redisError/" class="">Redis Error-MOVED和ASK指令</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMiddleware/docs/Redis&#43;%E7%BC%93%E5%AD%98/Redis-%E5%9F%BA%E7%A1%80/Arch-Redis-Cluster/redisCluster/" class="">Redis Cluster</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMiddleware/docs/Redis&#43;%E7%BC%93%E5%AD%98/Redis-%E5%9F%BA%E7%A1%80/Arch-Redis-Cluster/redisClusterSpec/" class="">Redis Cluster Spec</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMiddleware/docs/Redis&#43;%E7%BC%93%E5%AD%98/Redis-%E5%9F%BA%E7%A1%80/Arch-Redis-Cluster/redisHA/" class="">Redis 集群  容灾（同城多活）</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</nav>
+
+
+
+
+  <script>(function(){var e=document.querySelector("aside .book-menu-content");addEventListener("beforeunload",function(){localStorage.setItem("menu.scrollTop",e.scrollTop)}),e.scrollTop=localStorage.getItem("menu.scrollTop")})()</script>
+
+
+ 
+      </div>
+    </aside>
+
+    <div class="book-page">
+      <header class="book-header">
+        
+  <div class="flex align-center justify-between">
+  <label for="menu-control">
+    <img src="/www6vMiddleware/svg/menu.svg" class="book-icon" alt="Menu" />
+  </label>
+
+  <h3>Redis 的IO模型</h3>
+
+  <label for="toc-control">
+    
+    <img src="/www6vMiddleware/svg/toc.svg" class="book-icon" alt="Table of Contents" />
+    
+  </label>
+</div>
+
+
+  
+  <aside class="hidden clearfix">
+    
+  
+<nav id="TableOfContents">
+  <ul>
+    <li>
+      <ul>
+        <li>
+          <ul>
+            <li></li>
+          </ul>
+        </li>
+        <li><a href="#redis-的io模型">Redis 的IO模型</a>
+          <ul>
+            <li></li>
+          </ul>
+        </li>
+        <li><a href="#netty-io模型">Netty IO模型</a>
+          <ul>
+            <li></li>
+          </ul>
+        </li>
+        <li><a href="#参考">参考：</a></li>
+      </ul>
+    </li>
+  </ul>
+</nav>
+
+
+
+  </aside>
+  
+ 
+      </header>
+
+      
+      
+  <article class="markdown book-article"><p></p>
+<!-- more -->
+<h5 id="关键词-单线程事件-socket-多路复用">
+  关键词： 单线程，事件， socket， 多路复用
+  <a class="anchor" href="#%e5%85%b3%e9%94%ae%e8%af%8d-%e5%8d%95%e7%ba%bf%e7%a8%8b%e4%ba%8b%e4%bb%b6-socket-%e5%a4%9a%e8%b7%af%e5%a4%8d%e7%94%a8">#</a>
+</h5>
+<h2 id="redis-的io模型">
+  Redis 的IO模型
+  <a class="anchor" href="#redis-%e7%9a%84io%e6%a8%a1%e5%9e%8b">#</a>
+</h2>
+<p><strong>Redis 是单线程，主要是指 Redis 的网络 IO 和键值对读写是由一个线程来完成的，这也是 Redis 对外提供键值存储服务的主要流程。</strong>
+但 Redis 的其他功能，比如持久化、异步删除、集群数据同步等，其实是由额外的线程执 行的。</p>
+<h5 id="多路复用">
+  多路复用
+  <a class="anchor" href="#%e5%a4%9a%e8%b7%af%e5%a4%8d%e7%94%a8">#</a>
+</h5>
+<p><img src="./images/redis-multiplex.png" alt="基于多路复用的Redis高性能IO模型" /></p>
+<p>Linux 中的 IO 多路复用机制是指一个线程处理多个 IO 流，就是我们经常听到的 select/epoll 机制。简单来说，在 Redis 只运行单线程的情况下，<strong>该机制允许内核中，同 时存在多个监听套接字和已连接套接字</strong>。内核会一直监听这些套接字上的连接请求或数据 请求。一旦有请求到达，就会交给 Redis 线程处理，这就实现了一个 Redis 线程处理多个 IO 流的效果。</p>
+<p>为了在请求到达时能通知到 Redis 线程，<strong>select/epoll 提供了基于事件的回调机制，即针 对不同事件的发生，调用相应的处理函数</strong>。</p>
+<h5 id="epoll的api">
+  epoll的API
+  <a class="anchor" href="#epoll%e7%9a%84api">#</a>
+</h5>
+<p>int epoll_create(int size);
+int epoll_ctl(int epfd, int op, int fd, struct epoll_event *event);   // 事件注册
+int epoll_wait(int epfd, struct epoll_event * events, int maxevents, int timeout);  //  事件分配、事件处理</p>
+<h2 id="netty-io模型">
+  Netty IO模型
+  <a class="anchor" href="#netty-io%e6%a8%a1%e5%9e%8b">#</a>
+</h2>
+<p><img src="./images/netty-io.jpeg" alt="Netty IO模型" /></p>
+<h5 id="channel">
+  channel
+  <a class="anchor" href="#channel">#</a>
+</h5>
+<p>channel（在socket上的通道） -  event
+channel - channelPipeline（单线程）</p>
+<h5 id="reactor">
+  reactor
+  <a class="anchor" href="#reactor">#</a>
+</h5>
+<p>accept事件（boss线程）
+read，write事件（work线程）</p>
+<h2 id="参考">
+  参考：
+  <a class="anchor" href="#%e5%8f%82%e8%80%83">#</a>
+</h2>
+<p>03 | 高性能IO模型:为什么单线程Redis能那么快?
+<a href="http://ifeve.com/channel-pipeline/">Netty源码解读（三）Channel与Pipeline</a>
+<a href="https://www6v.github.io/www6vHomeHexo/2015/08/23/nettySummary/">https://www6v.github.io/www6vHomeHexo/2015/08/23/nettySummary/</a>
+<a href="https://www.cnblogs.com/xuewangkai/p/11158576.html">epoll使用详解：epoll_create、epoll_ctl、epoll_wait、close</a></p>
+</article>
+ 
+      
+
+      <footer class="book-footer">
+        
+  <div class="flex flex-wrap justify-between">
+
+
+
+
+
+</div>
+
+
+
+  <script>(function(){function e(e){const t=window.getSelection(),n=document.createRange();n.selectNodeContents(e),t.removeAllRanges(),t.addRange(n)}document.querySelectorAll("pre code").forEach(t=>{t.addEventListener("click",function(){if(window.getSelection().toString())return;e(t.parentElement),navigator.clipboard&&navigator.clipboard.writeText(t.parentElement.textContent)})})})()</script>
+
+
+ 
+        
+      </footer>
+
+      
+  
+  <div class="book-comments">
+
+</div>
+  
+ 
+
+      <label for="menu-control" class="hidden book-menu-overlay"></label>
+    </div>
+
+    
+    <aside class="book-toc">
+      <div class="book-toc-content">
+        
+  
+<nav id="TableOfContents">
+  <ul>
+    <li>
+      <ul>
+        <li>
+          <ul>
+            <li></li>
+          </ul>
+        </li>
+        <li><a href="#redis-的io模型">Redis 的IO模型</a>
+          <ul>
+            <li></li>
+          </ul>
+        </li>
+        <li><a href="#netty-io模型">Netty IO模型</a>
+          <ul>
+            <li></li>
+          </ul>
+        </li>
+        <li><a href="#参考">参考：</a></li>
+      </ul>
+    </li>
+  </ul>
+</nav>
+
+
+ 
+      </div>
+    </aside>
+    
+  </main>
+
+  
+</body>
+</html>
+
+
+
+
+
+
+
+
+
+
+
+

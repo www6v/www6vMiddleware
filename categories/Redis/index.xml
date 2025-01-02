@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Redis on 中间件</title>
+    <link>https://www6v.github.io/www6vMiddleware/categories/Redis/</link>
+    <description>Recent content in Redis on 中间件</description>
+    <generator>Hugo</generator>
+    <language>en</language>
+    <lastBuildDate>Sun, 31 Jul 2022 11:37:41 +0000</lastBuildDate>
+    <atom:link href="https://www6v.github.io/www6vMiddleware/categories/Redis/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>Redis 架构</title>
+      <link>https://www6v.github.io/www6vMiddleware/docs/Redis&#43;%E7%BC%93%E5%AD%98/Redis-%E5%9F%BA%E7%A1%80/Arch-Redis-Cluster/redisArch/</link>
+      <pubDate>Tue, 25 May 2021 18:35:49 +0000</pubDate>
+      <guid>https://www6v.github.io/www6vMiddleware/docs/Redis&#43;%E7%BC%93%E5%AD%98/Redis-%E5%9F%BA%E7%A1%80/Arch-Redis-Cluster/redisArch/</guid>
+      <description>目录&#xD;#&#xD;Redis架构演进[1]&#xD;#&#xD;数据怕丢失 -&amp;gt; 持久化（RDB/AOF） 恢复时间久 -&amp;gt; 主从副本（副本随时可切） 故障手动切换慢 -&amp;gt; 哨兵集群（自动切换） 读存在压力 -&amp;gt; 扩容副本（读写分离） 写存在压力/容量瓶颈 -&amp;gt; 分片集群 分片集群社区方案 -&amp;gt; Twemproxy、Codis（Redis 节点之间无通信，需要部署哨兵，可横向扩容） 分片集群官方方案 -&amp;gt; Redis Cluster （Redis 节点之间 Gossip 协议，无需部署哨兵，可横向扩容） 业务侧升级困难 -&amp;gt; Proxy + Redis Cluster（不侵入业务侧） 主从架构&#xD;#&#xD;主从同步 异步方式来同步数据 最终一致性 分类 增量同步 （同步的是指令） 1.指令记录在master本地的内存 buffer 2.异步将 buffer 中的指令同步到从节点 类似 AOF 快照同步（同步的是内容，全量同步） bgsave存磁盘rdb，然后rdb发到slave，slave装载 优化: 2.8.18 版开始支持无盘复制 哨兵集群 sentinel&#xD;#&#xD;master-slave异步复制, 所以会丢消息&#xA;参数: # 至少有一个slave复制 min-slaves-to-write 1 # slave节点最大10s的延迟 min-slaves-max-lag 10 Redis cluster&#xD;#&#xD;整体架构</description>
+    </item>
+    <item>
+      <title>Redis 总结</title>
+      <link>https://www6v.github.io/www6vMiddleware/docs/Redis&#43;%E7%BC%93%E5%AD%98/Redis-%E5%9F%BA%E7%A1%80/overview/redis/</link>
+      <pubDate>Sat, 12 Nov 2016 23:29:16 +0000</pubDate>
+      <guid>https://www6v.github.io/www6vMiddleware/docs/Redis&#43;%E7%BC%93%E5%AD%98/Redis-%E5%9F%BA%E7%A1%80/overview/redis/</guid>
+      <description>事务&#xD;#&#xD;- 原子性 一致性 隔离性 持久性 redis 一定的原子性，但不支持回滚 × √ 通过一定策略可以保证持久性 redis 没有进行回滚，不具备原子性.操作之后写AOF日志 aof可以保证，但从应用层看没有回滚和原子性，所以并不能保证一致性 单线程天然隔离 纯内存(×)RDB Bgsave(√) RDB 异步执行(×) mysql √ √ √ √ mysql undo log 锁 锁 redo log hash命令&#xD;#&#xD;redis hash的结构：一维数组+二维链表（和java的hashmap结构一样）&#xA;redis rehash: 渐进式rehash Java rehash： 一次性将旧数组下挂接的元素全部转移到新数组下面&#xA;IO模型和性能&#xD;#&#xD;非阻塞IO： read， write时不阻塞&#xA;事件轮询和多路复用[8]&#xA;redis性能 最低配置: 4GB， 2核， 链接数2w， QPS 16w&#xA;redis性能高的原因&#xA;高效的数据结构 多路复用IO模型 事件机制 总结:Reactor + 队列 [10] 大体上可以说 Redis 的工作模式是，reactor 模式配合一个队列，用一个 serverAccept 线程来处理建立请求的链接， 并且通过 IO 多路复用模型，让内核来监听这些 socket，一旦某些 socket 的读写事件准备就绪后就对应的事件压入队列中， 然后 worker 工作，由文件事件分派器从中获取事件交于对应的处理器去执行，当某个事件执行完成后文件事件分派器才会从队列中获取下一个事件进行处理。 可以类比在 netty 中，我们一般会设置 bossGroup 和 workerGroup 默认情况下 bossGroup 为 1，workerGroup = 2 * cpu 数量， 这样可以由多个线程来处理读写就绪的事件，但是其中不能有比较耗时的操作如果有的话需要将其放入线程池中，不然会降低其吐吞量。 在 Redis 中我们可以看做这二者的值都是 1。</description>
+    </item>
+    <item>
+      <title>Redis Error-MOVED和ASK指令</title>
+      <link>https://www6v.github.io/www6vMiddleware/docs/Redis&#43;%E7%BC%93%E5%AD%98/Redis-%E5%9F%BA%E7%A1%80/Arch-Redis-Cluster/redisError/</link>
+      <pubDate>Mon, 28 Mar 2022 10:47:56 +0000</pubDate>
+      <guid>https://www6v.github.io/www6vMiddleware/docs/Redis&#43;%E7%BC%93%E5%AD%98/Redis-%E5%9F%BA%E7%A1%80/Arch-Redis-Cluster/redisError/</guid>
+      <description>{% details 相关代码 %} cluster.c&#xA;/* Return the pointer to the cluster node that is able to serve the command. * For the function to succeed the command should only target either: * * 1) A single key (even multiple times like LPOPRPUSH mylist mylist). * 2) Multiple keys in the same hash slot, while the slot is stable (no * resharding in progress). * * On success the function returns the node that is able to serve the request.</description>
+    </item>
+    <item>
+      <title>Redis 的IO模型</title>
+      <link>https://www6v.github.io/www6vMiddleware/docs/Redis&#43;%E7%BC%93%E5%AD%98/Redis-%E5%9F%BA%E7%A1%80/overview/redisIO/</link>
+      <pubDate>Tue, 18 Jan 2022 21:28:08 +0000</pubDate>
+      <guid>https://www6v.github.io/www6vMiddleware/docs/Redis&#43;%E7%BC%93%E5%AD%98/Redis-%E5%9F%BA%E7%A1%80/overview/redisIO/</guid>
+      <description>关键词： 单线程，事件， socket， 多路复用&#xD;#&#xD;Redis 的IO模型&#xD;#&#xD;Redis 是单线程，主要是指 Redis 的网络 IO 和键值对读写是由一个线程来完成的，这也是 Redis 对外提供键值存储服务的主要流程。 但 Redis 的其他功能，比如持久化、异步删除、集群数据同步等，其实是由额外的线程执 行的。&#xA;多路复用&#xD;#&#xD;Linux 中的 IO 多路复用机制是指一个线程处理多个 IO 流，就是我们经常听到的 select/epoll 机制。简单来说，在 Redis 只运行单线程的情况下，该机制允许内核中，同 时存在多个监听套接字和已连接套接字。内核会一直监听这些套接字上的连接请求或数据 请求。一旦有请求到达，就会交给 Redis 线程处理，这就实现了一个 Redis 线程处理多个 IO 流的效果。&#xA;为了在请求到达时能通知到 Redis 线程，select/epoll 提供了基于事件的回调机制，即针 对不同事件的发生，调用相应的处理函数。&#xA;epoll的API&#xD;#&#xD;int epoll_create(int size); int epoll_ctl(int epfd, int op, int fd, struct epoll_event *event); // 事件注册 int epoll_wait(int epfd, struct epoll_event * events, int maxevents, int timeout); // 事件分配、事件处理</description>
+    </item>
+    <item>
+      <title>Redis Cluster</title>
+      <link>https://www6v.github.io/www6vMiddleware/docs/Redis&#43;%E7%BC%93%E5%AD%98/Redis-%E5%9F%BA%E7%A1%80/Arch-Redis-Cluster/redisCluster/</link>
+      <pubDate>Mon, 11 Jul 2022 06:45:41 +0000</pubDate>
+      <guid>https://www6v.github.io/www6vMiddleware/docs/Redis&#43;%E7%BC%93%E5%AD%98/Redis-%E5%9F%BA%E7%A1%80/Arch-Redis-Cluster/redisCluster/</guid>
+      <description>目录&#xD;#&#xD;Cluster 功能 [1.1]&#xD;#&#xD;Redis Cluster支持多个master，每个master又可以挂载多个slave&#xA;读写分离 支持数据的高可用 故障转移， 高可用 由于Cluster自带Sentinel的故障转移机制，内置了高可用的支持， 无需再去使用哨兵功能&#xA;由对应的集群来负责维护节点、插槽和数据之间的关系&#xA;Slot&#xD;#&#xD;Redis集群有16384个哈希槽每个key通过CRC16校验后对16384取模来决定放置哪个槽，集群的每个节点负责一部分hash槽.&#xA;分片方式&#xD;#&#xD;crc（key）% 16384 映射关系&#xD;#&#xD;key （→ CRC） 分片 分片 (→ 映射关系) 实例&#xA;slot分配&#xD;#&#xD;自动分配slot create() 手动分配slot meet() addSlot() 指令&#xD;#&#xD;MOVED指令， ASK 指令 最大槽数是16384的原因 [1.3]&#xD;#&#xD;[ redis 作者解答] why redis-cluster use 16384 slots? #2576 antirez&#xA;[中文翻译] 正常的心跳数据包带有节点的完整配置，可以用幂等方式用旧的节点替换旧节点，以便更新旧的配置。 这意味着它们包含原始节点的插槽配置，该节点使用2k的空间和16k的插槽，但是会使用8k的空间（使用65k的插槽）。同时，由于其他设计折衷，Redis集群不太可能扩展到1000个以上的主节点。 因此16k处于正确的范围内，以确保每个主机具有足够的插槽，最多可容纳1000个矩阵，但数量足够少，可以轻松地将插槽配置作为原始位图传播。请注意，在小型群集中，位图将难以压缩，因为当N较小时，位图将设置的slot / N位占设置位的很大百分比。&#xA;[解读]&#xA;消息头太大， 发送的心跳包过于庞大 如果槽位为65536，发送心跳信息的消息头达8k，发送的心跳包过于庞大。 在消息头中最占空间的是myslots[CLUSTER_SLOTS/8]。当槽位为65536时，这块的大小是:65536÷8÷1024=8kb&#xA;在消息头中最占空间的是myslots[CLUSTER_SLOTS/8]。当槽位为16384时，这块的大小是:16384∶8∶1024=2kb</description>
+    </item>
+    <item>
+      <title>Redis Cluster Spec</title>
+      <link>https://www6v.github.io/www6vMiddleware/docs/Redis&#43;%E7%BC%93%E5%AD%98/Redis-%E5%9F%BA%E7%A1%80/Arch-Redis-Cluster/redisClusterSpec/</link>
+      <pubDate>Mon, 11 Jul 2022 13:15:05 +0000</pubDate>
+      <guid>https://www6v.github.io/www6vMiddleware/docs/Redis&#43;%E7%BC%93%E5%AD%98/Redis-%E5%9F%BA%E7%A1%80/Arch-Redis-Cluster/redisClusterSpec/</guid>
+      <description>目录&#xD;#&#xD;设计目标和基本原理[bing]&#xD;#&#xD;高性能和线性扩展&#xD;#&#xD;Redis集群可以支持到1000个节点，使用异步复制和无代理的架构，避免了值合并的开销。&#xA;可接受的写安全性&#xD;#&#xD;Redis集群尽力保留与大多数主节点连接的客户端的写操作，但在分区窗口期内可能会丢失已确认的写操作。&#xA;可用性&#xD;#&#xD;Redis集群可以在大多数主节点可达且每个不可达主节点至少有一个可达副本的情况下存活，并且可以通过副本迁移来提高抗故障能力。&#xA;哈希槽分配&#xD;#&#xD;Redis集群将16384个哈希槽分配给不同的主节点，每个主节点负责存储和服务一部分哈希槽。客户端可以通过计算键的CRC16值对16384取模来得到对应的哈希槽。也可以使用哈希标签来强制将多个键分配到同一个哈希槽，以支持多键操作。&#xA;节点间通信&#xD;#&#xD;Redis集群节点之间使用一个TCP端口和一个二进制协议进行通信，称为集群总线。每个节点都与其他所有节点连接，使用gossip协议来传播集群的信息，如新节点、故障节点、配置变化等。&#xA;客户端重定向&#xD;#&#xD;Redis集群节点不会代理请求，而是根据自己的哈希槽映射表，将客户端重定向到正确的节点。客户端可能收到MOVED或ASK错误，表示需要重新发送请求到另一个节点。MOVED表示哈希槽被永久地分配给了另一个节点，ASK表示哈希槽正在被迁移，需要发送ASKING命令后再发送请求。&#xA;哈希槽迁移&#xD;#&#xD;Redis集群支持在运行时添加和删除节点，这是通过将哈希槽从一个节点移动到另一个节点来实现的。迁移过程中，源节点会将接收到的关于该哈希槽的请求重定向到目标节点，或者直接处理已存在键的请求。目标节点会接收到源节点通过MIGRATE命令发送过来的键，并在迁移完成后更新自己的配置。&#xA;故障检测和副本提升&#xD;#&#xD;Redis集群使用心跳包和gossip协议来检测节点是否可达，并使用PFAIL和FAIL两种标志来表示故障状态。当一个主节点被大多数主节点标记为FAIL时，它的一个副本会发起选举并请求投票。如果获得了大多数主节点的授权，该副本会提升为主节点，并生成一个新的配置版本号（configEpoch）。&#xA;副本选举和配置传播的机制[bing]&#xD;#&#xD;副本选举&#xD;#&#xD;当一个主节点失效时，它的一个副本会尝试发起选举，向其他主节点发送授权请求。如果获得了大多数主节点的回复，它就赢得了选举，并获得了一个新的唯一的配置版本号（configEpoch）。它会开始以主节点的身份广播心跳包，并通知其他节点更新配置。&#xA;配置传播&#xD;#&#xD;当一个节点收到一个心跳包或UPDATE消息时，它会根据一些规则来更新自己的哈希槽映射表。如果一个哈希槽是未分配的，或者有一个新的节点使用更高的configEpoch来声明它，那么接收者会将该哈希槽绑定到新的节点。这样可以保证最后一次故障转移胜出，并且所有节点最终会达成一致。&#xA;节点重置和遗忘&#xD;#&#xD;当一个节点需要从一个集群中移除或加入到另一个集群时，可以使用CLUSTER RESET命令来重置它的状态。这个命令有两种模式：软重置和硬重置。软重置会保留当前的configEpoch，而硬重置会将其设置为0。当一个节点被移除后，其他节点需要使用CLUSTER FORGET命令来删除它在节点表中的条目，并设置一个60秒的禁止期，防止因为gossip协议而重新添加它。&#xA;发布订阅&#xD;#&#xD;Redis集群支持发布订阅功能，客户端可以向任何节点发送SUBSCRIBE或PUBLISH命令。集群会将发布的消息转发到所有其他节点。Redis 7.0及以后版本还支持分片发布订阅功能，其中分片频道根据与键相同的算法分配到哈希槽。分片消息必须发送到拥有该哈希槽的节点，集群会将发布的分片消息转发到该哈希槽所在的分片中的所有节点。&#xA;CRC16算法&#xD;#&#xD;这篇文章最后给出了计算键对应哈希槽的CRC16算法的C语言实现代码。这个算法使用了1021作为多项式，并且不反转输入输出字节。&#xA;参考&#xD;#&#xD;Redis cluster specification ***</description>
+    </item>
+    <item>
+      <title>Redis 集群  容灾（同城多活）</title>
+      <link>https://www6v.github.io/www6vMiddleware/docs/Redis&#43;%E7%BC%93%E5%AD%98/Redis-%E5%9F%BA%E7%A1%80/Arch-Redis-Cluster/redisHA/</link>
+      <pubDate>Sun, 31 Jul 2022 11:37:41 +0000</pubDate>
+      <guid>https://www6v.github.io/www6vMiddleware/docs/Redis&#43;%E7%BC%93%E5%AD%98/Redis-%E5%9F%BA%E7%A1%80/Arch-Redis-Cluster/redisHA/</guid>
+      <description>目录&#xD;#&#xD;1. 背景&#xD;#&#xD;Redis 集群自身已经具备了高可用的特性，即使几个Redis节点异常或者挂掉，Redis 集群也会实现故障自动转移，对应用方来说也可以在很短时间内恢复故障。 但是，如果发生了机房故障(断电、断网等极端情况)，Redis集群节点全部挂掉（过半主节点挂掉），会造成集群服务不可用，对于核心业务来说是不可接受的。 为了应对机房故障情况，保障在这种极端情况下，核心业务仍然可以正常访问 Redis 服务，本文将给出适合我司的 Redis 跨机房高可用解决方案。 2. 目标&#xD;#&#xD;保障单机房整体故障时 Redis 缓存服务正常运行。 单机房故障 RTO：30s，RPO：1s 3. 解决方案&#xD;#&#xD;3.1 核心能力&#xD;#&#xD;客户端流量路由：支持按一定的策略，把流量分流到不同机房；机房故障后，流量自动流向其他机房。 服务端故障转移：支持机房故障后，当前机房原来主节点的从节点，通过选举自动倒换成新的主节点。 管理平台正常服务：任一机房故障，Renault 管理平台使用不受影响。 3.2 工作模式&#xD;#&#xD;组件在机房高可用场景下一般有多种工作模式，典型的有单集群模式及多集群模式。本节描述组件在各种工作模式下的部署方式及工作机制。&#xA;部署方案 方案说明 跨机房混合部署 将Redis集群主节点平均分配到各个机房，主从节点在不同机房 各机房独立部署集群 + 数据单向同步 各机房均独立部署集群，集群为热备模式，写请求均写入同一个集群，然后同步到其他集群 各机房独立部署集群 + 数据双向同步 每个机房部署一套Redis集群，同步核心业务写请求 数据同步方法：&#xA;数据同步方案 方案说明 客户端双写 客户端同时写入到各个集群 客户端代理 Netflix开源实现的Dynomite，通过代理层接受数据后写入各个需要同步的节点&#xA;改造难度大&#xA;客户端需要优化添加Dyno Client服务端每个节点需要部署Dyno Node&#xA;read/write性能较原生差异较大，主要体现在write上，之间的差异随着node节点数越多越严重 伪从节点 基于Redis的Master-Slave复制协议，实现低延时、高可用的Redis多数据中心、跨公网数据复制携程开源系统：https://github.com/ctripcorp/x-pipe阿里RedisShake同步工具 写事件监听+MQ跨集群消息同步 读写在本机房，监听写事件 + MQ消息同步到其他机房需要开启事件通知（PUB），修改Redis配置文件中的 notify-keyspace-events 配置（默认的redis并没有开启这个功能）需要独立服务订阅写事件（SUB），并同步到其他集群依赖MQ组件 不考虑客户端代理、发布订阅写事件</description>
+    </item>
+  </channel>
+</rss>

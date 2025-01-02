@@ -1,0 +1,1810 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="
+场景#[Claude] 分布式数据库的全局二级索引主要有以下几个使用场景: 加速多表关联查询:用全局二级索引构建外键索引,可以有效地加速涉及多表关联的查询。 全表扫描查询:当需要做全表扫描时,使用全局二级索引可以跳过不需要的行,大幅降低扫描成本。 频繁查询的列上:对于数据库中经常需要根据某列进行查询的情况,建立该列的全局二级索引,可以大幅提高查询效率。 需要排序的查询:当需要查询结果按某个列排序时,全局二级索引可以加速排序。 模糊查询优化:通过部分键值匹配,全局二级索引可以优化like查询等模式查询。 分页查询优化:结合 Cursor 标记,全局二级索引可以有效的支持分页查询。
+总的来说,对于需要高效查询、排序、混合查询等复杂查询的分布式数据库而言,引入全局二级索引可以大大提高性能。尤其是处理大规模数据时,二级索引发挥的作用更加明显。
+全局二级索引能够解决什么问题 [1] 如果查询的维度与逻辑表的拆分维度不同，会产生跨分片查询。跨分片查询的增加会导致查询卡慢、连接池耗尽等性能问题。GSI能够通过增加拆分维度来减少跨分片查询，消除性能瓶颈。
+增加拆分维度 [4] 例如，对于在线商城的订单表，假设按照买家用户维度拆分，那么对于卖家查询（例如，查询某个卖家的本月所有订单）就需要扫描所有分区。但是借助全局二级索引，可以仅仅扫描相应卖家所在的索引表分区，快速找到所需的订单信息。
+全局唯一约束 [4] 例如，假设用户表是一张分布式表，按照用户ID分区。若要求用户手机号需要全局唯一，那么本地索引无法满足，必须构建一个按手机号作为索引键（同时也是分区键）的唯一索引。
+全局索引 vs 局部索引 [1][2]#全局二级索引 [DDIA 基于关键词的二级索引分区] 数据行和对应的索引行保存在不同分片上
+分类 [3] 全局非分区索引（Global Non-Partitioned Index） 全局分区索引（Global Partitioned Index） 局部索引 [DDIA 基于文档的二级索引分区] 如果数据行和对应的索引行保存在相同分片上
+PolarDB 全局索引#PolarDB-X [1]
+XA多写，保证主表与索引表数据强一致。[性能会不会慢] Online Schema Change，添加GSI不锁主表。 PolarDB-X GSI [4] 每个GSI对应一张分布式索引表，和其他分布式表一样，按照指定的分区规则水平拆分为多张物理表。PolarDB-X使用分布式事务维护主表和索引表之间数据强一致。
+参考#全局二级索引 PolarDB 设计数据密集型应用-C6-分区和二级索引 DDIA 二级索引 OB 全局二级索引 PolarDB PolarDB-X 全局二级索引 未 PolarDB-X 数据分布解读（三） ：TPCC与透明分布式 未 ">
+<meta name="theme-color" media="(prefers-color-scheme: light)" content="#ffffff">
+<meta name="theme-color" media="(prefers-color-scheme: dark)" content="#343a40">
+<meta name="color-scheme" content="light dark"><meta property="og:url" content="https://www6v.github.io/www6vMiddleware/docs/RMDB/%E5%88%86%E5%B8%83%E5%BC%8F/globalSecondaryIndex/">
+  <meta property="og:site_name" content="中间件">
+  <meta property="og:title" content="全局二级索引-GSI">
+  <meta property="og:description" content="
+场景#[Claude] 分布式数据库的全局二级索引主要有以下几个使用场景: 加速多表关联查询:用全局二级索引构建外键索引,可以有效地加速涉及多表关联的查询。 全表扫描查询:当需要做全表扫描时,使用全局二级索引可以跳过不需要的行,大幅降低扫描成本。 频繁查询的列上:对于数据库中经常需要根据某列进行查询的情况,建立该列的全局二级索引,可以大幅提高查询效率。 需要排序的查询:当需要查询结果按某个列排序时,全局二级索引可以加速排序。 模糊查询优化:通过部分键值匹配,全局二级索引可以优化like查询等模式查询。 分页查询优化:结合 Cursor 标记,全局二级索引可以有效的支持分页查询。
+总的来说,对于需要高效查询、排序、混合查询等复杂查询的分布式数据库而言,引入全局二级索引可以大大提高性能。尤其是处理大规模数据时,二级索引发挥的作用更加明显。
+全局二级索引能够解决什么问题 [1] 如果查询的维度与逻辑表的拆分维度不同，会产生跨分片查询。跨分片查询的增加会导致查询卡慢、连接池耗尽等性能问题。GSI能够通过增加拆分维度来减少跨分片查询，消除性能瓶颈。
+增加拆分维度 [4] 例如，对于在线商城的订单表，假设按照买家用户维度拆分，那么对于卖家查询（例如，查询某个卖家的本月所有订单）就需要扫描所有分区。但是借助全局二级索引，可以仅仅扫描相应卖家所在的索引表分区，快速找到所需的订单信息。
+全局唯一约束 [4] 例如，假设用户表是一张分布式表，按照用户ID分区。若要求用户手机号需要全局唯一，那么本地索引无法满足，必须构建一个按手机号作为索引键（同时也是分区键）的唯一索引。
+全局索引 vs 局部索引 [1][2]#全局二级索引 [DDIA 基于关键词的二级索引分区] 数据行和对应的索引行保存在不同分片上
+分类 [3] 全局非分区索引（Global Non-Partitioned Index） 全局分区索引（Global Partitioned Index） 局部索引 [DDIA 基于文档的二级索引分区] 如果数据行和对应的索引行保存在相同分片上
+PolarDB 全局索引#PolarDB-X [1]
+XA多写，保证主表与索引表数据强一致。[性能会不会慢] Online Schema Change，添加GSI不锁主表。 PolarDB-X GSI [4] 每个GSI对应一张分布式索引表，和其他分布式表一样，按照指定的分区规则水平拆分为多张物理表。PolarDB-X使用分布式事务维护主表和索引表之间数据强一致。
+参考#全局二级索引 PolarDB 设计数据密集型应用-C6-分区和二级索引 DDIA 二级索引 OB 全局二级索引 PolarDB PolarDB-X 全局二级索引 未 PolarDB-X 数据分布解读（三） ：TPCC与透明分布式 未 ">
+  <meta property="og:locale" content="en">
+  <meta property="og:type" content="website">
+<title>全局二级索引-GSI | 中间件</title>
+<link rel="icon" href="/www6vMiddleware/favicon.png" >
+<link rel="manifest" href="/www6vMiddleware/manifest.json">
+<link rel="canonical" href="https://www6v.github.io/www6vMiddleware/docs/RMDB/%E5%88%86%E5%B8%83%E5%BC%8F/globalSecondaryIndex/">
+<link rel="stylesheet" href="/www6vMiddleware/book.min.6c8b9d2a1fc95075ed7da46ca81060b39add8fff6741ac51259f768929281e2c.css" integrity="sha256-bIudKh/JUHXtfaRsqBBgs5rdj/9nQaxRJZ92iSkoHiw=" crossorigin="anonymous">
+  <script defer src="/www6vMiddleware/fuse.min.js"></script>
+  <script defer src="/www6vMiddleware/en.search.min.f6813f7eef06cff0da9e0cee91e7083d3b28a78c3d9761745c2f9bfbe926ffe8.js" integrity="sha256-9oE/fu8Gz/DangzukecIPTsop4w9l2F0XC&#43;b&#43;&#43;km/&#43;g=" crossorigin="anonymous"></script>
+
+  
+
+<link rel="alternate" type="application/rss+xml" href="https://www6v.github.io/www6vMiddleware/docs/RMDB/%E5%88%86%E5%B8%83%E5%BC%8F/globalSecondaryIndex/index.xml" title="中间件" />
+<!--
+Made with Book Theme
+https://github.com/alex-shpak/hugo-book
+-->
+  
+</head>
+<body dir="ltr">
+  <input type="checkbox" class="hidden toggle" id="menu-control" />
+  <input type="checkbox" class="hidden toggle" id="toc-control" />
+  <main class="container flex">
+    <aside class="book-menu">
+      <div class="book-menu-content">
+        
+  <nav>
+<h2 class="book-brand">
+  <a class="flex align-center" href="/www6vMiddleware/"><span>中间件</span>
+  </a>
+</h2>
+
+
+<div class="book-search hidden">
+  <input type="text" id="book-search-input" placeholder="Search" aria-label="Search" maxlength="64" data-hotkeys="s/" />
+  <div class="book-search-spinner hidden"></div>
+  <ul id="book-search-results"></ul>
+</div>
+<script>document.querySelector(".book-search").classList.remove("hidden")</script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  <ul>
+    
+      
+        <li class="book-section-flat" >
+          
+  
+  
+
+  
+    <input type="checkbox" id="section-b13c95c069c614e8c16265f1c191a430" class="toggle"  />
+    <label for="section-b13c95c069c614e8c16265f1c191a430" class="flex justify-between">
+      <a role="button" class="">服务治理</a>
+    </label>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <span>Overview</span>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMiddleware/docs/serviceGovernance/Overview/microservice/" class="">微服务 总结</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMiddleware/docs/serviceGovernance/Overview/soaFeature/" class="">分布式服务框架功能</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <span>API Gateway</span>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMiddleware/docs/serviceGovernance/API-Gateway/apiGatawaySpringGateway/" class="">API 网关-SpringCloud Gateway</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMiddleware/docs/serviceGovernance/API-Gateway/apiGatawayApisix/" class="">API 网关-apisix</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMiddleware/docs/serviceGovernance/API-Gateway/apiGateway/" class="">API Gateway网关</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <span>Config &amp; Discovery</span>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMiddleware/docs/serviceGovernance/ConfigDiscovery/soaDiscovery/" class="">服务发现</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMiddleware/docs/serviceGovernance/ConfigDiscovery/config/" class="">服务治理-分布式配置</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <span>负载均衡</span>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMiddleware/docs/serviceGovernance/loadBalance/loadBalance/" class="">负载均衡-算法</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMiddleware/docs/serviceGovernance/loadBalance/nginxOptimize/" class="">Nginx优化</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMiddleware/docs/serviceGovernance/loadBalance/nginx/" class="">Nginx总结</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <span>线程模型</span>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMiddleware/docs/serviceGovernance/threadModel/jsfThreadModel/" class="">京东服务框架JSF服务提供者线程模型</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <span>容错&amp;限流</span>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <span>容错</span>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMiddleware/docs/serviceGovernance/faultTolerant/faultTolerant/soaTolerateFramework/" class="">容错框架</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMiddleware/docs/serviceGovernance/faultTolerant/faultTolerant/soaTimeout/" class="">超时和重试 总结</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMiddleware/docs/serviceGovernance/faultTolerant/faultTolerant/soaTolerate/" class="">分布式服务框架 容错机制</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <span>限流</span>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMiddleware/docs/serviceGovernance/faultTolerant/throttle/ratelimitSentinel/" class="">流量治理-Sentinel</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMiddleware/docs/serviceGovernance/faultTolerant/throttle/ratelimit/" class="">限流-总结</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMiddleware/docs/serviceGovernance/faultTolerant/soaGracefulStart/" class="">优雅启动</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMiddleware/docs/serviceGovernance/faultTolerant/soaGracefulClose/" class="">优雅关闭</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <span>Spring Cloud</span>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMiddleware/docs/serviceGovernance/Springcloud/springTransactionInvalid/" class="">Spring  Transaction  失效</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMiddleware/docs/serviceGovernance/Springcloud/springCloud/" class="">SpringCloud</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMiddleware/docs/serviceGovernance/Springcloud/springboot/" class="">SpringBoot</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMiddleware/docs/serviceGovernance/Springcloud/springTransaction/" class="">Spring事务</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <span>灰度发布</span>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMiddleware/docs/serviceGovernance/Gray/apiGatewayGray/" class="">API 网关-灰度发布</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <span>安全</span>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMiddleware/docs/serviceGovernance/security/soaAuth/" class="">服务治理-鉴权</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMiddleware/docs/serviceGovernance/security/securityOAuth2/" class="">安全-OAuth2</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li class="book-section-flat" >
+          
+  
+  
+
+  
+    <input type="checkbox" id="section-619f87396da4f22c9e982ebbcfb80a1d" class="toggle"  />
+    <label for="section-619f87396da4f22c9e982ebbcfb80a1d" class="flex justify-between">
+      <a role="button" class="">消息系统</a>
+    </label>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <span>Overview</span>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMiddleware/docs/message/Overview/mq/" class="">消息中间件总结</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMiddleware/docs/message/Overview/mqCompare/" class="">MQ总结(Kafka, Rocketmq, Rabbitmq)</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMiddleware/docs/message/Overview/mqOrdering/" class="">消息系统 顺序消息</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <span>Kafka</span>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMiddleware/docs/message/Kafka/kafka/" class="">Kafka总结</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMiddleware/docs/message/Kafka/kafkaProducer/" class="">Kafka Producer生产者</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMiddleware/docs/message/Kafka/kafkaConsumer/" class="">Kafka消费者总结</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMiddleware/docs/message/Kafka/kafkaRebalance/" class="">Kafka消费者-Rebalance机制</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMiddleware/docs/message/Kafka/kafkaReliability/" class="">Kafka 可靠性总结</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMiddleware/docs/message/Kafka/kafkaIndex/" class="">Kafka 索引</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMiddleware/docs/message/Kafka/kafkaZeroCopy/" class="">Kafka-ZeroCopy</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMiddleware/docs/message/Kafka/kafkaController/" class="">Kafka Controller-控制器</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMiddleware/docs/message/Kafka/kafkaReplica/" class="">Kafka Replication-副本机制</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMiddleware/docs/message/Kafka/kafkaElection/" class="">Kafka 中的选主</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMiddleware/docs/message/Kafka/kafkaQ-A/" class="">Kafka  Q&amp;A</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMiddleware/docs/message/Kafka/kafkaTransaction/" class="">Kafka 幂等性和事务</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li class="book-section-flat" >
+          
+  
+  
+
+  
+    <input type="checkbox" id="section-c8ef6724255360cd9e1bb212713f9134" class="toggle" checked />
+    <label for="section-c8ef6724255360cd9e1bb212713f9134" class="flex justify-between">
+      <a role="button" class="">关系型数据库</a>
+    </label>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <span>单机</span>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMiddleware/docs/RMDB/%E5%8D%95%E6%9C%BA/mysqlTransactionAndLock/" class="">MySQL 事务-隔离性</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMiddleware/docs/RMDB/%E5%8D%95%E6%9C%BA/mysqlUpdate/" class="">MySQL中的SQL更新语句</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMiddleware/docs/RMDB/%E5%8D%95%E6%9C%BA/mysqlReliability/" class="">MySQL的主从 高可用 容灾</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMiddleware/docs/RMDB/%E5%8D%95%E6%9C%BA/mysqlIndex/" class="">MySQL的索引和优化</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMiddleware/docs/RMDB/%E5%8D%95%E6%9C%BA/mysqlTransaction/" class="">MySQL事务-总结</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMiddleware/docs/RMDB/%E5%8D%95%E6%9C%BA/mysqlLog/" class="">MySQL Logs</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMiddleware/docs/RMDB/%E5%8D%95%E6%9C%BA/mysqlDeadLock/" class="">MySQL  锁和死锁</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMiddleware/docs/RMDB/%E5%8D%95%E6%9C%BA/mysqlMasterSlaveDelay/" class="">MySQL 主从延迟</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <span>分布式</span>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMiddleware/docs/RMDB/%E5%88%86%E5%B8%83%E5%BC%8F/distributedDatabase/" class="">分布式 数据库 总结</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMiddleware/docs/RMDB/%E5%88%86%E5%B8%83%E5%BC%8F/distributedDatabaseCompare/" class="">分布式 数据库 比较</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMiddleware/docs/RMDB/%E5%88%86%E5%B8%83%E5%BC%8F/tikvMVCCTransaction/" class="">TiKV Transaction-MVCC&#43;TSO</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMiddleware/docs/RMDB/%E5%88%86%E5%B8%83%E5%BC%8F/distributedDatabaseGlobalTime/" class="">分布式数据库-全局时钟</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMiddleware/docs/RMDB/%E5%88%86%E5%B8%83%E5%BC%8F/distributedDatabaseJoinQuery/" class="">数据库  关联查询</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMiddleware/docs/RMDB/%E5%88%86%E5%B8%83%E5%BC%8F/globalSecondaryIndex/" class="active">全局二级索引-GSI</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li class="book-section-flat" >
+          
+  
+  
+
+  
+    <input type="checkbox" id="section-10fff53c331fc90701f5c89a3d268231" class="toggle"  />
+    <label for="section-10fff53c331fc90701f5c89a3d268231" class="flex justify-between">
+      <a role="button" class="">Redis&#43;缓存</a>
+    </label>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <span>Redis 基础</span>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <span>overview</span>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMiddleware/docs/Redis&#43;%E7%BC%93%E5%AD%98/Redis-%E5%9F%BA%E7%A1%80/overview/redis/" class="">Redis 总结</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMiddleware/docs/Redis&#43;%E7%BC%93%E5%AD%98/Redis-%E5%9F%BA%E7%A1%80/overview/redisIO/" class="">Redis 的IO模型</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <span>Arch &amp; Redis Cluster</span>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMiddleware/docs/Redis&#43;%E7%BC%93%E5%AD%98/Redis-%E5%9F%BA%E7%A1%80/Arch-Redis-Cluster/redisArch/" class="">Redis 架构</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMiddleware/docs/Redis&#43;%E7%BC%93%E5%AD%98/Redis-%E5%9F%BA%E7%A1%80/Arch-Redis-Cluster/redisError/" class="">Redis Error-MOVED和ASK指令</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMiddleware/docs/Redis&#43;%E7%BC%93%E5%AD%98/Redis-%E5%9F%BA%E7%A1%80/Arch-Redis-Cluster/redisCluster/" class="">Redis Cluster</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMiddleware/docs/Redis&#43;%E7%BC%93%E5%AD%98/Redis-%E5%9F%BA%E7%A1%80/Arch-Redis-Cluster/redisClusterSpec/" class="">Redis Cluster Spec</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMiddleware/docs/Redis&#43;%E7%BC%93%E5%AD%98/Redis-%E5%9F%BA%E7%A1%80/Arch-Redis-Cluster/redisHA/" class="">Redis 集群  容灾（同城多活）</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</nav>
+
+
+
+
+  <script>(function(){var e=document.querySelector("aside .book-menu-content");addEventListener("beforeunload",function(){localStorage.setItem("menu.scrollTop",e.scrollTop)}),e.scrollTop=localStorage.getItem("menu.scrollTop")})()</script>
+
+
+ 
+      </div>
+    </aside>
+
+    <div class="book-page">
+      <header class="book-header">
+        
+  <div class="flex align-center justify-between">
+  <label for="menu-control">
+    <img src="/www6vMiddleware/svg/menu.svg" class="book-icon" alt="Menu" />
+  </label>
+
+  <h3>全局二级索引-GSI</h3>
+
+  <label for="toc-control">
+    
+    <img src="/www6vMiddleware/svg/toc.svg" class="book-icon" alt="Table of Contents" />
+    
+  </label>
+</div>
+
+
+  
+  <aside class="hidden clearfix">
+    
+  
+<nav id="TableOfContents">
+  <ul>
+    <li>
+      <ul>
+        <li><a href="#场景">场景</a></li>
+        <li><a href="#全局索引-vs-局部索引-12">全局索引 vs 局部索引 [1][2]</a></li>
+        <li><a href="#polardb-全局索引">PolarDB 全局索引</a></li>
+        <li><a href="#参考">参考</a></li>
+      </ul>
+    </li>
+  </ul>
+</nav>
+
+
+
+  </aside>
+  
+ 
+      </header>
+
+      
+      
+  <article class="markdown book-article"><p></p>
+<!-- more -->
+<h2 id="场景">
+  场景
+  <a class="anchor" href="#%e5%9c%ba%e6%99%af">#</a>
+</h2>
+<p>[Claude]
+分布式数据库的全局二级索引主要有以下几个使用场景:
+<strong>加速多表关联查询</strong>:用全局二级索引构建外键索引,可以有效地加速涉及多表关联的查询。
+<strong>全表扫描查询</strong>:当需要做全表扫描时,使用全局二级索引可以跳过不需要的行,大幅降低扫描成本。
+频繁查询的列上:对于数据库中经常需要根据某列进行查询的情况,建立该列的全局二级索引,可以大幅提高查询效率。
+<strong>需要排序的查询</strong>:当需要查询结果按某个列排序时,全局二级索引可以加速排序。
+模糊查询优化:通过部分键值匹配,全局二级索引可以优化like查询等模式查询。
+<strong>分页查询优化</strong>:结合 Cursor 标记,全局二级索引可以有效的支持分页查询。</p>
+<p>总的来说,对于需要高效查询、排序、混合查询等复杂查询的分布式数据库而言,引入全局二级索引可以大大提高性能。尤其是处理大规模数据时,二级索引发挥的作用更加明显。</p>
+<ul>
+<li>
+<p>全局二级索引能够解决什么问题 [1]
+如果查询的维度与逻辑表的拆分维度不同，会<strong>产生跨分片查询</strong>。跨分片查询的增加会导致查询卡慢、连接池耗尽等性能问题。<strong>GSI</strong>能够通过增加拆分维度来<strong>减少跨分片查询，消除性能瓶颈</strong>。</p>
+</li>
+<li>
+<p>增加拆分维度 [4]
+例如，对于在线商城的订单表，假设按照买家用户维度拆分，那么对于卖家查询（例如，查询某个卖家的本月所有订单）就需要扫描所有分区。但是借助全局二级索引，可以仅仅扫描相应卖家所在的索引表分区，快速找到所需的订单信息。</p>
+</li>
+<li>
+<p>全局唯一约束 [4]
+例如，假设用户表是一张分布式表，按照用户ID分区。若要求用户手机号需要全局唯一，那么本地索引无法满足，必须构建一个按手机号作为索引键（同时也是分区键）的唯一索引。</p>
+</li>
+</ul>
+<h2 id="全局索引-vs-局部索引-12">
+  全局索引 vs 局部索引 [1][2]
+  <a class="anchor" href="#%e5%85%a8%e5%b1%80%e7%b4%a2%e5%bc%95-vs-%e5%b1%80%e9%83%a8%e7%b4%a2%e5%bc%95-12">#</a>
+</h2>
+<ul>
+<li>
+<p>全局二级索引 [DDIA  基于关键词的二级索引分区]
+数据行和对应的索引行保存在不同分片上</p>
+<ul>
+<li>分类 [3]
+<ul>
+<li>全局非分区索引（Global Non-Partitioned Index）</li>
+<li>全局分区索引（Global Partitioned Index）</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>
+<p>局部索引  [DDIA  基于文档的二级索引分区]
+如果数据行和对应的索引行保存在相同分片上</p>
+</li>
+</ul>
+<h2 id="polardb-全局索引">
+  PolarDB 全局索引
+  <a class="anchor" href="#polardb-%e5%85%a8%e5%b1%80%e7%b4%a2%e5%bc%95">#</a>
+</h2>
+<ul>
+<li>
+<p>PolarDB-X [1]</p>
+<ul>
+<li>XA多写，保证主表与<strong>索引表</strong>数据强一致。[性能会不会慢]</li>
+<li>Online Schema Change，添加GSI不锁主表。</li>
+</ul>
+</li>
+<li>
+<p>PolarDB-X GSI [4]
+每个GSI对应一张分布式索引表，和其他分布式表一样，按照指定的分区规则水平拆分为多张物理表。PolarDB-X使用分布式事务维护主表和索引表之间数据强一致。</p>
+</li>
+</ul>
+<h2 id="参考">
+  参考
+  <a class="anchor" href="#%e5%8f%82%e8%80%83">#</a>
+</h2>
+<ol>
+<li><a href="https://help.aliyun.com/document_detail/182179.html">全局二级索引</a>   PolarDB</li>
+<li><a href="https://zhuanlan.zhihu.com/p/384439886">设计数据密集型应用-C6-分区和二级索引</a>  DDIA</li>
+<li><a href="https://www.oceanbase.com/docs/enterprise-oceanbase-database-cn-10000000000376130">二级索引</a>  OB</li>
+<li><a href="https://doc.polardbx.com/features/topics/gsi.html">全局二级索引 </a>  PolarDB</li>
+<li><a href="https://zhuanlan.zhihu.com/p/572156705">PolarDB-X 全局二级索引</a> 未</li>
+<li><a href="https://zhuanlan.zhihu.com/p/440801781">PolarDB-X 数据分布解读（三） ：TPCC与透明分布式</a>  未</li>
+</ol>
+</article>
+ 
+      
+
+      <footer class="book-footer">
+        
+  <div class="flex flex-wrap justify-between">
+
+
+
+
+
+</div>
+
+
+
+  <script>(function(){function e(e){const t=window.getSelection(),n=document.createRange();n.selectNodeContents(e),t.removeAllRanges(),t.addRange(n)}document.querySelectorAll("pre code").forEach(t=>{t.addEventListener("click",function(){if(window.getSelection().toString())return;e(t.parentElement),navigator.clipboard&&navigator.clipboard.writeText(t.parentElement.textContent)})})})()</script>
+
+
+ 
+        
+      </footer>
+
+      
+  
+  <div class="book-comments">
+
+</div>
+  
+ 
+
+      <label for="menu-control" class="hidden book-menu-overlay"></label>
+    </div>
+
+    
+    <aside class="book-toc">
+      <div class="book-toc-content">
+        
+  
+<nav id="TableOfContents">
+  <ul>
+    <li>
+      <ul>
+        <li><a href="#场景">场景</a></li>
+        <li><a href="#全局索引-vs-局部索引-12">全局索引 vs 局部索引 [1][2]</a></li>
+        <li><a href="#polardb-全局索引">PolarDB 全局索引</a></li>
+        <li><a href="#参考">参考</a></li>
+      </ul>
+    </li>
+  </ul>
+</nav>
+
+
+ 
+      </div>
+    </aside>
+    
+  </main>
+
+  
+</body>
+</html>
+
+
+
+
+
+
+
+
+
+
+
+

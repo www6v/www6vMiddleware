@@ -1,0 +1,2449 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="目录#1. 背景#Redis 集群自身已经具备了高可用的特性，即使几个Redis节点异常或者挂掉，Redis 集群也会实现故障自动转移，对应用方来说也可以在很短时间内恢复故障。 但是，如果发生了机房故障(断电、断网等极端情况)，Redis集群节点全部挂掉（过半主节点挂掉），会造成集群服务不可用，对于核心业务来说是不可接受的。 为了应对机房故障情况，保障在这种极端情况下，核心业务仍然可以正常访问 Redis 服务，本文将给出适合我司的 Redis 跨机房高可用解决方案。 2. 目标#保障单机房整体故障时 Redis 缓存服务正常运行。 单机房故障 RTO：30s，RPO：1s 3. 解决方案#3.1 核心能力#客户端流量路由：支持按一定的策略，把流量分流到不同机房；机房故障后，流量自动流向其他机房。 服务端故障转移：支持机房故障后，当前机房原来主节点的从节点，通过选举自动倒换成新的主节点。 管理平台正常服务：任一机房故障，Renault 管理平台使用不受影响。 3.2 工作模式#组件在机房高可用场景下一般有多种工作模式，典型的有单集群模式及多集群模式。本节描述组件在各种工作模式下的部署方式及工作机制。
+部署方案 方案说明 跨机房混合部署 将Redis集群主节点平均分配到各个机房，主从节点在不同机房 各机房独立部署集群 &#43; 数据单向同步 各机房均独立部署集群，集群为热备模式，写请求均写入同一个集群，然后同步到其他集群 各机房独立部署集群 &#43; 数据双向同步 每个机房部署一套Redis集群，同步核心业务写请求 数据同步方法：
+数据同步方案 方案说明 客户端双写 客户端同时写入到各个集群 客户端代理 Netflix开源实现的Dynomite，通过代理层接受数据后写入各个需要同步的节点
+改造难度大
+客户端需要优化添加Dyno Client服务端每个节点需要部署Dyno Node
+read/write性能较原生差异较大，主要体现在write上，之间的差异随着node节点数越多越严重 伪从节点 基于Redis的Master-Slave复制协议，实现低延时、高可用的Redis多数据中心、跨公网数据复制携程开源系统：https://github.com/ctripcorp/x-pipe阿里RedisShake同步工具 写事件监听&#43;MQ跨集群消息同步 读写在本机房，监听写事件 &#43; MQ消息同步到其他机房需要开启事件通知（PUB），修改Redis配置文件中的 notify-keyspace-events 配置（默认的redis并没有开启这个功能）需要独立服务订阅写事件（SUB），并同步到其他集群依赖MQ组件 不考虑客户端代理、发布订阅写事件">
+<meta name="theme-color" media="(prefers-color-scheme: light)" content="#ffffff">
+<meta name="theme-color" media="(prefers-color-scheme: dark)" content="#343a40">
+<meta name="color-scheme" content="light dark"><meta property="og:url" content="https://www6v.github.io/www6vMiddleware/docs/Redis&#43;%E7%BC%93%E5%AD%98/Redis-%E5%9F%BA%E7%A1%80/Arch-Redis-Cluster/redisHA/">
+  <meta property="og:site_name" content="中间件">
+  <meta property="og:title" content="Redis 集群  容灾（同城多活）">
+  <meta property="og:description" content="目录#1. 背景#Redis 集群自身已经具备了高可用的特性，即使几个Redis节点异常或者挂掉，Redis 集群也会实现故障自动转移，对应用方来说也可以在很短时间内恢复故障。 但是，如果发生了机房故障(断电、断网等极端情况)，Redis集群节点全部挂掉（过半主节点挂掉），会造成集群服务不可用，对于核心业务来说是不可接受的。 为了应对机房故障情况，保障在这种极端情况下，核心业务仍然可以正常访问 Redis 服务，本文将给出适合我司的 Redis 跨机房高可用解决方案。 2. 目标#保障单机房整体故障时 Redis 缓存服务正常运行。 单机房故障 RTO：30s，RPO：1s 3. 解决方案#3.1 核心能力#客户端流量路由：支持按一定的策略，把流量分流到不同机房；机房故障后，流量自动流向其他机房。 服务端故障转移：支持机房故障后，当前机房原来主节点的从节点，通过选举自动倒换成新的主节点。 管理平台正常服务：任一机房故障，Renault 管理平台使用不受影响。 3.2 工作模式#组件在机房高可用场景下一般有多种工作模式，典型的有单集群模式及多集群模式。本节描述组件在各种工作模式下的部署方式及工作机制。
+部署方案 方案说明 跨机房混合部署 将Redis集群主节点平均分配到各个机房，主从节点在不同机房 各机房独立部署集群 &#43; 数据单向同步 各机房均独立部署集群，集群为热备模式，写请求均写入同一个集群，然后同步到其他集群 各机房独立部署集群 &#43; 数据双向同步 每个机房部署一套Redis集群，同步核心业务写请求 数据同步方法：
+数据同步方案 方案说明 客户端双写 客户端同时写入到各个集群 客户端代理 Netflix开源实现的Dynomite，通过代理层接受数据后写入各个需要同步的节点
+改造难度大
+客户端需要优化添加Dyno Client服务端每个节点需要部署Dyno Node
+read/write性能较原生差异较大，主要体现在write上，之间的差异随着node节点数越多越严重 伪从节点 基于Redis的Master-Slave复制协议，实现低延时、高可用的Redis多数据中心、跨公网数据复制携程开源系统：https://github.com/ctripcorp/x-pipe阿里RedisShake同步工具 写事件监听&#43;MQ跨集群消息同步 读写在本机房，监听写事件 &#43; MQ消息同步到其他机房需要开启事件通知（PUB），修改Redis配置文件中的 notify-keyspace-events 配置（默认的redis并没有开启这个功能）需要独立服务订阅写事件（SUB），并同步到其他集群依赖MQ组件 不考虑客户端代理、发布订阅写事件">
+  <meta property="og:locale" content="en">
+  <meta property="og:type" content="website">
+<title>Redis 集群  容灾（同城多活） | 中间件</title>
+<link rel="icon" href="/www6vMiddleware/favicon.png" >
+<link rel="manifest" href="/www6vMiddleware/manifest.json">
+<link rel="canonical" href="https://www6v.github.io/www6vMiddleware/docs/Redis&#43;%E7%BC%93%E5%AD%98/Redis-%E5%9F%BA%E7%A1%80/Arch-Redis-Cluster/redisHA/">
+<link rel="stylesheet" href="/www6vMiddleware/book.min.6c8b9d2a1fc95075ed7da46ca81060b39add8fff6741ac51259f768929281e2c.css" integrity="sha256-bIudKh/JUHXtfaRsqBBgs5rdj/9nQaxRJZ92iSkoHiw=" crossorigin="anonymous">
+  <script defer src="/www6vMiddleware/fuse.min.js"></script>
+  <script defer src="/www6vMiddleware/en.search.min.f6813f7eef06cff0da9e0cee91e7083d3b28a78c3d9761745c2f9bfbe926ffe8.js" integrity="sha256-9oE/fu8Gz/DangzukecIPTsop4w9l2F0XC&#43;b&#43;&#43;km/&#43;g=" crossorigin="anonymous"></script>
+
+  
+
+<link rel="alternate" type="application/rss+xml" href="https://www6v.github.io/www6vMiddleware/docs/Redis+%E7%BC%93%E5%AD%98/Redis-%E5%9F%BA%E7%A1%80/Arch-Redis-Cluster/redisHA/index.xml" title="中间件" />
+<!--
+Made with Book Theme
+https://github.com/alex-shpak/hugo-book
+-->
+  
+</head>
+<body dir="ltr">
+  <input type="checkbox" class="hidden toggle" id="menu-control" />
+  <input type="checkbox" class="hidden toggle" id="toc-control" />
+  <main class="container flex">
+    <aside class="book-menu">
+      <div class="book-menu-content">
+        
+  <nav>
+<h2 class="book-brand">
+  <a class="flex align-center" href="/www6vMiddleware/"><span>中间件</span>
+  </a>
+</h2>
+
+
+<div class="book-search hidden">
+  <input type="text" id="book-search-input" placeholder="Search" aria-label="Search" maxlength="64" data-hotkeys="s/" />
+  <div class="book-search-spinner hidden"></div>
+  <ul id="book-search-results"></ul>
+</div>
+<script>document.querySelector(".book-search").classList.remove("hidden")</script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  <ul>
+    
+      
+        <li class="book-section-flat" >
+          
+  
+  
+
+  
+    <input type="checkbox" id="section-b13c95c069c614e8c16265f1c191a430" class="toggle"  />
+    <label for="section-b13c95c069c614e8c16265f1c191a430" class="flex justify-between">
+      <a role="button" class="">服务治理</a>
+    </label>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <span>Overview</span>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMiddleware/docs/serviceGovernance/Overview/microservice/" class="">微服务 总结</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMiddleware/docs/serviceGovernance/Overview/soaFeature/" class="">分布式服务框架功能</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <span>API Gateway</span>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMiddleware/docs/serviceGovernance/API-Gateway/apiGatawaySpringGateway/" class="">API 网关-SpringCloud Gateway</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMiddleware/docs/serviceGovernance/API-Gateway/apiGatawayApisix/" class="">API 网关-apisix</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMiddleware/docs/serviceGovernance/API-Gateway/apiGateway/" class="">API Gateway网关</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <span>Config &amp; Discovery</span>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMiddleware/docs/serviceGovernance/ConfigDiscovery/soaDiscovery/" class="">服务发现</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMiddleware/docs/serviceGovernance/ConfigDiscovery/config/" class="">服务治理-分布式配置</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <span>负载均衡</span>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMiddleware/docs/serviceGovernance/loadBalance/loadBalance/" class="">负载均衡-算法</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMiddleware/docs/serviceGovernance/loadBalance/nginxOptimize/" class="">Nginx优化</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMiddleware/docs/serviceGovernance/loadBalance/nginx/" class="">Nginx总结</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <span>线程模型</span>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMiddleware/docs/serviceGovernance/threadModel/jsfThreadModel/" class="">京东服务框架JSF服务提供者线程模型</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <span>容错&amp;限流</span>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <span>容错</span>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMiddleware/docs/serviceGovernance/faultTolerant/faultTolerant/soaTolerateFramework/" class="">容错框架</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMiddleware/docs/serviceGovernance/faultTolerant/faultTolerant/soaTimeout/" class="">超时和重试 总结</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMiddleware/docs/serviceGovernance/faultTolerant/faultTolerant/soaTolerate/" class="">分布式服务框架 容错机制</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <span>限流</span>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMiddleware/docs/serviceGovernance/faultTolerant/throttle/ratelimitSentinel/" class="">流量治理-Sentinel</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMiddleware/docs/serviceGovernance/faultTolerant/throttle/ratelimit/" class="">限流-总结</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMiddleware/docs/serviceGovernance/faultTolerant/soaGracefulStart/" class="">优雅启动</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMiddleware/docs/serviceGovernance/faultTolerant/soaGracefulClose/" class="">优雅关闭</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <span>Spring Cloud</span>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMiddleware/docs/serviceGovernance/Springcloud/springTransactionInvalid/" class="">Spring  Transaction  失效</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMiddleware/docs/serviceGovernance/Springcloud/springCloud/" class="">SpringCloud</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMiddleware/docs/serviceGovernance/Springcloud/springboot/" class="">SpringBoot</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMiddleware/docs/serviceGovernance/Springcloud/springTransaction/" class="">Spring事务</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <span>灰度发布</span>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMiddleware/docs/serviceGovernance/Gray/apiGatewayGray/" class="">API 网关-灰度发布</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <span>安全</span>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMiddleware/docs/serviceGovernance/security/soaAuth/" class="">服务治理-鉴权</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMiddleware/docs/serviceGovernance/security/securityOAuth2/" class="">安全-OAuth2</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li class="book-section-flat" >
+          
+  
+  
+
+  
+    <input type="checkbox" id="section-619f87396da4f22c9e982ebbcfb80a1d" class="toggle"  />
+    <label for="section-619f87396da4f22c9e982ebbcfb80a1d" class="flex justify-between">
+      <a role="button" class="">消息系统</a>
+    </label>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <span>Overview</span>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMiddleware/docs/message/Overview/mq/" class="">消息中间件总结</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMiddleware/docs/message/Overview/mqCompare/" class="">MQ总结(Kafka, Rocketmq, Rabbitmq)</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMiddleware/docs/message/Overview/mqOrdering/" class="">消息系统 顺序消息</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <span>Kafka</span>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMiddleware/docs/message/Kafka/kafka/" class="">Kafka总结</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMiddleware/docs/message/Kafka/kafkaProducer/" class="">Kafka Producer生产者</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMiddleware/docs/message/Kafka/kafkaConsumer/" class="">Kafka消费者总结</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMiddleware/docs/message/Kafka/kafkaRebalance/" class="">Kafka消费者-Rebalance机制</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMiddleware/docs/message/Kafka/kafkaReliability/" class="">Kafka 可靠性总结</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMiddleware/docs/message/Kafka/kafkaIndex/" class="">Kafka 索引</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMiddleware/docs/message/Kafka/kafkaZeroCopy/" class="">Kafka-ZeroCopy</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMiddleware/docs/message/Kafka/kafkaController/" class="">Kafka Controller-控制器</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMiddleware/docs/message/Kafka/kafkaReplica/" class="">Kafka Replication-副本机制</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMiddleware/docs/message/Kafka/kafkaElection/" class="">Kafka 中的选主</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMiddleware/docs/message/Kafka/kafkaQ-A/" class="">Kafka  Q&amp;A</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMiddleware/docs/message/Kafka/kafkaTransaction/" class="">Kafka 幂等性和事务</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li class="book-section-flat" >
+          
+  
+  
+
+  
+    <input type="checkbox" id="section-c8ef6724255360cd9e1bb212713f9134" class="toggle"  />
+    <label for="section-c8ef6724255360cd9e1bb212713f9134" class="flex justify-between">
+      <a role="button" class="">关系型数据库</a>
+    </label>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <span>单机</span>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMiddleware/docs/RMDB/%E5%8D%95%E6%9C%BA/mysqlTransactionAndLock/" class="">MySQL 事务-隔离性</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMiddleware/docs/RMDB/%E5%8D%95%E6%9C%BA/mysqlUpdate/" class="">MySQL中的SQL更新语句</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMiddleware/docs/RMDB/%E5%8D%95%E6%9C%BA/mysqlReliability/" class="">MySQL的主从 高可用 容灾</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMiddleware/docs/RMDB/%E5%8D%95%E6%9C%BA/mysqlIndex/" class="">MySQL的索引和优化</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMiddleware/docs/RMDB/%E5%8D%95%E6%9C%BA/mysqlTransaction/" class="">MySQL事务-总结</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMiddleware/docs/RMDB/%E5%8D%95%E6%9C%BA/mysqlLog/" class="">MySQL Logs</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMiddleware/docs/RMDB/%E5%8D%95%E6%9C%BA/mysqlDeadLock/" class="">MySQL  锁和死锁</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMiddleware/docs/RMDB/%E5%8D%95%E6%9C%BA/mysqlMasterSlaveDelay/" class="">MySQL 主从延迟</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <span>分布式</span>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMiddleware/docs/RMDB/%E5%88%86%E5%B8%83%E5%BC%8F/distributedDatabase/" class="">分布式 数据库 总结</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMiddleware/docs/RMDB/%E5%88%86%E5%B8%83%E5%BC%8F/distributedDatabaseCompare/" class="">分布式 数据库 比较</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMiddleware/docs/RMDB/%E5%88%86%E5%B8%83%E5%BC%8F/tikvMVCCTransaction/" class="">TiKV Transaction-MVCC&#43;TSO</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMiddleware/docs/RMDB/%E5%88%86%E5%B8%83%E5%BC%8F/distributedDatabaseGlobalTime/" class="">分布式数据库-全局时钟</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMiddleware/docs/RMDB/%E5%88%86%E5%B8%83%E5%BC%8F/distributedDatabaseJoinQuery/" class="">数据库  关联查询</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMiddleware/docs/RMDB/%E5%88%86%E5%B8%83%E5%BC%8F/globalSecondaryIndex/" class="">全局二级索引-GSI</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li class="book-section-flat" >
+          
+  
+  
+
+  
+    <input type="checkbox" id="section-10fff53c331fc90701f5c89a3d268231" class="toggle" checked />
+    <label for="section-10fff53c331fc90701f5c89a3d268231" class="flex justify-between">
+      <a role="button" class="">Redis&#43;缓存</a>
+    </label>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <span>Redis 基础</span>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <span>overview</span>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMiddleware/docs/Redis&#43;%E7%BC%93%E5%AD%98/Redis-%E5%9F%BA%E7%A1%80/overview/redis/" class="">Redis 总结</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMiddleware/docs/Redis&#43;%E7%BC%93%E5%AD%98/Redis-%E5%9F%BA%E7%A1%80/overview/redisIO/" class="">Redis 的IO模型</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <span>Arch &amp; Redis Cluster</span>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMiddleware/docs/Redis&#43;%E7%BC%93%E5%AD%98/Redis-%E5%9F%BA%E7%A1%80/Arch-Redis-Cluster/redisArch/" class="">Redis 架构</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMiddleware/docs/Redis&#43;%E7%BC%93%E5%AD%98/Redis-%E5%9F%BA%E7%A1%80/Arch-Redis-Cluster/redisError/" class="">Redis Error-MOVED和ASK指令</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMiddleware/docs/Redis&#43;%E7%BC%93%E5%AD%98/Redis-%E5%9F%BA%E7%A1%80/Arch-Redis-Cluster/redisCluster/" class="">Redis Cluster</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMiddleware/docs/Redis&#43;%E7%BC%93%E5%AD%98/Redis-%E5%9F%BA%E7%A1%80/Arch-Redis-Cluster/redisClusterSpec/" class="">Redis Cluster Spec</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMiddleware/docs/Redis&#43;%E7%BC%93%E5%AD%98/Redis-%E5%9F%BA%E7%A1%80/Arch-Redis-Cluster/redisHA/" class="active">Redis 集群  容灾（同城多活）</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</nav>
+
+
+
+
+  <script>(function(){var e=document.querySelector("aside .book-menu-content");addEventListener("beforeunload",function(){localStorage.setItem("menu.scrollTop",e.scrollTop)}),e.scrollTop=localStorage.getItem("menu.scrollTop")})()</script>
+
+
+ 
+      </div>
+    </aside>
+
+    <div class="book-page">
+      <header class="book-header">
+        
+  <div class="flex align-center justify-between">
+  <label for="menu-control">
+    <img src="/www6vMiddleware/svg/menu.svg" class="book-icon" alt="Menu" />
+  </label>
+
+  <h3>Redis 集群  容灾（同城多活）</h3>
+
+  <label for="toc-control">
+    
+    <img src="/www6vMiddleware/svg/toc.svg" class="book-icon" alt="Table of Contents" />
+    
+  </label>
+</div>
+
+
+  
+  <aside class="hidden clearfix">
+    
+  
+<nav id="TableOfContents">
+  <ul>
+    <li>
+      <ul>
+        <li><a href="#目录">目录</a></li>
+      </ul>
+    </li>
+    <li><a href="#1-背景">1. 背景</a></li>
+    <li><a href="#2-目标">2. 目标</a></li>
+    <li><a href="#3-解决方案">3. 解决方案</a>
+      <ul>
+        <li><a href="#31-核心能力">3.1 核心能力</a></li>
+        <li><a href="#32-工作模式">3.2 工作模式</a>
+          <ul>
+            <li><a href="#321-方案一跨机房混合部署"><strong>3.2.1 方案一：跨机房混合部署</strong></a></li>
+            <li><a href="#322-方案二伪从节点单向同步"><strong>3.2.2 方案二：伪从节点+单向同步</strong></a></li>
+            <li><a href="#323-方案三伪从节点双向同步"><strong>3.2.3 方案三：伪从节点+双向同步</strong></a></li>
+            <li><a href="#324-方案四客户端双写写监听服务mq消息队列"><strong>3.2.4 方案四：客户端双写+写监听服务+MQ消息队列</strong></a></li>
+            <li><a href="#33-成本比较">3.3 成本比较</a></li>
+            <li><a href="#34-场景建议">3.4 场景建议</a></li>
+          </ul>
+        </li>
+      </ul>
+    </li>
+    <li><a href="#4-里程碑">4. 里程碑</a></li>
+    <li><a href="#5-相关文档">5. 相关文档</a></li>
+    <li><a href="#6-参考资料">6. 参考资料</a></li>
+  </ul>
+</nav>
+
+
+
+  </aside>
+  
+ 
+      </header>
+
+      
+      
+  <article class="markdown book-article"><p></p>
+<!-- more -->
+<h2 id="目录">
+  目录
+  <a class="anchor" href="#%e7%9b%ae%e5%bd%95">#</a>
+</h2>
+<!-- toc -->
+<h1 id="1-背景">
+  1. 背景
+  <a class="anchor" href="#1-%e8%83%8c%e6%99%af">#</a>
+</h1>
+<ul>
+<li>Redis 集群自身已经具备了高可用的特性，即使几个Redis节点异常或者挂掉，Redis 集群也会实现故障自动转移，对应用方来说也可以在很短时间内恢复故障。</li>
+<li>但是，如果发生了机房故障(断电、断网等极端情况)，Redis集群节点全部挂掉（过半主节点挂掉），会造成集群服务不可用，对于核心业务来说是不可接受的。</li>
+<li>为了应对机房故障情况，保障在这种极端情况下，核心业务仍然可以正常访问 Redis 服务，本文将给出适合我司的 Redis 跨机房高可用解决方案。</li>
+</ul>
+<h1 id="2-目标">
+  2. 目标
+  <a class="anchor" href="#2-%e7%9b%ae%e6%a0%87">#</a>
+</h1>
+<ul>
+<li>保障单机房整体故障时 Redis 缓存服务正常运行。</li>
+<li>单机房故障 RTO：30s，RPO：1s</li>
+</ul>
+<h1 id="3-解决方案">
+  3. 解决方案
+  <a class="anchor" href="#3-%e8%a7%a3%e5%86%b3%e6%96%b9%e6%a1%88">#</a>
+</h1>
+<h2 id="31-核心能力">
+  3.1 核心能力
+  <a class="anchor" href="#31-%e6%a0%b8%e5%bf%83%e8%83%bd%e5%8a%9b">#</a>
+</h2>
+<ul>
+<li>客户端流量路由：支持按一定的策略，把流量分流到不同机房；机房故障后，流量自动流向其他机房。</li>
+<li>服务端故障转移：支持机房故障后，当前机房原来主节点的从节点，通过选举自动倒换成新的主节点。</li>
+<li>管理平台正常服务：任一机房故障，Renault 管理平台使用不受影响。</li>
+</ul>
+<h2 id="32-工作模式">
+  3.2 工作模式
+  <a class="anchor" href="#32-%e5%b7%a5%e4%bd%9c%e6%a8%a1%e5%bc%8f">#</a>
+</h2>
+<p>组件在机房高可用场景下一般有多种工作模式，典型的有单集群模式及多集群模式。本节描述组件在各种工作模式下的部署方式及工作机制。</p>
+<table>
+<thead>
+<tr>
+<th>部署方案</th>
+<th>方案说明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>跨机房混合部署</td>
+<td>将Redis集群主节点平均分配到各个机房，主从节点在不同机房</td>
+</tr>
+<tr>
+<td>各机房独立部署集群 + 数据单向同步</td>
+<td>各机房均独立部署集群，集群为热备模式，写请求均写入同一个集群，然后同步到其他集群</td>
+</tr>
+<tr>
+<td>各机房独立部署集群 + 数据双向同步</td>
+<td>每个机房部署一套Redis集群，同步核心业务写请求</td>
+</tr>
+</tbody>
+</table>
+<p>数据同步方法：</p>
+<table>
+<thead>
+<tr>
+<th>数据同步方案</th>
+<th>方案说明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>客户端双写</td>
+<td>客户端同时写入到各个集群</td>
+</tr>
+<tr>
+<td>客户端代理</td>
+<td><a href="https://github.com/Netflix/dynomite">Netflix开源实现的Dynomite</a>，通过代理层接受数据后写入各个需要同步的节点<br><a href="https://github.com/Netflix/dynomite">改造难度大</a><br><a href="https://github.com/Netflix/dynomite">客户端需要优化添加Dyno Client</a><br/><a href="https://github.com/Netflix/dynomite">服务端每个节点需要部署Dyno Node</a><br><a href="https://github.com/Netflix/dynomite">read/write性能较原生差异较大，</a>主要体现在write上，之间的差异随着node节点数越多越严重</td>
+</tr>
+<tr>
+<td>伪从节点</td>
+<td>基于Redis的Master-Slave复制协议，实现低延时、高可用的Redis多数据中心、跨公网数据复制<br/>携程开源系统：https://github.com/ctripcorp/x-pipe<br/>阿里RedisShake同步工具</td>
+</tr>
+<tr>
+<td>写事件监听+MQ跨集群消息同步</td>
+<td>读写在本机房，监听写事件 + MQ消息同步到其他机房<br/>需要开启事件通知（PUB），修改Redis配置文件中的 notify-keyspace-events 配置（默认的redis并没有开启这个功能）<br/>需要独立服务订阅写事件（SUB），并同步到其他集群<br/>依赖MQ组件</td>
+</tr>
+</tbody>
+</table>
+<p>不考虑客户端代理、发布订阅写事件</p>
+<p>下面详细比较如下四种方案</p>
+<ul>
+<li>方案一：跨机房混合部署</li>
+<li>方案二：伪从节点+单向同步</li>
+<li>方案三：伪从节点+双向同步</li>
+<li>方案四：客户端双写+写监听服务+MQ消息队列</li>
+</ul>
+<h3 id="321-方案一跨机房混合部署">
+  <strong>3.2.1 方案一：跨机房混合部署</strong>
+  <a class="anchor" href="#321-%e6%96%b9%e6%a1%88%e4%b8%80%e8%b7%a8%e6%9c%ba%e6%88%bf%e6%b7%b7%e5%90%88%e9%83%a8%e7%bd%b2">#</a>
+</h3>
+<h5 id="3211-部署方式">
+  <strong>3.2.1.1 部署方式</strong>
+  <a class="anchor" href="#3211-%e9%83%a8%e7%bd%b2%e6%96%b9%e5%bc%8f">#</a>
+</h5>
+<p>Redis集群主节点平均分配到各个机房，每个机房都有一个分片的副本；单个机房主节点数据占比不能过半。</p>
+<p>[pic]</p>
+<p>跨机房部署注意事项</p>
+<ul>
+<li>从节点选举需要过半主节点投票，因此不适合双机房部署，至少需要3机房</li>
+<li>业务请求访问响应时间会不稳定，同机房请求延迟在0.1ms，跨机房请求在1-3ms</li>
+</ul>
+<h5 id="3212-工作机制">
+  <strong>3.2.1.2 工作机制</strong>
+  <a class="anchor" href="#3212-%e5%b7%a5%e4%bd%9c%e6%9c%ba%e5%88%b6">#</a>
+</h5>
+<ul>
+<li>
+<p>流量路由</p>
+</li>
+<li>
+<ul>
+<li>默认读主节点（ReadFrom：Master）</li>
+<li>读从节点（ReadFrom: Replication）</li>
+<li>随机读主从（ReadFrom: Any）</li>
+<li>优先读本地机房（ReadFrom：LocalDC）— TODO：新增路由策略</li>
+</ul>
+</li>
+<li>
+<p>故障切换</p>
+</li>
+<li>
+<ul>
+<li>机房故障后，Redis 集群高可用机制，会将集群在30s内自动倒换并恢复正常访问</li>
+<li>同城机房间网络传输响应延迟2ms内，几乎不影响集群故障判定</li>
+<li>Redis 集群故障转移后，客户端30s内自动刷新集群拓扑关系</li>
+</ul>
+</li>
+<li>
+<p>故障恢复</p>
+</li>
+<li>
+<ul>
+<li>机房恢复后，故障节点 Redis 会以从节点角色自动启动，并全量同步主节点数据（数据同步流量风暴 &ndash; 会在机房间路由器端口上限速控制）</li>
+</ul>
+</li>
+<li>
+<p>迁移方案</p>
+</li>
+<li>
+<ul>
+<li>服务核心业务 Redis 集群将会改造成跨三机房部署模式，不影响客户端正常使用</li>
+<li>业务根据实际情况，可将读请求路由策略修改为优先从本地机房读</li>
+</ul>
+</li>
+</ul>
+<p>Redis 故障恢复机制</p>
+<ul>
+<li>
+<p>投票选主：只有持有槽的主节点才会处理故障选举消息，获得N/2+1以上选票的从节点将为新主。</p>
+</li>
+<li>
+<p>替换主节点：取消复制 → clusterDelSlot/clusterAddSlot把槽委派给自己 → 向集群广播通知变为主节点并接管了故障主节点的槽信息。</p>
+</li>
+<li>
+<ul>
+<li>全量同步过程</li>
+</ul>
+</li>
+<li>
+<ul>
+<li>
+<ul>
+<li>从服务器连接主服务器，发送SYNC命令；</li>
+<li>主服务器接收到SYNC命名后，开始执行BGSAVE命令生成RDB文件，并使用缓冲区记录此后执行的所有写命令；</li>
+<li>主服务器BGSAVE执行完后，向所有从服务器发送RDB文件；</li>
+<li>从服务器收到快照文件后丢弃所有旧数据，载入收到的RDB快照；</li>
+<li>主服务器快照发送完毕后，开始向从服务器发送缓冲区中的写命令；</li>
+<li>从服务器完成对快照的载入，开始接收命令请求，并执行来自主服务器缓冲区的写命令。</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>
+<ul>
+<li>全量同步数据评估，假如100GRedis集群，三机房，一主二从</li>
+</ul>
+</li>
+<li>
+<ul>
+<li>
+<ul>
+<li>根据Renault公共集群统计，8G使用容量的Redis，生成RDB文件大小约3G左右，生成时间75s</li>
+<li>RDB传输，单一机房故障恢复时，将有10台Redis执行主从同步，约有30G流量从其他两个机房流入。</li>
+<li>RDB加载，3G RDB数据加载时间约90s</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<h3 id="322-方案二伪从节点单向同步">
+  <strong>3.2.2 方案二：伪从节点+单向同步</strong>
+  <a class="anchor" href="#322-%e6%96%b9%e6%a1%88%e4%ba%8c%e4%bc%aa%e4%bb%8e%e8%8a%82%e7%82%b9%e5%8d%95%e5%90%91%e5%90%8c%e6%ad%a5">#</a>
+</h3>
+<h5 id="3221-部署方式">
+  <strong>3.2.2.1 部署方式</strong>
+  <a class="anchor" href="#3221-%e9%83%a8%e7%bd%b2%e6%96%b9%e5%bc%8f">#</a>
+</h5>
+<p>双机房部署，业务读写默认集群，开发部署 Renault 复制服务（<strong>RRS</strong>, Renault Replicate Service），伪装从节点实时将默认集群数据同步到备用集群。</p>
+<p>[pic]</p>
+<h5 id="3222-工作机制">
+  <strong>3.2.2.2 工作机制</strong>
+  <a class="anchor" href="#3222-%e5%b7%a5%e4%bd%9c%e6%9c%ba%e5%88%b6">#</a>
+</h5>
+<ul>
+<li>
+<p>流量路由</p>
+</li>
+<li>
+<ul>
+<li>双机房独立部署，均访问默认集群（热），故障后访问备用集群（冷）</li>
+</ul>
+</li>
+<li>
+<p>故障切换</p>
+</li>
+<li>
+<ul>
+<li>默认集群故障时，SDK熔断默认集群请求，并将流量切换到备用集群</li>
+</ul>
+</li>
+<li>
+<p>故障恢复</p>
+</li>
+<li>
+<ul>
+<li>机房故障恢复后，原默认集群将被reset，RRS 服务将反向同步</li>
+</ul>
+</li>
+<li>
+<p>迁移方案</p>
+</li>
+<li>
+<ul>
+<li>服务核心业务 Redis 集群将会搭建备用集群，并实时同步默认集群数据</li>
+<li>业务客户端需要升级 SDK，支持自动故障切换功能</li>
+</ul>
+</li>
+</ul>
+<p>DC2机房业务客户端自动故障切换：</p>
+<p>[pic]</p>
+<p>故障恢复后（反向同步）：</p>
+<p>[pic]</p>
+<h3 id="323-方案三伪从节点双向同步">
+  <strong>3.2.3 方案三：伪从节点+双向同步</strong>
+  <a class="anchor" href="#323-%e6%96%b9%e6%a1%88%e4%b8%89%e4%bc%aa%e4%bb%8e%e8%8a%82%e7%82%b9%e5%8f%8c%e5%90%91%e5%90%8c%e6%ad%a5">#</a>
+</h3>
+<h5 id="3231-部署方式">
+  <strong>3.2.3.1 部署方式</strong>
+  <a class="anchor" href="#3231-%e9%83%a8%e7%bd%b2%e6%96%b9%e5%bc%8f">#</a>
+</h5>
+<p>双机房独立部署，均访问本地集群；开发部署 Renault 复制服务（<strong>RRS</strong>, Renault Replicate Service），伪装从节点实时双向同步。</p>
+<p>[pic]</p>
+<h5 id="3232-工作机制">
+  <strong>3.2.3.2 工作机制</strong>
+  <a class="anchor" href="#3232-%e5%b7%a5%e4%bd%9c%e6%9c%ba%e5%88%b6">#</a>
+</h5>
+<ul>
+<li>
+<p>流量路由</p>
+</li>
+<li>
+<ul>
+<li>双机房独立部署，业务优先访问本地机房集群（TODO：需要开发一种集群选择策略）</li>
+<li>RRS 服务双向同步数据（需要解决双向同步成环问题）</li>
+</ul>
+</li>
+<li>
+<p>故障切换</p>
+</li>
+<li>
+<ul>
+<li>DC1机房集群故障时候，上层流量自动切换到DC2机房，Redis层不需要处理</li>
+</ul>
+</li>
+<li>
+<p>故障恢复</p>
+</li>
+<li>
+<ul>
+<li>DC1机房集群故障恢复，首先通过RRS服务从DC2全量同步数据，之后增量同步</li>
+</ul>
+</li>
+<li>
+<p>迁移方案</p>
+</li>
+<li>
+<ul>
+<li>服务核心业务 Redis 集群将会搭建双活集群，并通过 RRS 服务实时双向同步</li>
+<li>业务客户端需要升级 SDK，支持启动时选择哪个集群</li>
+</ul>
+</li>
+</ul>
+<p>数据库层面的多活，双向同步存在以下困难：</p>
+<ul>
+<li>
+<p><strong>两边都改了如何解决冲突？</strong></p>
+</li>
+<li>
+<ul>
+<li>跨机房双写无法保证缓存的一致性，需要应用侧可以容忍对应的缓存不一致场景</li>
+</ul>
+</li>
+<li>
+<p><strong>RRS复制中断或者故障如何处理？</strong></p>
+</li>
+<li>
+<p><strong>数据同步如何防环？</strong></p>
+</li>
+<li>
+<ul>
+<li>方法1：通常需要应用方配置使用，按业务类型分流（不能为通用解决方案）</li>
+<li>方法2：数据层面添加字段标识数据源（带来一定开销，并且对于数值计算类数据不能添加标识）</li>
+<li>方法3：x-pipe - 定制Redis，在内容分发上做处理，服务端能够识别不同的链接类型，在同步数据之初便加以控制在内容分发上做处理，服务端能够识别不同的链接类型，从而做到有的放矢，在同步数据之初便加以控制</li>
+</ul>
+</li>
+</ul>
+<h3 id="324-方案四客户端双写写监听服务mq消息队列">
+  <strong>3.2.4 方案四：客户端双写+写监听服务+MQ消息队列</strong>
+  <a class="anchor" href="#324-%e6%96%b9%e6%a1%88%e5%9b%9b%e5%ae%a2%e6%88%b7%e7%ab%af%e5%8f%8c%e5%86%99%e5%86%99%e7%9b%91%e5%90%ac%e6%9c%8d%e5%8a%a1mq%e6%b6%88%e6%81%af%e9%98%9f%e5%88%97">#</a>
+</h3>
+<h5 id="3241-部署方式">
+  <strong>3.2.4.1 部署方式</strong>
+  <a class="anchor" href="#3241-%e9%83%a8%e7%bd%b2%e6%96%b9%e5%bc%8f">#</a>
+</h5>
+<p>双机房/三机房每个独立部署，应用客户端均访问本地集群；借助MQ通过异步双写机制双写同步到其他集群。</p>
+<p>[pic]</p>
+<h5 id="3242-工作机制">
+  <strong>3.2.4.2 工作机制</strong>
+  <a class="anchor" href="#3242-%e5%b7%a5%e4%bd%9c%e6%9c%ba%e5%88%b6">#</a>
+</h5>
+<ul>
+<li>
+<p>流量路由</p>
+</li>
+<li>
+<ul>
+<li>多机房独立部署，业务优先访问本地机房集群（同方案三）</li>
+<li>MQ中间件+写事件监听服务做双写同步</li>
+</ul>
+</li>
+<li>
+<p>故障切换</p>
+</li>
+<li>
+<ul>
+<li>DC1机房集群故障时候，上层流量自动切换到DC2机房，Redis层不需要处理（同方案三）</li>
+</ul>
+</li>
+<li>
+<p>故障恢复</p>
+</li>
+<li>
+<ul>
+<li>DC1机房集群故障恢复，首先通过RRS服务从DC2全量同步数据，之后增量同步（同方案三）</li>
+</ul>
+</li>
+<li>
+<p>迁移方案</p>
+</li>
+<li>
+<ul>
+<li>服务核心业务 Redis 集群将会搭建多活集群，并通过 MQ 发布订阅方式实现多集群间双向同步</li>
+<li>业务客户端需要升级 SDK，支持启动时选择哪个集群</li>
+</ul>
+</li>
+</ul>
+<p>双机房/三机房每个独立部署，多活部署主要问题：</p>
+<ul>
+<li>
+<p><strong>两边都改了如何解决冲突？</strong></p>
+</li>
+<li>
+<p>跨机房双写<strong>无法保证缓存的一致性</strong>，需要<strong>应用侧</strong>可以<strong>容忍对应的缓存不一致场景</strong>，应用如果依赖缓存强一致性，则不合适该方案。</p>
+</li>
+<li>
+<ul>
+<li>DC1和DC2两边都写了同一个Key，最终互相覆盖</li>
+</ul>
+</li>
+<li>
+<p>如何保证消息的顺序？如何保证消息成功发送及消费？</p>
+</li>
+</ul>
+<h3 id="33-成本比较">
+  3.3 成本比较
+  <a class="anchor" href="#33-%e6%88%90%e6%9c%ac%e6%af%94%e8%be%83">#</a>
+</h3>
+<table>
+<thead>
+<tr>
+<th></th>
+<th>部署成本</th>
+<th>改造成本</th>
+<th>使用成本</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>方案一：跨机房混合部署</strong></td>
+<td>成本-低<br/>适用于三机房及以上<br/>2副本，增加50%容量</td>
+<td>改造成本-低<br/>只用按照要求部署集群<br/>SDK路由-优先读本地机房</td>
+<td>性能有下降<br/>本机房访问不受影响，跨机房访问延迟1-3ms</td>
+</tr>
+<tr>
+<td><strong>方案二：伪从节点+单向同步</strong></td>
+<td>成本-中<br/>新增备用集群，增加100%容量<br/>部署同步服务</td>
+<td>改造成本-中<br/>需要开发集群间数据同步服务（已有待完善）<br/>读写分离</td>
+<td>性能有下降<br/>本机房访问不受影响，跨机房访问延迟1-3ms<br/>读可优化成读本地机房，性能不受影响</td>
+</tr>
+<tr>
+<td><strong>方案三：伪从节点+双向同步</strong></td>
+<td>成本-中<br/>各机房均新增集群，双机房增加100%容量，三机房增加200%<br/>容量部署同步服务</td>
+<td>改造成本-高<br/>双向复制成环很难解决，需要定制Redis<br/>两边都写，冲突问题难解决<br/>需要开发集群间数据同步服务（已有待完善）</td>
+<td>性能不受影响<br/>读写本地机房</td>
+</tr>
+<tr>
+<td><strong>方案四：客户端双写+写监听+MQ消息同步</strong></td>
+<td>成本-高<br/>各机房均新增集群，双机房增加100%容量，三机房增加200%容量<br/>部署写监听服务<br/>部署MQ消息集群</td>
+<td>改造成本-中<br/>依赖MQ中间件</td>
+<td>性能稍有下降<br/>同步写跨机房访问，性能会严重下降<br/>异步写性能稍有下降<br/>应用能容忍两边不一致场景</td>
+</tr>
+</tbody>
+</table>
+<p>方案选定：</p>
+<ul>
+<li>目前同城多活选用方案一（<strong>跨机房混合部署</strong>）</li>
+<li>未来异地多活再考虑方案三和四</li>
+</ul>
+<h3 id="34-场景建议">
+  3.4 场景建议
+  <a class="anchor" href="#34-%e5%9c%ba%e6%99%af%e5%bb%ba%e8%ae%ae">#</a>
+</h3>
+<p>方案一适应场景</p>
+<ul>
+<li>适用于三机房及以上【两机房故障时候无法成功选举】</li>
+<li>要能接受写缓存时间在1-2ms内【不可避免跨集群写数据，目前sh1读写tx1时延约1.3ms，sh1读写sh1时延约0.2ms】</li>
+<li>配置优先读本地机房的话，能接收读数据时延【主从数据同步毫秒级时延】</li>
+</ul>
+<p>其他场景建议</p>
+<ul>
+<li>
+<p>不接受写缓存慢场景、不接受读从节点数据延迟场景</p>
+</li>
+<li>
+<ul>
+<li>服务端：每个机房都要独立部署Redis集群，并且双向同步数，推荐方案三</li>
+<li>SDK改造：需要支持优先读写本地Redis集群路由策略</li>
+<li>业务端：升级SDK版本</li>
+</ul>
+</li>
+</ul>
+<h1 id="4-里程碑">
+  4. 里程碑
+  <a class="anchor" href="#4-%e9%87%8c%e7%a8%8b%e7%a2%91">#</a>
+</h1>
+<p><em>描述组件为了达成机房高可用需要做的事情，包括事项、优先级、预期完成时间、负责人等信息。</em></p>
+<p><em>对于中间件，一般有如下重要时间点：</em></p>
+<ul>
+<li><em>服务端机房高可用方案设计完成</em></li>
+<li><em>服务端机房高可用方案在测试集群验证通过</em></li>
+<li><em>客户端机房高可用方案设计开发完成</em></li>
+<li><em>业务集群机房高可用方案验证：明确 RPO 和 RTO</em></li>
+</ul>
+<p>方案一跨机房混合部署改造事项：</p>
+<ul>
+<li>
+<p>管理平台：</p>
+</li>
+<li>
+<ul>
+<li>搭建核心集群</li>
+</ul>
+</li>
+<li>
+<ul>
+<li>
+<ul>
+<li>机器添加机房标识 (Done)，</li>
+<li>机架标识，是否属于同一机架，</li>
+<li>机房高可用校验 （Done）</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>
+<ul>
+<li>
+<ul>
+<li>
+<ul>
+<li>主从节点数至少3个，且分布在不同机房</li>
+<li>单机房主节点数不能过半</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>
+<ul>
+<li>
+<ul>
+<li>集群调整，确保核心集群Redis实例机房按大集群要求部署，</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>
+<ul>
+<li>核心应用识别及迁移</li>
+</ul>
+</li>
+<li>
+<ul>
+<li>
+<ul>
+<li>核心缓存标识 - 源于用户？核心应用标识？</li>
+<li>新增核心缓存将绑定到核心集群，非核心缓存绑定到公共集群</li>
+<li>缓存客户端监控（CAT QPS）集成到管理平台 - 便于缓存迁移时，从技术角度判定是否需要迁移</li>
+<li>核心缓存迁移</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>
+<ul>
+<li>
+<ul>
+<li>
+<ul>
+<li>已迁移（arch-100%，cl-100%）</li>
+<li>待迁移（md、mkt、yw）（需要推动升级客户端并迁移）</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>
+<p>客户端：</p>
+</li>
+<li>
+<ul>
+<li>读写分离，优先读本机房实例 ，</li>
+</ul>
+</li>
+<li>
+<ul>
+<li>
+<ul>
+<li>熟悉Lettuce 读写分离相关源码，确定可行方案（方案可行 - 选择NEAREST或者自定义ReadFrom）</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>
+<ul>
+<li>
+<ul>
+<li>
+<ul>
+<li><a href="https://lettuce.io/core/release/reference/">NEAREST：Read from any node of the cluster with the lowest latency. https://lettuce.io/core/release/reference/</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>
+<ul>
+<li>
+<ul>
+<li>自定义ReadFrom，优先从本机房读，本机房无实例则从Master节点读 （done）</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>
+<ul>
+<li>
+<ul>
+<li>
+<ul>
+<li>用户在 Apollo 配置读取数据方式（Master/Slaver/Any/Nearest/LocalZone）</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>
+<p>Redis集群：</p>
+</li>
+<li>
+<ul>
+<li>故障演练，</li>
+</ul>
+</li>
+<li>
+<ul>
+<li>
+<ul>
+<li>repl-timeout 60s适当大小；</li>
+<li>完整操作机房Redis实例下线、Redis实例恢复操作</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>
+<ul>
+<li>缓存恢复时的数据同步抑制方法， （Done，需要时在交换机端口上限速）</li>
+</ul>
+</li>
+<li>
+<ul>
+<li>
+<ul>
+<li>机房故障后，强制下线故障机房Redis实例</li>
+<li>机房恢复后，重新部署Redis实例，逐一添加到集群，并调整合理主从关系</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>
+<p>ZK &amp; Apollo ，</p>
+</li>
+<li>
+<ul>
+<li>切换演练</li>
+<li>在线客户端列表对比（老zk的会清零，新zk临时节点数目和原来的一致）</li>
+<li>将线上ZK从zk1切换到zk3</li>
+</ul>
+</li>
+</ul>
+<p>2021-11-30 Redis 集群机房高可用方案整体设计完成</p>
+<p>2021-12-31 客户端路由开发、跨集群测试验证通过</p>
+<p>2022-2-28 推广接入试点，及真实数据故障演练</p>
+<p>2022-3-31 业务集群机房高可用方案验证</p>
+<h1 id="5-相关文档">
+  5. 相关文档
+  <a class="anchor" href="#5-%e7%9b%b8%e5%85%b3%e6%96%87%e6%a1%a3">#</a>
+</h1>
+<ul>
+<li><a href="https://wiki.tuhu.cn/pages/createpage.action?spaceKey=~wangwei18&amp;title=2.&#43;%e6%9c%ba%e6%88%bf%e9%ab%98%e5%8f%af%e7%94%a8%e6%96%b9%e6%a1%88&amp;linkCreation=true&amp;fromPageId=250252290">途虎机房高可用方案</a></li>
+<li><a href="https://wiki.tuhu.cn/pages/createpage.action?spaceKey=~wangwei18&amp;title=%e5%90%8c%e5%9f%8e%e5%a4%9a%e6%b4%bb%e8%b5%84%e6%ba%90%e6%88%90%e6%9c%ac%e9%9c%80%e6%b1%82&amp;linkCreation=true&amp;fromPageId=250252290">同城多活资源成本需求调研</a></li>
+</ul>
+<h1 id="6-参考资料">
+  6. 参考资料
+  <a class="anchor" href="#6-%e5%8f%82%e8%80%83%e8%b5%84%e6%96%99">#</a>
+</h1>
+<ul>
+<li><a href="https://tehub.com/a/3Rr1UcvLty">美团KV存储架构及实践</a> ***</li>
+<li><a href="https://support.huaweicloud.com/productdesc-dcs/GlobalDRPolicy.html">华为容灾多活策略</a></li>
+<li><a href="https://zhuanlan.zhihu.com/p/96917394">Redis异地多活行业方案</a></li>
+<li><a href="https://github.com/ctripcorp/x-pipe#%e6%9c%ba%e6%88%bf%e5%88%87%e6%8d%a2">携程Redis多数据中心复制管理系统</a></li>
+<li><a href="https://zhuanlan.zhihu.com/p/144527180">携程异地多活-MySQL实时双向（多向）复制实践</a></li>
+<li><a href="https://cachecloud.github.io/2016/11/03/Redis%20Cluster%E5%A4%9A%E6%9C%BA%E6%88%BF%E9%AB%98%E5%8F%AF%E7%94%A8%E5%AE%9E%E7%8E%B0/">Redis Cluster多机房高可用实现&ndash;基于客户端</a></li>
+<li><a href="https://www.modb.pro/db/37775">同城双活-Redis篇</a></li>
+<li><a href="https://zhuanlan.zhihu.com/p/34958596">饿了么实时双向复制工具</a></li>
+</ul>
+<hr>
+<ul>
+<li>
+<p><a href="https://zhuanlan.zhihu.com/p/449398741">CKV+异地容灾探索和实践</a> *** 未</p>
+</li>
+<li>
+<p><a href="https://mp.weixin.qq.com/s/jb_NnI6pnvJ2eWO6HUrWHg">干货 | 携程Redis跨IDC多向同步实践</a> 未</p>
+</li>
+<li>
+<p><a href="https://mp.weixin.qq.com/s/54RX6nSGLBZJxQoaADf6Jw">干货 | 五大实例详解，携程 Redis 跨机房双向同步实践</a> 未</p>
+</li>
+<li>
+<p><a href="https://mp.weixin.qq.com/s/trFXXlrel0RmTOCCZjmsWQ">阿里云数据库全新功能Redis读写分离，全维度技术解析</a> 未</p>
+</li>
+<li>
+<p><a href="https://mp.weixin.qq.com/s/LA7EaOnaxKjBSTOoCKJSmQ">企业打开Redis的正确方式，来自阿里云云数据库团队的解读</a> 未
+Figure 2：Redis异地多活架构方案示意图</p>
+</li>
+<li>
+<p><a href="https://github.com/ctripcorp/x-pipe">https://github.com/ctripcorp/x-pipe</a>  未</p>
+</li>
+</ul>
+</article>
+ 
+      
+
+      <footer class="book-footer">
+        
+  <div class="flex flex-wrap justify-between">
+
+
+
+
+
+</div>
+
+
+
+  <script>(function(){function e(e){const t=window.getSelection(),n=document.createRange();n.selectNodeContents(e),t.removeAllRanges(),t.addRange(n)}document.querySelectorAll("pre code").forEach(t=>{t.addEventListener("click",function(){if(window.getSelection().toString())return;e(t.parentElement),navigator.clipboard&&navigator.clipboard.writeText(t.parentElement.textContent)})})})()</script>
+
+
+ 
+        
+      </footer>
+
+      
+  
+  <div class="book-comments">
+
+</div>
+  
+ 
+
+      <label for="menu-control" class="hidden book-menu-overlay"></label>
+    </div>
+
+    
+    <aside class="book-toc">
+      <div class="book-toc-content">
+        
+  
+<nav id="TableOfContents">
+  <ul>
+    <li>
+      <ul>
+        <li><a href="#目录">目录</a></li>
+      </ul>
+    </li>
+    <li><a href="#1-背景">1. 背景</a></li>
+    <li><a href="#2-目标">2. 目标</a></li>
+    <li><a href="#3-解决方案">3. 解决方案</a>
+      <ul>
+        <li><a href="#31-核心能力">3.1 核心能力</a></li>
+        <li><a href="#32-工作模式">3.2 工作模式</a>
+          <ul>
+            <li><a href="#321-方案一跨机房混合部署"><strong>3.2.1 方案一：跨机房混合部署</strong></a></li>
+            <li><a href="#322-方案二伪从节点单向同步"><strong>3.2.2 方案二：伪从节点+单向同步</strong></a></li>
+            <li><a href="#323-方案三伪从节点双向同步"><strong>3.2.3 方案三：伪从节点+双向同步</strong></a></li>
+            <li><a href="#324-方案四客户端双写写监听服务mq消息队列"><strong>3.2.4 方案四：客户端双写+写监听服务+MQ消息队列</strong></a></li>
+            <li><a href="#33-成本比较">3.3 成本比较</a></li>
+            <li><a href="#34-场景建议">3.4 场景建议</a></li>
+          </ul>
+        </li>
+      </ul>
+    </li>
+    <li><a href="#4-里程碑">4. 里程碑</a></li>
+    <li><a href="#5-相关文档">5. 相关文档</a></li>
+    <li><a href="#6-参考资料">6. 参考资料</a></li>
+  </ul>
+</nav>
+
+
+ 
+      </div>
+    </aside>
+    
+  </main>
+
+  
+</body>
+</html>
+
+
+
+
+
+
+
+
+
+
+
+

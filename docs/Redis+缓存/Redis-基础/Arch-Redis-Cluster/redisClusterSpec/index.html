@@ -1,0 +1,1875 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="目录#设计目标和基本原理[bing]#高性能和线性扩展#Redis集群可以支持到1000个节点，使用异步复制和无代理的架构，避免了值合并的开销。
+可接受的写安全性#Redis集群尽力保留与大多数主节点连接的客户端的写操作，但在分区窗口期内可能会丢失已确认的写操作。
+可用性#Redis集群可以在大多数主节点可达且每个不可达主节点至少有一个可达副本的情况下存活，并且可以通过副本迁移来提高抗故障能力。
+哈希槽分配#Redis集群将16384个哈希槽分配给不同的主节点，每个主节点负责存储和服务一部分哈希槽。客户端可以通过计算键的CRC16值对16384取模来得到对应的哈希槽。也可以使用哈希标签来强制将多个键分配到同一个哈希槽，以支持多键操作。
+节点间通信#Redis集群节点之间使用一个TCP端口和一个二进制协议进行通信，称为集群总线。每个节点都与其他所有节点连接，使用gossip协议来传播集群的信息，如新节点、故障节点、配置变化等。
+客户端重定向#Redis集群节点不会代理请求，而是根据自己的哈希槽映射表，将客户端重定向到正确的节点。客户端可能收到MOVED或ASK错误，表示需要重新发送请求到另一个节点。MOVED表示哈希槽被永久地分配给了另一个节点，ASK表示哈希槽正在被迁移，需要发送ASKING命令后再发送请求。
+哈希槽迁移#Redis集群支持在运行时添加和删除节点，这是通过将哈希槽从一个节点移动到另一个节点来实现的。迁移过程中，源节点会将接收到的关于该哈希槽的请求重定向到目标节点，或者直接处理已存在键的请求。目标节点会接收到源节点通过MIGRATE命令发送过来的键，并在迁移完成后更新自己的配置。
+故障检测和副本提升#Redis集群使用心跳包和gossip协议来检测节点是否可达，并使用PFAIL和FAIL两种标志来表示故障状态。当一个主节点被大多数主节点标记为FAIL时，它的一个副本会发起选举并请求投票。如果获得了大多数主节点的授权，该副本会提升为主节点，并生成一个新的配置版本号（configEpoch）。
+副本选举和配置传播的机制[bing]#副本选举#当一个主节点失效时，它的一个副本会尝试发起选举，向其他主节点发送授权请求。如果获得了大多数主节点的回复，它就赢得了选举，并获得了一个新的唯一的配置版本号（configEpoch）。它会开始以主节点的身份广播心跳包，并通知其他节点更新配置。
+配置传播#当一个节点收到一个心跳包或UPDATE消息时，它会根据一些规则来更新自己的哈希槽映射表。如果一个哈希槽是未分配的，或者有一个新的节点使用更高的configEpoch来声明它，那么接收者会将该哈希槽绑定到新的节点。这样可以保证最后一次故障转移胜出，并且所有节点最终会达成一致。
+节点重置和遗忘#当一个节点需要从一个集群中移除或加入到另一个集群时，可以使用CLUSTER RESET命令来重置它的状态。这个命令有两种模式：软重置和硬重置。软重置会保留当前的configEpoch，而硬重置会将其设置为0。当一个节点被移除后，其他节点需要使用CLUSTER FORGET命令来删除它在节点表中的条目，并设置一个60秒的禁止期，防止因为gossip协议而重新添加它。
+发布订阅#Redis集群支持发布订阅功能，客户端可以向任何节点发送SUBSCRIBE或PUBLISH命令。集群会将发布的消息转发到所有其他节点。Redis 7.0及以后版本还支持分片发布订阅功能，其中分片频道根据与键相同的算法分配到哈希槽。分片消息必须发送到拥有该哈希槽的节点，集群会将发布的分片消息转发到该哈希槽所在的分片中的所有节点。
+CRC16算法#这篇文章最后给出了计算键对应哈希槽的CRC16算法的C语言实现代码。这个算法使用了1021作为多项式，并且不反转输入输出字节。
+参考#Redis cluster specification ***">
+<meta name="theme-color" media="(prefers-color-scheme: light)" content="#ffffff">
+<meta name="theme-color" media="(prefers-color-scheme: dark)" content="#343a40">
+<meta name="color-scheme" content="light dark"><meta property="og:url" content="https://www6v.github.io/www6vMiddleware/docs/Redis&#43;%E7%BC%93%E5%AD%98/Redis-%E5%9F%BA%E7%A1%80/Arch-Redis-Cluster/redisClusterSpec/">
+  <meta property="og:site_name" content="中间件">
+  <meta property="og:title" content="Redis Cluster Spec">
+  <meta property="og:description" content="目录#设计目标和基本原理[bing]#高性能和线性扩展#Redis集群可以支持到1000个节点，使用异步复制和无代理的架构，避免了值合并的开销。
+可接受的写安全性#Redis集群尽力保留与大多数主节点连接的客户端的写操作，但在分区窗口期内可能会丢失已确认的写操作。
+可用性#Redis集群可以在大多数主节点可达且每个不可达主节点至少有一个可达副本的情况下存活，并且可以通过副本迁移来提高抗故障能力。
+哈希槽分配#Redis集群将16384个哈希槽分配给不同的主节点，每个主节点负责存储和服务一部分哈希槽。客户端可以通过计算键的CRC16值对16384取模来得到对应的哈希槽。也可以使用哈希标签来强制将多个键分配到同一个哈希槽，以支持多键操作。
+节点间通信#Redis集群节点之间使用一个TCP端口和一个二进制协议进行通信，称为集群总线。每个节点都与其他所有节点连接，使用gossip协议来传播集群的信息，如新节点、故障节点、配置变化等。
+客户端重定向#Redis集群节点不会代理请求，而是根据自己的哈希槽映射表，将客户端重定向到正确的节点。客户端可能收到MOVED或ASK错误，表示需要重新发送请求到另一个节点。MOVED表示哈希槽被永久地分配给了另一个节点，ASK表示哈希槽正在被迁移，需要发送ASKING命令后再发送请求。
+哈希槽迁移#Redis集群支持在运行时添加和删除节点，这是通过将哈希槽从一个节点移动到另一个节点来实现的。迁移过程中，源节点会将接收到的关于该哈希槽的请求重定向到目标节点，或者直接处理已存在键的请求。目标节点会接收到源节点通过MIGRATE命令发送过来的键，并在迁移完成后更新自己的配置。
+故障检测和副本提升#Redis集群使用心跳包和gossip协议来检测节点是否可达，并使用PFAIL和FAIL两种标志来表示故障状态。当一个主节点被大多数主节点标记为FAIL时，它的一个副本会发起选举并请求投票。如果获得了大多数主节点的授权，该副本会提升为主节点，并生成一个新的配置版本号（configEpoch）。
+副本选举和配置传播的机制[bing]#副本选举#当一个主节点失效时，它的一个副本会尝试发起选举，向其他主节点发送授权请求。如果获得了大多数主节点的回复，它就赢得了选举，并获得了一个新的唯一的配置版本号（configEpoch）。它会开始以主节点的身份广播心跳包，并通知其他节点更新配置。
+配置传播#当一个节点收到一个心跳包或UPDATE消息时，它会根据一些规则来更新自己的哈希槽映射表。如果一个哈希槽是未分配的，或者有一个新的节点使用更高的configEpoch来声明它，那么接收者会将该哈希槽绑定到新的节点。这样可以保证最后一次故障转移胜出，并且所有节点最终会达成一致。
+节点重置和遗忘#当一个节点需要从一个集群中移除或加入到另一个集群时，可以使用CLUSTER RESET命令来重置它的状态。这个命令有两种模式：软重置和硬重置。软重置会保留当前的configEpoch，而硬重置会将其设置为0。当一个节点被移除后，其他节点需要使用CLUSTER FORGET命令来删除它在节点表中的条目，并设置一个60秒的禁止期，防止因为gossip协议而重新添加它。
+发布订阅#Redis集群支持发布订阅功能，客户端可以向任何节点发送SUBSCRIBE或PUBLISH命令。集群会将发布的消息转发到所有其他节点。Redis 7.0及以后版本还支持分片发布订阅功能，其中分片频道根据与键相同的算法分配到哈希槽。分片消息必须发送到拥有该哈希槽的节点，集群会将发布的分片消息转发到该哈希槽所在的分片中的所有节点。
+CRC16算法#这篇文章最后给出了计算键对应哈希槽的CRC16算法的C语言实现代码。这个算法使用了1021作为多项式，并且不反转输入输出字节。
+参考#Redis cluster specification ***">
+  <meta property="og:locale" content="en">
+  <meta property="og:type" content="website">
+<title>Redis Cluster Spec | 中间件</title>
+<link rel="icon" href="/www6vMiddleware/favicon.png" >
+<link rel="manifest" href="/www6vMiddleware/manifest.json">
+<link rel="canonical" href="https://www6v.github.io/www6vMiddleware/docs/Redis&#43;%E7%BC%93%E5%AD%98/Redis-%E5%9F%BA%E7%A1%80/Arch-Redis-Cluster/redisClusterSpec/">
+<link rel="stylesheet" href="/www6vMiddleware/book.min.6c8b9d2a1fc95075ed7da46ca81060b39add8fff6741ac51259f768929281e2c.css" integrity="sha256-bIudKh/JUHXtfaRsqBBgs5rdj/9nQaxRJZ92iSkoHiw=" crossorigin="anonymous">
+  <script defer src="/www6vMiddleware/fuse.min.js"></script>
+  <script defer src="/www6vMiddleware/en.search.min.f6813f7eef06cff0da9e0cee91e7083d3b28a78c3d9761745c2f9bfbe926ffe8.js" integrity="sha256-9oE/fu8Gz/DangzukecIPTsop4w9l2F0XC&#43;b&#43;&#43;km/&#43;g=" crossorigin="anonymous"></script>
+
+  
+
+<link rel="alternate" type="application/rss+xml" href="https://www6v.github.io/www6vMiddleware/docs/Redis+%E7%BC%93%E5%AD%98/Redis-%E5%9F%BA%E7%A1%80/Arch-Redis-Cluster/redisClusterSpec/index.xml" title="中间件" />
+<!--
+Made with Book Theme
+https://github.com/alex-shpak/hugo-book
+-->
+  
+</head>
+<body dir="ltr">
+  <input type="checkbox" class="hidden toggle" id="menu-control" />
+  <input type="checkbox" class="hidden toggle" id="toc-control" />
+  <main class="container flex">
+    <aside class="book-menu">
+      <div class="book-menu-content">
+        
+  <nav>
+<h2 class="book-brand">
+  <a class="flex align-center" href="/www6vMiddleware/"><span>中间件</span>
+  </a>
+</h2>
+
+
+<div class="book-search hidden">
+  <input type="text" id="book-search-input" placeholder="Search" aria-label="Search" maxlength="64" data-hotkeys="s/" />
+  <div class="book-search-spinner hidden"></div>
+  <ul id="book-search-results"></ul>
+</div>
+<script>document.querySelector(".book-search").classList.remove("hidden")</script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  <ul>
+    
+      
+        <li class="book-section-flat" >
+          
+  
+  
+
+  
+    <input type="checkbox" id="section-b13c95c069c614e8c16265f1c191a430" class="toggle"  />
+    <label for="section-b13c95c069c614e8c16265f1c191a430" class="flex justify-between">
+      <a role="button" class="">服务治理</a>
+    </label>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <span>Overview</span>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMiddleware/docs/serviceGovernance/Overview/microservice/" class="">微服务 总结</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMiddleware/docs/serviceGovernance/Overview/soaFeature/" class="">分布式服务框架功能</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <span>API Gateway</span>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMiddleware/docs/serviceGovernance/API-Gateway/apiGatawaySpringGateway/" class="">API 网关-SpringCloud Gateway</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMiddleware/docs/serviceGovernance/API-Gateway/apiGatawayApisix/" class="">API 网关-apisix</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMiddleware/docs/serviceGovernance/API-Gateway/apiGateway/" class="">API Gateway网关</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <span>Config &amp; Discovery</span>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMiddleware/docs/serviceGovernance/ConfigDiscovery/soaDiscovery/" class="">服务发现</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMiddleware/docs/serviceGovernance/ConfigDiscovery/config/" class="">服务治理-分布式配置</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <span>负载均衡</span>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMiddleware/docs/serviceGovernance/loadBalance/loadBalance/" class="">负载均衡-算法</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMiddleware/docs/serviceGovernance/loadBalance/nginxOptimize/" class="">Nginx优化</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMiddleware/docs/serviceGovernance/loadBalance/nginx/" class="">Nginx总结</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <span>线程模型</span>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMiddleware/docs/serviceGovernance/threadModel/jsfThreadModel/" class="">京东服务框架JSF服务提供者线程模型</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <span>容错&amp;限流</span>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <span>容错</span>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMiddleware/docs/serviceGovernance/faultTolerant/faultTolerant/soaTolerateFramework/" class="">容错框架</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMiddleware/docs/serviceGovernance/faultTolerant/faultTolerant/soaTimeout/" class="">超时和重试 总结</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMiddleware/docs/serviceGovernance/faultTolerant/faultTolerant/soaTolerate/" class="">分布式服务框架 容错机制</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <span>限流</span>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMiddleware/docs/serviceGovernance/faultTolerant/throttle/ratelimitSentinel/" class="">流量治理-Sentinel</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMiddleware/docs/serviceGovernance/faultTolerant/throttle/ratelimit/" class="">限流-总结</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMiddleware/docs/serviceGovernance/faultTolerant/soaGracefulStart/" class="">优雅启动</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMiddleware/docs/serviceGovernance/faultTolerant/soaGracefulClose/" class="">优雅关闭</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <span>Spring Cloud</span>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMiddleware/docs/serviceGovernance/Springcloud/springTransactionInvalid/" class="">Spring  Transaction  失效</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMiddleware/docs/serviceGovernance/Springcloud/springCloud/" class="">SpringCloud</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMiddleware/docs/serviceGovernance/Springcloud/springboot/" class="">SpringBoot</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMiddleware/docs/serviceGovernance/Springcloud/springTransaction/" class="">Spring事务</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <span>灰度发布</span>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMiddleware/docs/serviceGovernance/Gray/apiGatewayGray/" class="">API 网关-灰度发布</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <span>安全</span>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMiddleware/docs/serviceGovernance/security/soaAuth/" class="">服务治理-鉴权</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMiddleware/docs/serviceGovernance/security/securityOAuth2/" class="">安全-OAuth2</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li class="book-section-flat" >
+          
+  
+  
+
+  
+    <input type="checkbox" id="section-619f87396da4f22c9e982ebbcfb80a1d" class="toggle"  />
+    <label for="section-619f87396da4f22c9e982ebbcfb80a1d" class="flex justify-between">
+      <a role="button" class="">消息系统</a>
+    </label>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <span>Overview</span>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMiddleware/docs/message/Overview/mq/" class="">消息中间件总结</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMiddleware/docs/message/Overview/mqCompare/" class="">MQ总结(Kafka, Rocketmq, Rabbitmq)</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMiddleware/docs/message/Overview/mqOrdering/" class="">消息系统 顺序消息</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <span>Kafka</span>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMiddleware/docs/message/Kafka/kafka/" class="">Kafka总结</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMiddleware/docs/message/Kafka/kafkaProducer/" class="">Kafka Producer生产者</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMiddleware/docs/message/Kafka/kafkaConsumer/" class="">Kafka消费者总结</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMiddleware/docs/message/Kafka/kafkaRebalance/" class="">Kafka消费者-Rebalance机制</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMiddleware/docs/message/Kafka/kafkaReliability/" class="">Kafka 可靠性总结</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMiddleware/docs/message/Kafka/kafkaIndex/" class="">Kafka 索引</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMiddleware/docs/message/Kafka/kafkaZeroCopy/" class="">Kafka-ZeroCopy</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMiddleware/docs/message/Kafka/kafkaController/" class="">Kafka Controller-控制器</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMiddleware/docs/message/Kafka/kafkaReplica/" class="">Kafka Replication-副本机制</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMiddleware/docs/message/Kafka/kafkaElection/" class="">Kafka 中的选主</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMiddleware/docs/message/Kafka/kafkaQ-A/" class="">Kafka  Q&amp;A</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMiddleware/docs/message/Kafka/kafkaTransaction/" class="">Kafka 幂等性和事务</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li class="book-section-flat" >
+          
+  
+  
+
+  
+    <input type="checkbox" id="section-c8ef6724255360cd9e1bb212713f9134" class="toggle"  />
+    <label for="section-c8ef6724255360cd9e1bb212713f9134" class="flex justify-between">
+      <a role="button" class="">关系型数据库</a>
+    </label>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <span>单机</span>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMiddleware/docs/RMDB/%E5%8D%95%E6%9C%BA/mysqlTransactionAndLock/" class="">MySQL 事务-隔离性</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMiddleware/docs/RMDB/%E5%8D%95%E6%9C%BA/mysqlUpdate/" class="">MySQL中的SQL更新语句</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMiddleware/docs/RMDB/%E5%8D%95%E6%9C%BA/mysqlReliability/" class="">MySQL的主从 高可用 容灾</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMiddleware/docs/RMDB/%E5%8D%95%E6%9C%BA/mysqlIndex/" class="">MySQL的索引和优化</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMiddleware/docs/RMDB/%E5%8D%95%E6%9C%BA/mysqlTransaction/" class="">MySQL事务-总结</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMiddleware/docs/RMDB/%E5%8D%95%E6%9C%BA/mysqlLog/" class="">MySQL Logs</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMiddleware/docs/RMDB/%E5%8D%95%E6%9C%BA/mysqlDeadLock/" class="">MySQL  锁和死锁</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMiddleware/docs/RMDB/%E5%8D%95%E6%9C%BA/mysqlMasterSlaveDelay/" class="">MySQL 主从延迟</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <span>分布式</span>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMiddleware/docs/RMDB/%E5%88%86%E5%B8%83%E5%BC%8F/distributedDatabase/" class="">分布式 数据库 总结</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMiddleware/docs/RMDB/%E5%88%86%E5%B8%83%E5%BC%8F/distributedDatabaseCompare/" class="">分布式 数据库 比较</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMiddleware/docs/RMDB/%E5%88%86%E5%B8%83%E5%BC%8F/tikvMVCCTransaction/" class="">TiKV Transaction-MVCC&#43;TSO</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMiddleware/docs/RMDB/%E5%88%86%E5%B8%83%E5%BC%8F/distributedDatabaseGlobalTime/" class="">分布式数据库-全局时钟</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMiddleware/docs/RMDB/%E5%88%86%E5%B8%83%E5%BC%8F/distributedDatabaseJoinQuery/" class="">数据库  关联查询</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMiddleware/docs/RMDB/%E5%88%86%E5%B8%83%E5%BC%8F/globalSecondaryIndex/" class="">全局二级索引-GSI</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li class="book-section-flat" >
+          
+  
+  
+
+  
+    <input type="checkbox" id="section-10fff53c331fc90701f5c89a3d268231" class="toggle" checked />
+    <label for="section-10fff53c331fc90701f5c89a3d268231" class="flex justify-between">
+      <a role="button" class="">Redis&#43;缓存</a>
+    </label>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <span>Redis 基础</span>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <span>overview</span>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMiddleware/docs/Redis&#43;%E7%BC%93%E5%AD%98/Redis-%E5%9F%BA%E7%A1%80/overview/redis/" class="">Redis 总结</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMiddleware/docs/Redis&#43;%E7%BC%93%E5%AD%98/Redis-%E5%9F%BA%E7%A1%80/overview/redisIO/" class="">Redis 的IO模型</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <span>Arch &amp; Redis Cluster</span>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMiddleware/docs/Redis&#43;%E7%BC%93%E5%AD%98/Redis-%E5%9F%BA%E7%A1%80/Arch-Redis-Cluster/redisArch/" class="">Redis 架构</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMiddleware/docs/Redis&#43;%E7%BC%93%E5%AD%98/Redis-%E5%9F%BA%E7%A1%80/Arch-Redis-Cluster/redisError/" class="">Redis Error-MOVED和ASK指令</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMiddleware/docs/Redis&#43;%E7%BC%93%E5%AD%98/Redis-%E5%9F%BA%E7%A1%80/Arch-Redis-Cluster/redisCluster/" class="">Redis Cluster</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMiddleware/docs/Redis&#43;%E7%BC%93%E5%AD%98/Redis-%E5%9F%BA%E7%A1%80/Arch-Redis-Cluster/redisClusterSpec/" class="active">Redis Cluster Spec</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMiddleware/docs/Redis&#43;%E7%BC%93%E5%AD%98/Redis-%E5%9F%BA%E7%A1%80/Arch-Redis-Cluster/redisHA/" class="">Redis 集群  容灾（同城多活）</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</nav>
+
+
+
+
+  <script>(function(){var e=document.querySelector("aside .book-menu-content");addEventListener("beforeunload",function(){localStorage.setItem("menu.scrollTop",e.scrollTop)}),e.scrollTop=localStorage.getItem("menu.scrollTop")})()</script>
+
+
+ 
+      </div>
+    </aside>
+
+    <div class="book-page">
+      <header class="book-header">
+        
+  <div class="flex align-center justify-between">
+  <label for="menu-control">
+    <img src="/www6vMiddleware/svg/menu.svg" class="book-icon" alt="Menu" />
+  </label>
+
+  <h3>Redis Cluster Spec</h3>
+
+  <label for="toc-control">
+    
+    <img src="/www6vMiddleware/svg/toc.svg" class="book-icon" alt="Table of Contents" />
+    
+  </label>
+</div>
+
+
+  
+  <aside class="hidden clearfix">
+    
+  
+<nav id="TableOfContents">
+  <ul>
+    <li>
+      <ul>
+        <li><a href="#目录">目录</a></li>
+      </ul>
+    </li>
+    <li><a href="#设计目标和基本原理bing">设计目标和基本原理[bing]</a>
+      <ul>
+        <li>
+          <ul>
+            <li><a href="#高性能和线性扩展">高性能和线性扩展</a></li>
+            <li><a href="#可接受的写安全性">可接受的写安全性</a></li>
+            <li><a href="#可用性">可用性</a></li>
+            <li><a href="#哈希槽分配">哈希槽分配</a></li>
+            <li><a href="#节点间通信">节点间通信</a></li>
+            <li><a href="#客户端重定向">客户端重定向</a></li>
+            <li><a href="#哈希槽迁移">哈希槽迁移</a></li>
+            <li><a href="#故障检测和副本提升">故障检测和副本提升</a></li>
+          </ul>
+        </li>
+      </ul>
+    </li>
+    <li><a href="#副本选举和配置传播的机制bing">副本选举和配置传播的机制[bing]</a>
+      <ul>
+        <li>
+          <ul>
+            <li><a href="#副本选举">副本选举</a></li>
+            <li><a href="#配置传播">配置传播</a></li>
+            <li><a href="#节点重置和遗忘">节点重置和遗忘</a></li>
+            <li><a href="#发布订阅">发布订阅</a></li>
+            <li><a href="#crc16算法">CRC16算法</a></li>
+          </ul>
+        </li>
+      </ul>
+    </li>
+    <li><a href="#参考">参考</a></li>
+  </ul>
+</nav>
+
+
+
+  </aside>
+  
+ 
+      </header>
+
+      
+      
+  <article class="markdown book-article"><p></p>
+<!-- more -->
+<h2 id="目录">
+  目录
+  <a class="anchor" href="#%e7%9b%ae%e5%bd%95">#</a>
+</h2>
+<!-- toc -->
+<h1 id="设计目标和基本原理bing">
+  设计目标和基本原理[bing]
+  <a class="anchor" href="#%e8%ae%be%e8%ae%a1%e7%9b%ae%e6%a0%87%e5%92%8c%e5%9f%ba%e6%9c%ac%e5%8e%9f%e7%90%86bing">#</a>
+</h1>
+<h3 id="高性能和线性扩展">
+  高性能和线性扩展
+  <a class="anchor" href="#%e9%ab%98%e6%80%a7%e8%83%bd%e5%92%8c%e7%ba%bf%e6%80%a7%e6%89%a9%e5%b1%95">#</a>
+</h3>
+<p>Redis集群可以支持到<strong>1000个节点</strong>，使用异步复制和无代理的架构，避免了值合并的开销。</p>
+<h3 id="可接受的写安全性">
+  可接受的写安全性
+  <a class="anchor" href="#%e5%8f%af%e6%8e%a5%e5%8f%97%e7%9a%84%e5%86%99%e5%ae%89%e5%85%a8%e6%80%a7">#</a>
+</h3>
+<p>Redis集群尽力保留与大多数主节点连接的客户端的写操作，但在<strong>分区窗口期内</strong>可能会<strong>丢失已确认的写操作</strong>。</p>
+<h3 id="可用性">
+  可用性
+  <a class="anchor" href="#%e5%8f%af%e7%94%a8%e6%80%a7">#</a>
+</h3>
+<p>Redis集群可以在大多数主节点可达且每个不可达主节点至少有一个可达副本的情况下存活，并且可以通过副本迁移来提高抗故障能力。</p>
+<h3 id="哈希槽分配">
+  哈希槽分配
+  <a class="anchor" href="#%e5%93%88%e5%b8%8c%e6%a7%bd%e5%88%86%e9%85%8d">#</a>
+</h3>
+<p>Redis集群将<strong>16384个哈希槽</strong>分配给不同的主节点，每个主节点负责存储和服务一部分哈希槽。客户端可以通过计算键的CRC16值对16384取模来得到对应的哈希槽。也可以使用哈希标签来强制将多个键分配到同一个哈希槽，以支持多键操作。</p>
+<h3 id="节点间通信">
+  节点间通信
+  <a class="anchor" href="#%e8%8a%82%e7%82%b9%e9%97%b4%e9%80%9a%e4%bf%a1">#</a>
+</h3>
+<p>Redis集群节点之间使用一个TCP端口和一个二进制协议进行通信，称为集群总线。每个节点都与其他所有节点连接，使用<strong>gossip协议</strong>来传播集群的信息，如新节点、故障节点、配置变化等。</p>
+<h3 id="客户端重定向">
+  客户端重定向
+  <a class="anchor" href="#%e5%ae%a2%e6%88%b7%e7%ab%af%e9%87%8d%e5%ae%9a%e5%90%91">#</a>
+</h3>
+<p>Redis集群节点不会代理请求，而是根据自己的哈希槽映射表，将客户端重定向到正确的节点。客户端可能收到<strong>MOVED或ASK错误</strong>，表示需要重新发送请求到另一个节点。MOVED表示哈希槽被永久地分配给了另一个节点，ASK表示哈希槽正在被迁移，需要发送ASKING命令后再发送请求。</p>
+<h3 id="哈希槽迁移">
+  哈希槽迁移
+  <a class="anchor" href="#%e5%93%88%e5%b8%8c%e6%a7%bd%e8%bf%81%e7%a7%bb">#</a>
+</h3>
+<p>Redis集群支持在运行时添加和删除节点，这是通过将哈希槽从一个节点移动到另一个节点来实现的。迁移过程中，源节点会将接收到的关于该哈希槽的请求重定向到目标节点，或者直接处理已存在键的请求。目标节点会接收到源节点通过MIGRATE命令发送过来的键，并在迁移完成后更新自己的配置。</p>
+<h3 id="故障检测和副本提升">
+  故障检测和副本提升
+  <a class="anchor" href="#%e6%95%85%e9%9a%9c%e6%a3%80%e6%b5%8b%e5%92%8c%e5%89%af%e6%9c%ac%e6%8f%90%e5%8d%87">#</a>
+</h3>
+<p>Redis集群使用心跳包和gossip协议来检测节点是否可达，并使用<strong>PFAIL和FAIL</strong>两种标志来表示故障状态。当一个主节点被大多数主节点标记为FAIL时，它的一个副本会发起选举并请求投票。如果获得了大多数主节点的授权，该副本会提升为主节点，并生成一个新的配置版本号（configEpoch）。</p>
+<h1 id="副本选举和配置传播的机制bing">
+  副本选举和配置传播的机制[bing]
+  <a class="anchor" href="#%e5%89%af%e6%9c%ac%e9%80%89%e4%b8%be%e5%92%8c%e9%85%8d%e7%bd%ae%e4%bc%a0%e6%92%ad%e7%9a%84%e6%9c%ba%e5%88%b6bing">#</a>
+</h1>
+<h3 id="副本选举">
+  副本选举
+  <a class="anchor" href="#%e5%89%af%e6%9c%ac%e9%80%89%e4%b8%be">#</a>
+</h3>
+<p>当一个主节点失效时，它的一个副本会尝试发起选举，向其他主节点发送授权请求。如果获得了大多数主节点的回复，它就赢得了选举，并获得了一个新的唯一的配置版本号（configEpoch）。它会开始以主节点的身份广播心跳包，并通知其他节点更新配置。</p>
+<h3 id="配置传播">
+  配置传播
+  <a class="anchor" href="#%e9%85%8d%e7%bd%ae%e4%bc%a0%e6%92%ad">#</a>
+</h3>
+<p>当一个节点收到一个心跳包或UPDATE消息时，它会根据一些规则来更新自己的哈希槽映射表。如果一个哈希槽是未分配的，或者有一个新的节点使用更高的configEpoch来声明它，那么接收者会将该哈希槽绑定到新的节点。这样可以保证最后一次故障转移胜出，并且所有节点最终会达成一致。</p>
+<h3 id="节点重置和遗忘">
+  节点重置和遗忘
+  <a class="anchor" href="#%e8%8a%82%e7%82%b9%e9%87%8d%e7%bd%ae%e5%92%8c%e9%81%97%e5%bf%98">#</a>
+</h3>
+<p>当一个节点需要从一个集群中移除或加入到另一个集群时，可以使用<strong>CLUSTER RESET</strong>命令来重置它的状态。这个命令有<strong>两种模式：软重置和硬重置</strong>。软重置会保留当前的configEpoch，而硬重置会将其设置为0。当一个节点被移除后，其他节点需要使用<strong>CLUSTER FORGET</strong>命令来删除它在节点表中的条目，并设置一个60秒的禁止期，防止因为gossip协议而重新添加它。</p>
+<h3 id="发布订阅">
+  发布订阅
+  <a class="anchor" href="#%e5%8f%91%e5%b8%83%e8%ae%a2%e9%98%85">#</a>
+</h3>
+<p>Redis集群支持发布订阅功能，客户端可以向任何节点发送SUBSCRIBE或PUBLISH命令。集群会将发布的消息转发到所有其他节点。Redis 7.0及以后版本还支持分片发布订阅功能，其中分片频道根据与键相同的算法分配到哈希槽。分片消息必须发送到拥有该哈希槽的节点，集群会将发布的分片消息转发到该哈希槽所在的分片中的所有节点。</p>
+<h3 id="crc16算法">
+  CRC16算法
+  <a class="anchor" href="#crc16%e7%ae%97%e6%b3%95">#</a>
+</h3>
+<p>这篇文章最后给出了计算键对应哈希槽的CRC16算法的C语言实现代码。这个算法使用了1021作为多项式，并且不反转输入输出字节。</p>
+<h1 id="参考">
+  参考
+  <a class="anchor" href="#%e5%8f%82%e8%80%83">#</a>
+</h1>
+<p><a href="https://redis.io/docs/reference/cluster-spec/">Redis cluster specification</a> ***</p>
+</article>
+ 
+      
+
+      <footer class="book-footer">
+        
+  <div class="flex flex-wrap justify-between">
+
+
+
+
+
+</div>
+
+
+
+  <script>(function(){function e(e){const t=window.getSelection(),n=document.createRange();n.selectNodeContents(e),t.removeAllRanges(),t.addRange(n)}document.querySelectorAll("pre code").forEach(t=>{t.addEventListener("click",function(){if(window.getSelection().toString())return;e(t.parentElement),navigator.clipboard&&navigator.clipboard.writeText(t.parentElement.textContent)})})})()</script>
+
+
+ 
+        
+      </footer>
+
+      
+  
+  <div class="book-comments">
+
+</div>
+  
+ 
+
+      <label for="menu-control" class="hidden book-menu-overlay"></label>
+    </div>
+
+    
+    <aside class="book-toc">
+      <div class="book-toc-content">
+        
+  
+<nav id="TableOfContents">
+  <ul>
+    <li>
+      <ul>
+        <li><a href="#目录">目录</a></li>
+      </ul>
+    </li>
+    <li><a href="#设计目标和基本原理bing">设计目标和基本原理[bing]</a>
+      <ul>
+        <li>
+          <ul>
+            <li><a href="#高性能和线性扩展">高性能和线性扩展</a></li>
+            <li><a href="#可接受的写安全性">可接受的写安全性</a></li>
+            <li><a href="#可用性">可用性</a></li>
+            <li><a href="#哈希槽分配">哈希槽分配</a></li>
+            <li><a href="#节点间通信">节点间通信</a></li>
+            <li><a href="#客户端重定向">客户端重定向</a></li>
+            <li><a href="#哈希槽迁移">哈希槽迁移</a></li>
+            <li><a href="#故障检测和副本提升">故障检测和副本提升</a></li>
+          </ul>
+        </li>
+      </ul>
+    </li>
+    <li><a href="#副本选举和配置传播的机制bing">副本选举和配置传播的机制[bing]</a>
+      <ul>
+        <li>
+          <ul>
+            <li><a href="#副本选举">副本选举</a></li>
+            <li><a href="#配置传播">配置传播</a></li>
+            <li><a href="#节点重置和遗忘">节点重置和遗忘</a></li>
+            <li><a href="#发布订阅">发布订阅</a></li>
+            <li><a href="#crc16算法">CRC16算法</a></li>
+          </ul>
+        </li>
+      </ul>
+    </li>
+    <li><a href="#参考">参考</a></li>
+  </ul>
+</nav>
+
+
+ 
+      </div>
+    </aside>
+    
+  </main>
+
+  
+</body>
+</html>
+
+
+
+
+
+
+
+
+
+
+
+
