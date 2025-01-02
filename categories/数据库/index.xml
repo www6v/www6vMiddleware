@@ -16,6 +16,13 @@
       <description>参考&#xD;#&#xD;&amp;laquo;分布式数据库30讲&amp;raquo;&#xA;{% post_link &amp;lsquo;distributedDatabaseGlobalTime&amp;rsquo; %} self</description>
     </item>
     <item>
+      <title>Redis Rehash机制</title>
+      <link>https://www6v.github.io/www6vMiddleware/docs/Redis&#43;%E7%BC%93%E5%AD%98/Redis-%E5%9F%BA%E7%A1%80/%E6%95%B0%E6%8D%AE%E7%B1%BB%E5%9E%8B/redisRehash/</link>
+      <pubDate>Sun, 20 Jun 2021 22:50:50 +0000</pubDate>
+      <guid>https://www6v.github.io/www6vMiddleware/docs/Redis&#43;%E7%BC%93%E5%AD%98/Redis-%E5%9F%BA%E7%A1%80/%E6%95%B0%E6%8D%AE%E7%B1%BB%E5%9E%8B/redisRehash/</guid>
+      <description>&#xA;什么时候触发 rehash？&#xD;#&#xD;，_dictExpandIfNeeded 函数中定义了三个扩容条件。 下面的代码就展示了 _dictExpandIfNeeded 函数对这三个条件的定义，你可以看下。 条件一：ht[0]的大小为 0。 条件二：ht[0]承载的元素个数已经超过了 ht[0]的大小，同时 Hash 表可以进行扩容。 条件三：ht[0]承载的元素个数，是 ht[0]的大小的 dict_force_resize_ratio 倍，其中， dict_force_resize_ratio 的默认值是 5。&#xA;rehash 扩容扩多大？&#xD;#&#xD;对 Hash表扩容的思路也很简单，就是如果当前表的已用空间大小为 size，那么就将表扩容到 size*2 的大小。&#xA;rehash 如何执行？&#xD;#&#xD;其实这是因为，Hash 表在执行 rehash 时，由于 Hash 表空间扩大，原本映射到某一位置 的键可能会被映射到一个新的位置上，因此，很多键就需要从原来的位置拷贝到新的位 置。而在键拷贝时，由于 Redis 主线程无法执行其他请求，所以键拷贝会阻塞主线程，这 样就会产生 rehash 开销。&#xA;而为了降低 rehash 开销，Redis 就提出了渐进式 rehash 的方法。&#xA;dictRehash 的主要执行流程&#xD;#&#xD;</description>
+    </item>
+    <item>
       <title>Redis 架构</title>
       <link>https://www6v.github.io/www6vMiddleware/docs/Redis&#43;%E7%BC%93%E5%AD%98/Redis-%E5%9F%BA%E7%A1%80/Arch-Redis-Cluster/redisArch/</link>
       <pubDate>Tue, 25 May 2021 18:35:49 +0000</pubDate>
@@ -56,6 +63,13 @@
       <pubDate>Tue, 18 Jan 2022 21:28:08 +0000</pubDate>
       <guid>https://www6v.github.io/www6vMiddleware/docs/Redis&#43;%E7%BC%93%E5%AD%98/Redis-%E5%9F%BA%E7%A1%80/overview/redisIO/</guid>
       <description>关键词： 单线程，事件， socket， 多路复用&#xD;#&#xD;Redis 的IO模型&#xD;#&#xD;Redis 是单线程，主要是指 Redis 的网络 IO 和键值对读写是由一个线程来完成的，这也是 Redis 对外提供键值存储服务的主要流程。 但 Redis 的其他功能，比如持久化、异步删除、集群数据同步等，其实是由额外的线程执 行的。&#xA;多路复用&#xD;#&#xD;Linux 中的 IO 多路复用机制是指一个线程处理多个 IO 流，就是我们经常听到的 select/epoll 机制。简单来说，在 Redis 只运行单线程的情况下，该机制允许内核中，同 时存在多个监听套接字和已连接套接字。内核会一直监听这些套接字上的连接请求或数据 请求。一旦有请求到达，就会交给 Redis 线程处理，这就实现了一个 Redis 线程处理多个 IO 流的效果。&#xA;为了在请求到达时能通知到 Redis 线程，select/epoll 提供了基于事件的回调机制，即针 对不同事件的发生，调用相应的处理函数。&#xA;epoll的API&#xD;#&#xD;int epoll_create(int size); int epoll_ctl(int epfd, int op, int fd, struct epoll_event *event); // 事件注册 int epoll_wait(int epfd, struct epoll_event * events, int maxevents, int timeout); // 事件分配、事件处理</description>
+    </item>
+    <item>
+      <title>Redis数据结构</title>
+      <link>https://www6v.github.io/www6vMiddleware/docs/Redis&#43;%E7%BC%93%E5%AD%98/Redis-%E5%9F%BA%E7%A1%80/%E6%95%B0%E6%8D%AE%E7%B1%BB%E5%9E%8B/redisDataStructure/</link>
+      <pubDate>Wed, 05 May 2021 22:25:55 +0000</pubDate>
+      <guid>https://www6v.github.io/www6vMiddleware/docs/Redis&#43;%E7%BC%93%E5%AD%98/Redis-%E5%9F%BA%E7%A1%80/%E6%95%B0%E6%8D%AE%E7%B1%BB%E5%9E%8B/redisDataStructure/</guid>
+      <description>数据结构和实现&#xD;#&#xD;数据结构 基础 优化 特点 String SDS List 双向列表 压缩列表 Hash hash表 压缩列表 渐进式rehash SortedSet 跳表 压缩列表 Set 整数数组 全局hash表 &amp;amp;&amp;amp; 渐进式 rehash&#xD;#&#xD;参考：&#xD;#&#xD;02 | 数据结构:快速的Redis有哪些慢操作?</description>
     </item>
     <item>
       <title>MySQL中的SQL更新语句</title>
@@ -154,6 +168,55 @@
       <pubDate>Tue, 16 Aug 2022 16:01:58 +0000</pubDate>
       <guid>https://www6v.github.io/www6vMiddleware/docs/RMDB/%E5%8D%95%E6%9C%BA/mysqlMasterSlaveDelay/</guid>
       <description>&#xA;案例 [1]&#xD;#&#xD;案例一：主库DML请求频繁&#xD;#&#xD;解决思路 如果是MySQL 5.7以下的版本，可以做分片(sharding)，通过水平扩展(scale out)的方法打散写请求，提升写请求写入binlog的并行度。 MySQL 5.7以上的版本， 在MySQL 5.7，使用了基于逻辑时钟(Group Commit)的并行复制。 而在MySQL 8.0，使用了基于Write Set的并行复制。 案例二：主库执行大事务&#xD;#&#xD;解决思路 拆分大事务语句到若干小事务中，这样能够进行及时提交，减小主从复制延时。 案例三：主库对大表执行DDL语句&#xD;#&#xD;解决思路 避免业务高峰，尽量安排在业务低峰期执行 ； set sql_log_bin=0后，分别在主从库上手动执行DDL（此操作对于某些DDL操作会造成数据不一致，请务必严格测试） 参考&#xD;#&#xD;高可用数据库主从复制延时的解决方案 《26 | 备库为什么会延迟好几个小时？》 未 </description>
+    </item>
+    <item>
+      <title>Redis 混合持久化</title>
+      <link>https://www6v.github.io/www6vMiddleware/docs/Redis&#43;%E7%BC%93%E5%AD%98/Redis-%E5%9F%BA%E7%A1%80/%E6%8C%81%E4%B9%85%E5%8C%96/redisBothAofAndRDB/</link>
+      <pubDate>Mon, 10 Jul 2023 15:48:29 +0000</pubDate>
+      <guid>https://www6v.github.io/www6vMiddleware/docs/Redis&#43;%E7%BC%93%E5%AD%98/Redis-%E5%9F%BA%E7%A1%80/%E6%8C%81%E4%B9%85%E5%8C%96/redisBothAofAndRDB/</guid>
+      <description>&#xA;Redis 混合持久化&#xD;#&#xD;数据恢复顺序和加载流程 [2][3]&#xD;#&#xD;在这种情况下， 当redis重启的时候会优先载入AOF文件来恢复原始的数据 ，因为在通常情况下AOF文件保存的数据集要比RDB文件保存的数据集要完整。&#xA;RDB和AOF共存时会优先加载AOF文件&#xA;【主从切换 优先加载 RDB -&amp;gt; 速度】 【redis重启 优先加载 AOF -&amp;gt; 数据完整性】&#xA;开启&#xD;#&#xD;aof-use-rdb-preamble no -&amp;gt; yes 原理 [3]&#xD;#&#xD;RDB镜像做全量持久化，AOF做增量持久化 先使用RDB进行快照存储，然后使用AOF持久化记录所有的写操作，当重写策略满足或手动触发重写的时候，将最新的数据存储为新的RDB记录。 这样的话，重启服务的时候会从RDB和AOF两部分恢复数据，既保证了数据完整性，又提高了恢复数据的性能。简单来说:混合持久化方式产生的文件一部分是RDB格式，一部分是AOF格式。&#xA;AOF+RDB混合[1]&#xD;#&#xD;而混合使用 RDB 和 AOF，正好可以取两者之长，避两者之短，以较小的性能开销保证数据可靠性和性能。&#xA;参考&#xD;#&#xD;《05丨内存快照：宕机后，Redis如何实现快速恢复？》 redis++：Redis持久化 rdb &amp;amp; aof 工作原理及流程图 （三） RDB-AOF混合持久化 尚硅谷Redis零基础到进阶，最强redis7教程，阳哥亲自带练（附redis面试题） </description>
+    </item>
+    <item>
+      <title>Redis 主从复制</title>
+      <link>https://www6v.github.io/www6vMiddleware/docs/Redis&#43;%E7%BC%93%E5%AD%98/Redis-%E5%9F%BA%E7%A1%80/%E6%8C%81%E4%B9%85%E5%8C%96/redisReplica/</link>
+      <pubDate>Sun, 10 Jul 2022 19:04:46 +0000</pubDate>
+      <guid>https://www6v.github.io/www6vMiddleware/docs/Redis&#43;%E7%BC%93%E5%AD%98/Redis-%E5%9F%BA%E7%A1%80/%E6%8C%81%E4%B9%85%E5%8C%96/redisReplica/</guid>
+      <description>&#xA;主从复制流程&#xD;#&#xD;主从库第一次同步的流程&#xD;#&#xD;主从库增量复制流程&#xD;#&#xD;repl_backlog_buffer 是一个环形缓冲区，主库会记录自己写到的位置，从库则会记录自己 已经读到的位置。&#xA;缺点 [3]&#xD;#&#xD;主从延迟 复制偏移量：master_repl_offset | slave_repl_offset master挂了怎么办？ 默认情况下，不会在slave节点中自动选一个master 每次都要人工干预 需要Redis哨兵(sentinel) 参考&#xD;#&#xD;《06 | 数据同步：主从库如何实现数据一致？》 redis主从复制、主从延迟知几何 复制原理和工作流程 61_redis主从复制之工作流程总结 V 62_redis主从复制之痛点和改进需求 V </description>
+    </item>
+    <item>
+      <title>Redis AOF</title>
+      <link>https://www6v.github.io/www6vMiddleware/docs/Redis&#43;%E7%BC%93%E5%AD%98/Redis-%E5%9F%BA%E7%A1%80/%E6%8C%81%E4%B9%85%E5%8C%96/redisAOF/</link>
+      <pubDate>Tue, 18 Jan 2022 22:21:15 +0000</pubDate>
+      <guid>https://www6v.github.io/www6vMiddleware/docs/Redis&#43;%E7%BC%93%E5%AD%98/Redis-%E5%9F%BA%E7%A1%80/%E6%8C%81%E4%B9%85%E5%8C%96/redisAOF/</guid>
+      <description>AOF&#xD;#&#xD;定义[1]&#xD;#&#xD;[AOF不是WAL，是先操作，后记录日志。]&#xA;传统数据库的日志，例如 redo log(重做日志)，记录的是修改后的数据，而AOF里记录的是Redis收到的每一条命令，这些命令是以文本形式保存的。&#xA;AOF 日志正好相反，它是写后日志，“写后”的意思是 Redis 是先执行命令，把数据写入内存，然后才记录日志。&#xA;而写后日志这种方式，就是先让系统执行命令，只有命令能执行成功，才会被记录到日志中，否则，系统就会直接向客户端报错。 所以，Redis 使用写后日志这一方式的一大好处是，可以避免出现记录错误命令的情况。&#xA;AOF 还有一个好处：它是在命令执行后才记录日志，所以不会阻塞当前的写操作。&#xA;AOF 是 写前日志&#xA;两个潜在的风险 [1]&#xD;#&#xD;如果刚执行完一个命令，还没有来得及记日志就宕机了，那么这个命令和相应的数 据就有丢失的风险. AOF 日志也是在主线程中执行的，如果在把日志文件写入磁盘时，磁盘写压力大，就 会导致写盘很慢，进而导致后续的操作也无法执行了. 三种写回策略 [1]&#xD;#&#xD;AOF 配置项 - appendfsync 的三个可选值 Always，同步写回：每个写命令执行完，立马同步地将日志写回磁盘； Everysec，每秒写回：每个写命令执行完，只是先把日志写到 AOF 文件的内存缓冲区，每隔一秒把缓冲区中的内容写入磁盘； No，操作系统控制的写回：每个写命令执行完，只是先把日志写到 AOF 文件的内存缓冲区，由操作系统决定何时将缓冲区内容写回磁盘。 关闭AOF落盘 [2]&#xD;#&#xD;AOF落盘会带来一定写性能损耗，如果将Redis实例应用于纯缓存场景中，对数据持久化没有需求，您可以按照本章节的说明，修改appendonly参数的值，关闭AOF落盘。&#xA;AOF Rewrite过程&#xD;#&#xD;功能 压缩AOF文件的大小&#xA;AOF Rewrite过程 [1] 非阻塞的重写&#xA;一个拷贝，两处日志 [1] 触发机制 [4]&#xA;手动触发 bgrewriteaof 命令 自动触发 AOF文件大小 参考&#xD;#&#xD;《04 | AOF日志:宕机了，Redis如何避免数据丢失?</description>
+    </item>
+    <item>
+      <title>Redis 事务</title>
+      <link>https://www6v.github.io/www6vMiddleware/docs/Redis&#43;%E7%BC%93%E5%AD%98/Redis-%E5%9F%BA%E7%A1%80/%E4%BA%8B%E5%8A%A1/redisTransaction/</link>
+      <pubDate>Tue, 18 Jan 2022 21:54:01 +0000</pubDate>
+      <guid>https://www6v.github.io/www6vMiddleware/docs/Redis&#43;%E7%BC%93%E5%AD%98/Redis-%E5%9F%BA%E7%A1%80/%E4%BA%8B%E5%8A%A1/redisTransaction/</guid>
+      <description>事务的 ACID 属性是我们使用事务进行正确操作的基本要求。&#xA;Redis 的事务机制可以保证一致性和隔离性，但是无法保证持久性。&#xA;不过，因为 Redis 本身是内存数据库，持久性并不是一个必须的属性，我们更加关注的还是原子性、 一致性和隔离性这三个属性。&#xA;原子性的情况比较复杂，只有当事务中使用的命令语法有误时，原子性得不到保证，在其它情况下，事务都可以原子性执行。&#xA;事务 是否能保证 一致性 C 能保证 隔离性 I 能保证 原子性 A 能保证(命令语法无误时) 持久性 D 不能保证 【redis cluster 没有事务】&#xA;参考&#xD;#&#xD;31 | 事务机制:Redis能实现ACID属性吗?&#xA;[redis]redis集群不支持事务multi、exec 失效</description>
+    </item>
+    <item>
+      <title>Redis RDB源码</title>
+      <link>https://www6v.github.io/www6vMiddleware/docs/Redis&#43;%E7%BC%93%E5%AD%98/Redis-%E5%9F%BA%E7%A1%80/%E6%8C%81%E4%B9%85%E5%8C%96/rdb/</link>
+      <pubDate>Wed, 08 Dec 2021 20:28:02 +0000</pubDate>
+      <guid>https://www6v.github.io/www6vMiddleware/docs/Redis&#43;%E7%BC%93%E5%AD%98/Redis-%E5%9F%BA%E7%A1%80/%E6%8C%81%E4%B9%85%E5%8C%96/rdb/</guid>
+      <description>/// 对应了 Redis 的 save 命 令，会在 save 命令的实现函数 saveCommand(在 rdb.c 文件中)中被调用 /* Save the DB on disk. Return C_ERR on error, C_OK on success. */ int rdbSave(char *filename, rdbSaveInfo *rsi) { char tmpfile[256]; char cwd[MAXPATHLEN]; /* Current working dir path for error messages. */ FILE *fp; rio rdb; int error = 0; snprintf(tmpfile,256,&amp;#34;temp-%d.rdb&amp;#34;, (int) getpid()); fp = fopen(tmpfile,&amp;#34;w&amp;#34;); if (!fp) { char *cwdp = getcwd(cwd,MAXPATHLEN); serverLog(LL_WARNING, &amp;#34;Failed opening the RDB file %s (in server root dir %s) &amp;#34; &amp;#34;for saving: %s&amp;#34;, filename, cwdp ?</description>
+    </item>
+    <item>
+      <title>Redis AOF Rewrite</title>
+      <link>https://www6v.github.io/www6vMiddleware/docs/Redis&#43;%E7%BC%93%E5%AD%98/Redis-%E5%9F%BA%E7%A1%80/%E6%8C%81%E4%B9%85%E5%8C%96/aofRewrite/</link>
+      <pubDate>Sun, 21 Nov 2021 19:35:54 +0000</pubDate>
+      <guid>https://www6v.github.io/www6vMiddleware/docs/Redis&#43;%E7%BC%93%E5%AD%98/Redis-%E5%9F%BA%E7%A1%80/%E6%8C%81%E4%B9%85%E5%8C%96/aofRewrite/</guid>
+      <description>一. AOF 重写函数与触发时机&#xD;#&#xD;我们就了解了 AOF 重写的四个触发时机，这里我也给你总结下，方便你回 顾复习。&#xA;时机一:bgrewriteaof 命令被执行。&#xD;#&#xD;时机二:主从复制完成 RDB 文件解析和加载(无论是否成功)。&#xD;#&#xD;而对于 restartAOFAfterSYNC 函数来说，它会在主从节点的复制过程中被调用。简单来 说，就是当主从节点在进行复制时，如果从节点的 AOF 选项被打开，那么在加载解析 RDB 文件时，AOF 选项就会被关闭。然后，无论从节点是否成功加载了 RDB 文件， restartAOFAfterSYNC 函数都会被调用，用来恢复被关闭的 AOF 功能。&#xD;那么在这个过程中，restartAOFAfterSYNC 函数就会调用 startAppendOnly 函数，并进 一步调用 rewriteAppendOnlyFileBackground 函数，来执行一次 AOF 重写。&#xD;时机三:AOF 重写被设置为待调度执行。&#xD;#&#xD;时机四:AOF 被启用，同时 AOF 文件的大小比例超出阈值，以及 AOF 文件的大小绝对 值超出阈值。&#xD;#&#xD;auto-aof-rewrite-percentage:AOF 文件大小超出基础大小的比例，默认值为 100%，即超出 1 倍大小。 auto-aof-rewrite-min-size:AOF 文件大小绝对值的最小值，默认为 64MB。&#xA;另外，这里你还需要注意，在这四个时机下，其实都不能有正在执行的 RDB 子进程和 AOF 重写子进程，否则的话，AOF 重写就无法执行了。&#xA;二. AOF 重写的基本过程&#xD;#&#xD;int rewriteAppendOnlyFileBackground(void) { .</description>
+    </item>
+    <item>
+      <title>Redis RDB</title>
+      <link>https://www6v.github.io/www6vMiddleware/docs/Redis&#43;%E7%BC%93%E5%AD%98/Redis-%E5%9F%BA%E7%A1%80/%E6%8C%81%E4%B9%85%E5%8C%96/redisRDB/</link>
+      <pubDate>Sat, 02 Jan 2021 21:41:43 +0000</pubDate>
+      <guid>https://www6v.github.io/www6vMiddleware/docs/Redis&#43;%E7%BC%93%E5%AD%98/Redis-%E5%9F%BA%E7%A1%80/%E6%8C%81%E4%B9%85%E5%8C%96/redisRDB/</guid>
+      <description>&#xA;RDB&#xD;#&#xD;功能 [1]&#xD;#&#xD;只需要把 RDB 文件直接读入内存，可以快速恢复数据库。这就避免了 AOF 需要顺序、逐一重新执行操作命令带来的低效性能问题。&#xA;Redis 设计了 bgsave 和写时复制方式，尽可能减少了内存快照对正常读写的影响，但是，频繁快照仍然是不太能接受的。&#xA;【 总结: bgsave 异步 + 写时复制（copy-on-write）】&#xA;触发机制 [2]&#xD;#&#xD;手动触发 bgsave [3] save 废弃 [3] 自动触发 save的相关配置 从节点全量复制，主节点执行bgsave生成RDB并发送给从节点 其他 优点/缺点[2]&#xD;#&#xD;优点 加载RDB恢复数据远远快于AOF的方式 缺点 没办法做到实时持久化 建议 [1]&#xD;#&#xD;数据不能丢失时，内存快照和 AOF 的混合使用是一个很好的选择； 如果允许分钟级别的数据丢失，可以只使用 RDB； 如果只用 AOF，优先使用 everysec 的配置选项，因为它在可靠性和性能之间取了一个平衡。 参考&#xD;#&#xD;《05丨内存快照：宕机后，Redis如何实现快速恢复？》 《redis开发与运维》 第5章 {% post_link &amp;lsquo;rdb&amp;rsquo; %} self </description>
     </item>
   </channel>
 </rss>

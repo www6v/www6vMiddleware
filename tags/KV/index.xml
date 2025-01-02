@@ -6,7 +6,7 @@
     <description>Recent content in KV on 中间件</description>
     <generator>Hugo</generator>
     <language>en</language>
-    <lastBuildDate>Sun, 31 Jul 2022 11:37:41 +0000</lastBuildDate>
+    <lastBuildDate>Mon, 10 Jul 2023 15:48:29 +0000</lastBuildDate>
     <atom:link href="https://www6v.github.io/www6vMiddleware/tags/KV/index.xml" rel="self" type="application/rss+xml" />
     <item>
       <title>Redis Cluster</title>
@@ -28,6 +28,20 @@
       <pubDate>Sun, 31 Jul 2022 11:37:41 +0000</pubDate>
       <guid>https://www6v.github.io/www6vMiddleware/docs/Redis&#43;%E7%BC%93%E5%AD%98/Redis-%E5%9F%BA%E7%A1%80/Arch-Redis-Cluster/redisHA/</guid>
       <description>目录&#xD;#&#xD;1. 背景&#xD;#&#xD;Redis 集群自身已经具备了高可用的特性，即使几个Redis节点异常或者挂掉，Redis 集群也会实现故障自动转移，对应用方来说也可以在很短时间内恢复故障。 但是，如果发生了机房故障(断电、断网等极端情况)，Redis集群节点全部挂掉（过半主节点挂掉），会造成集群服务不可用，对于核心业务来说是不可接受的。 为了应对机房故障情况，保障在这种极端情况下，核心业务仍然可以正常访问 Redis 服务，本文将给出适合我司的 Redis 跨机房高可用解决方案。 2. 目标&#xD;#&#xD;保障单机房整体故障时 Redis 缓存服务正常运行。 单机房故障 RTO：30s，RPO：1s 3. 解决方案&#xD;#&#xD;3.1 核心能力&#xD;#&#xD;客户端流量路由：支持按一定的策略，把流量分流到不同机房；机房故障后，流量自动流向其他机房。 服务端故障转移：支持机房故障后，当前机房原来主节点的从节点，通过选举自动倒换成新的主节点。 管理平台正常服务：任一机房故障，Renault 管理平台使用不受影响。 3.2 工作模式&#xD;#&#xD;组件在机房高可用场景下一般有多种工作模式，典型的有单集群模式及多集群模式。本节描述组件在各种工作模式下的部署方式及工作机制。&#xA;部署方案 方案说明 跨机房混合部署 将Redis集群主节点平均分配到各个机房，主从节点在不同机房 各机房独立部署集群 + 数据单向同步 各机房均独立部署集群，集群为热备模式，写请求均写入同一个集群，然后同步到其他集群 各机房独立部署集群 + 数据双向同步 每个机房部署一套Redis集群，同步核心业务写请求 数据同步方法：&#xA;数据同步方案 方案说明 客户端双写 客户端同时写入到各个集群 客户端代理 Netflix开源实现的Dynomite，通过代理层接受数据后写入各个需要同步的节点&#xA;改造难度大&#xA;客户端需要优化添加Dyno Client服务端每个节点需要部署Dyno Node&#xA;read/write性能较原生差异较大，主要体现在write上，之间的差异随着node节点数越多越严重 伪从节点 基于Redis的Master-Slave复制协议，实现低延时、高可用的Redis多数据中心、跨公网数据复制携程开源系统：https://github.com/ctripcorp/x-pipe阿里RedisShake同步工具 写事件监听+MQ跨集群消息同步 读写在本机房，监听写事件 + MQ消息同步到其他机房需要开启事件通知（PUB），修改Redis配置文件中的 notify-keyspace-events 配置（默认的redis并没有开启这个功能）需要独立服务订阅写事件（SUB），并同步到其他集群依赖MQ组件 不考虑客户端代理、发布订阅写事件</description>
+    </item>
+    <item>
+      <title>Redis 混合持久化</title>
+      <link>https://www6v.github.io/www6vMiddleware/docs/Redis&#43;%E7%BC%93%E5%AD%98/Redis-%E5%9F%BA%E7%A1%80/%E6%8C%81%E4%B9%85%E5%8C%96/redisBothAofAndRDB/</link>
+      <pubDate>Mon, 10 Jul 2023 15:48:29 +0000</pubDate>
+      <guid>https://www6v.github.io/www6vMiddleware/docs/Redis&#43;%E7%BC%93%E5%AD%98/Redis-%E5%9F%BA%E7%A1%80/%E6%8C%81%E4%B9%85%E5%8C%96/redisBothAofAndRDB/</guid>
+      <description>&#xA;Redis 混合持久化&#xD;#&#xD;数据恢复顺序和加载流程 [2][3]&#xD;#&#xD;在这种情况下， 当redis重启的时候会优先载入AOF文件来恢复原始的数据 ，因为在通常情况下AOF文件保存的数据集要比RDB文件保存的数据集要完整。&#xA;RDB和AOF共存时会优先加载AOF文件&#xA;【主从切换 优先加载 RDB -&amp;gt; 速度】 【redis重启 优先加载 AOF -&amp;gt; 数据完整性】&#xA;开启&#xD;#&#xD;aof-use-rdb-preamble no -&amp;gt; yes 原理 [3]&#xD;#&#xD;RDB镜像做全量持久化，AOF做增量持久化 先使用RDB进行快照存储，然后使用AOF持久化记录所有的写操作，当重写策略满足或手动触发重写的时候，将最新的数据存储为新的RDB记录。 这样的话，重启服务的时候会从RDB和AOF两部分恢复数据，既保证了数据完整性，又提高了恢复数据的性能。简单来说:混合持久化方式产生的文件一部分是RDB格式，一部分是AOF格式。&#xA;AOF+RDB混合[1]&#xD;#&#xD;而混合使用 RDB 和 AOF，正好可以取两者之长，避两者之短，以较小的性能开销保证数据可靠性和性能。&#xA;参考&#xD;#&#xD;《05丨内存快照：宕机后，Redis如何实现快速恢复？》 redis++：Redis持久化 rdb &amp;amp; aof 工作原理及流程图 （三） RDB-AOF混合持久化 尚硅谷Redis零基础到进阶，最强redis7教程，阳哥亲自带练（附redis面试题） </description>
+    </item>
+    <item>
+      <title>Redis 主从复制</title>
+      <link>https://www6v.github.io/www6vMiddleware/docs/Redis&#43;%E7%BC%93%E5%AD%98/Redis-%E5%9F%BA%E7%A1%80/%E6%8C%81%E4%B9%85%E5%8C%96/redisReplica/</link>
+      <pubDate>Sun, 10 Jul 2022 19:04:46 +0000</pubDate>
+      <guid>https://www6v.github.io/www6vMiddleware/docs/Redis&#43;%E7%BC%93%E5%AD%98/Redis-%E5%9F%BA%E7%A1%80/%E6%8C%81%E4%B9%85%E5%8C%96/redisReplica/</guid>
+      <description>&#xA;主从复制流程&#xD;#&#xD;主从库第一次同步的流程&#xD;#&#xD;主从库增量复制流程&#xD;#&#xD;repl_backlog_buffer 是一个环形缓冲区，主库会记录自己写到的位置，从库则会记录自己 已经读到的位置。&#xA;缺点 [3]&#xD;#&#xD;主从延迟 复制偏移量：master_repl_offset | slave_repl_offset master挂了怎么办？ 默认情况下，不会在slave节点中自动选一个master 每次都要人工干预 需要Redis哨兵(sentinel) 参考&#xD;#&#xD;《06 | 数据同步：主从库如何实现数据一致？》 redis主从复制、主从延迟知几何 复制原理和工作流程 61_redis主从复制之工作流程总结 V 62_redis主从复制之痛点和改进需求 V </description>
     </item>
   </channel>
 </rss>
