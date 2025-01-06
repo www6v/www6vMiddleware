@@ -1,0 +1,2705 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="1. 背景#有一次扩容 Redis 集群，往集群加入节点，这个操作了很多次的功能居然失败了。查看到异常日志：addAppClusterSharding:10.3.28.7:10240:10.3.28.70, result is false
+观察发现，Redis实例已启动，并且加入到集群，但是主从角色不正确
+本地调试发现，在从节点执行cluster replicate &lt;master_node_id&gt;报错，提示***，发现命令的&lt;master_node_id&gt;和Redis实例的&lt;node_id&gt;不一致
+Redis node_id是如何生成的，怎么会变化呢？ 临时查看最近修改代码， com.tuhu.renault.portal.redis.impl.RedisCenterImpl getNodeId方法 原来：
+从目标Redis实例获取自己的node_id
+改成了：
+可以从其他Redis实例获取（因为cluster nodes命令可以拿到集群所有节点信息）
+原因是：
+当目标节点挂了，会获取不到node_id，页面操作故障节点下线会失败（用于下线故障节点）
+修复方法：
+临时恢复从目标实例获取自己的node_id;下线故障节点时候从其他节点获取node_id
+下文简单梳理 Redis 集群扩容过程，主要关注 Redis node_id 变化及相关源码。
+2. Redis集群扩容过程梳理#Renault管理平台入口：
+com.tuhu.renault.portal.controller.ClusterController doAddHorizontalNodes 方法
+主要包括三个步骤：（1）启动 Redis 实例；（2）meet Redis 实例；（3）确定主从角色。 2.1 启动Redis实例#根据模板生成Redis配置文件，并拷贝到目标机器 执行：redis-server /usr/local/renault/conf/redis-cluster-6379.conf 没有返回值，检测端口被占用则认为成功 2.2 Redis集群所有主节点meet待加入节点#确定Redis实例为&quot;单身&quot; 执行：cluster meet ，https://redis.io/commands/cluster-meet 返回“OK”即成功 2.3 确定主从角色#获取主节点NodeId 从节点实例执行：cluster replicate &lt;node_id&gt;，https://redis.io/commands/cluster-replicate 返回“OK”即成功 3. Redis集群扩容期间节点状态#3.">
+<meta name="theme-color" media="(prefers-color-scheme: light)" content="#ffffff">
+<meta name="theme-color" media="(prefers-color-scheme: dark)" content="#343a40">
+<meta name="color-scheme" content="light dark"><meta property="og:url" content="https://www6v.github.io/www6vMiddleware/docs/Redis&#43;%E7%BC%93%E5%AD%98/Redis-%E6%95%85%E9%9A%9C%E4%BC%98%E5%8C%96/redisNodeId/">
+  <meta property="og:site_name" content="中间件">
+  <meta property="og:title" content="Redis 集群扩容时NodeId问题">
+  <meta property="og:description" content="1. 背景#有一次扩容 Redis 集群，往集群加入节点，这个操作了很多次的功能居然失败了。查看到异常日志：addAppClusterSharding:10.3.28.7:10240:10.3.28.70, result is false
+观察发现，Redis实例已启动，并且加入到集群，但是主从角色不正确
+本地调试发现，在从节点执行cluster replicate &lt;master_node_id&gt;报错，提示***，发现命令的&lt;master_node_id&gt;和Redis实例的&lt;node_id&gt;不一致
+Redis node_id是如何生成的，怎么会变化呢？ 临时查看最近修改代码， com.tuhu.renault.portal.redis.impl.RedisCenterImpl getNodeId方法 原来：
+从目标Redis实例获取自己的node_id
+改成了：
+可以从其他Redis实例获取（因为cluster nodes命令可以拿到集群所有节点信息）
+原因是：
+当目标节点挂了，会获取不到node_id，页面操作故障节点下线会失败（用于下线故障节点）
+修复方法：
+临时恢复从目标实例获取自己的node_id;下线故障节点时候从其他节点获取node_id
+下文简单梳理 Redis 集群扩容过程，主要关注 Redis node_id 变化及相关源码。
+2. Redis集群扩容过程梳理#Renault管理平台入口：
+com.tuhu.renault.portal.controller.ClusterController doAddHorizontalNodes 方法
+主要包括三个步骤：（1）启动 Redis 实例；（2）meet Redis 实例；（3）确定主从角色。 2.1 启动Redis实例#根据模板生成Redis配置文件，并拷贝到目标机器 执行：redis-server /usr/local/renault/conf/redis-cluster-6379.conf 没有返回值，检测端口被占用则认为成功 2.2 Redis集群所有主节点meet待加入节点#确定Redis实例为&#34;单身&#34; 执行：cluster meet ，https://redis.io/commands/cluster-meet 返回“OK”即成功 2.3 确定主从角色#获取主节点NodeId 从节点实例执行：cluster replicate &lt;node_id&gt;，https://redis.io/commands/cluster-replicate 返回“OK”即成功 3. Redis集群扩容期间节点状态#3.">
+  <meta property="og:locale" content="en">
+  <meta property="og:type" content="website">
+<title>Redis 集群扩容时NodeId问题 | 中间件</title>
+<link rel="icon" href="/www6vMiddleware/favicon.png" >
+<link rel="manifest" href="/www6vMiddleware/manifest.json">
+<link rel="canonical" href="https://www6v.github.io/www6vMiddleware/docs/Redis&#43;%E7%BC%93%E5%AD%98/Redis-%E6%95%85%E9%9A%9C%E4%BC%98%E5%8C%96/redisNodeId/">
+<link rel="stylesheet" href="/www6vMiddleware/book.min.6c8b9d2a1fc95075ed7da46ca81060b39add8fff6741ac51259f768929281e2c.css" integrity="sha256-bIudKh/JUHXtfaRsqBBgs5rdj/9nQaxRJZ92iSkoHiw=" crossorigin="anonymous">
+  <script defer src="/www6vMiddleware/fuse.min.js"></script>
+  <script defer src="/www6vMiddleware/en.search.min.dd6394d37ece43186d1797367e764f8f4645170915ea3304cdbf2cdadebea10c.js" integrity="sha256-3WOU037OQxhtF5c2fnZPj0ZFFwkV6jMEzb8s2t6&#43;oQw=" crossorigin="anonymous"></script>
+
+  
+
+<link rel="alternate" type="application/rss+xml" href="https://www6v.github.io/www6vMiddleware/docs/Redis+%E7%BC%93%E5%AD%98/Redis-%E6%95%85%E9%9A%9C%E4%BC%98%E5%8C%96/redisNodeId/index.xml" title="中间件" />
+<!--
+Made with Book Theme
+https://github.com/alex-shpak/hugo-book
+-->
+  
+</head>
+<body dir="ltr">
+  <input type="checkbox" class="hidden toggle" id="menu-control" />
+  <input type="checkbox" class="hidden toggle" id="toc-control" />
+  <main class="container flex">
+    <aside class="book-menu">
+      <div class="book-menu-content">
+        
+  <nav>
+<h2 class="book-brand">
+  <a class="flex align-center" href="/www6vMiddleware/"><span>中间件</span>
+  </a>
+</h2>
+
+
+<div class="book-search hidden">
+  <input type="text" id="book-search-input" placeholder="Search" aria-label="Search" maxlength="64" data-hotkeys="s/" />
+  <div class="book-search-spinner hidden"></div>
+  <ul id="book-search-results"></ul>
+</div>
+<script>document.querySelector(".book-search").classList.remove("hidden")</script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  <ul>
+    
+      
+        <li class="book-section-flat" >
+          
+  
+  
+
+  
+    <input type="checkbox" id="section-b13c95c069c614e8c16265f1c191a430" class="toggle"  />
+    <label for="section-b13c95c069c614e8c16265f1c191a430" class="flex justify-between">
+      <a role="button" class="">服务治理</a>
+    </label>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <span>Overview</span>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMiddleware/docs/serviceGovernance/Overview/microservice/" class="">微服务 总结</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMiddleware/docs/serviceGovernance/Overview/soaFeature/" class="">分布式服务框架功能</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <span>API Gateway</span>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMiddleware/docs/serviceGovernance/API-Gateway/apiGatawaySpringGateway/" class="">API 网关-SpringCloud Gateway</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMiddleware/docs/serviceGovernance/API-Gateway/apiGatawayApisix/" class="">API 网关-apisix</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMiddleware/docs/serviceGovernance/API-Gateway/apiGateway/" class="">API Gateway网关</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <span>Config &amp; Discovery</span>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMiddleware/docs/serviceGovernance/ConfigDiscovery/soaDiscovery/" class="">服务发现</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMiddleware/docs/serviceGovernance/ConfigDiscovery/config/" class="">服务治理-分布式配置</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <span>负载均衡</span>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMiddleware/docs/serviceGovernance/loadBalance/loadBalance/" class="">负载均衡-算法</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMiddleware/docs/serviceGovernance/loadBalance/nginxOptimize/" class="">Nginx优化</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMiddleware/docs/serviceGovernance/loadBalance/nginx/" class="">Nginx总结</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <span>线程模型</span>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMiddleware/docs/serviceGovernance/threadModel/jsfThreadModel/" class="">京东服务框架JSF服务提供者线程模型</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <span>容错&amp;限流</span>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <span>容错</span>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMiddleware/docs/serviceGovernance/faultTolerant/faultTolerant/soaTolerateFramework/" class="">容错框架</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMiddleware/docs/serviceGovernance/faultTolerant/faultTolerant/soaTimeout/" class="">超时和重试 总结</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMiddleware/docs/serviceGovernance/faultTolerant/faultTolerant/soaTolerate/" class="">分布式服务框架 容错机制</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <span>限流</span>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMiddleware/docs/serviceGovernance/faultTolerant/throttle/ratelimitSentinel/" class="">流量治理-Sentinel</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMiddleware/docs/serviceGovernance/faultTolerant/throttle/ratelimit/" class="">限流-总结</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMiddleware/docs/serviceGovernance/faultTolerant/soaGracefulStart/" class="">优雅启动</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMiddleware/docs/serviceGovernance/faultTolerant/soaGracefulClose/" class="">优雅关闭</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <span>Spring Cloud</span>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMiddleware/docs/serviceGovernance/Springcloud/springTransactionInvalid/" class="">Spring  Transaction  失效</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMiddleware/docs/serviceGovernance/Springcloud/springCloud/" class="">SpringCloud</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMiddleware/docs/serviceGovernance/Springcloud/springboot/" class="">SpringBoot</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMiddleware/docs/serviceGovernance/Springcloud/springTransaction/" class="">Spring事务</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <span>灰度发布</span>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMiddleware/docs/serviceGovernance/Gray/apiGatewayGray/" class="">API 网关-灰度发布</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <span>安全</span>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMiddleware/docs/serviceGovernance/security/soaAuth/" class="">服务治理-鉴权</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMiddleware/docs/serviceGovernance/security/securityOAuth2/" class="">安全-OAuth2</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li class="book-section-flat" >
+          
+  
+  
+
+  
+    <input type="checkbox" id="section-619f87396da4f22c9e982ebbcfb80a1d" class="toggle"  />
+    <label for="section-619f87396da4f22c9e982ebbcfb80a1d" class="flex justify-between">
+      <a role="button" class="">消息系统</a>
+    </label>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <span>Overview</span>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMiddleware/docs/message/Overview/mq/" class="">消息中间件总结</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMiddleware/docs/message/Overview/mqCompare/" class="">MQ总结(Kafka, Rocketmq, Rabbitmq)</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMiddleware/docs/message/Overview/mqOrdering/" class="">消息系统 顺序消息</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <span>Kafka</span>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMiddleware/docs/message/Kafka/kafka/" class="">Kafka总结</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMiddleware/docs/message/Kafka/kafkaProducer/" class="">Kafka Producer生产者</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMiddleware/docs/message/Kafka/kafkaConsumer/" class="">Kafka消费者总结</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMiddleware/docs/message/Kafka/kafkaRebalance/" class="">Kafka消费者-Rebalance机制</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMiddleware/docs/message/Kafka/kafkaReliability/" class="">Kafka 可靠性总结</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMiddleware/docs/message/Kafka/kafkaIndex/" class="">Kafka 索引</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMiddleware/docs/message/Kafka/kafkaZeroCopy/" class="">Kafka-ZeroCopy</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMiddleware/docs/message/Kafka/kafkaController/" class="">Kafka Controller-控制器</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMiddleware/docs/message/Kafka/kafkaReplica/" class="">Kafka Replication-副本机制</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMiddleware/docs/message/Kafka/kafkaElection/" class="">Kafka 中的选主</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMiddleware/docs/message/Kafka/kafkaQ-A/" class="">Kafka  Q&amp;A</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMiddleware/docs/message/Kafka/kafkaTransaction/" class="">Kafka 幂等性和事务</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li class="book-section-flat" >
+          
+  
+  
+
+  
+    <input type="checkbox" id="section-c8ef6724255360cd9e1bb212713f9134" class="toggle"  />
+    <label for="section-c8ef6724255360cd9e1bb212713f9134" class="flex justify-between">
+      <a role="button" class="">关系型数据库</a>
+    </label>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <span>单机</span>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMiddleware/docs/RMDB/%E5%8D%95%E6%9C%BA/mysqlTransactionAndLock/" class="">MySQL 事务-隔离性</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMiddleware/docs/RMDB/%E5%8D%95%E6%9C%BA/mysqlUpdate/" class="">MySQL中的SQL更新语句</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMiddleware/docs/RMDB/%E5%8D%95%E6%9C%BA/mysqlReliability/" class="">MySQL的主从 高可用 容灾</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMiddleware/docs/RMDB/%E5%8D%95%E6%9C%BA/mysqlIndex/" class="">MySQL的索引和优化</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMiddleware/docs/RMDB/%E5%8D%95%E6%9C%BA/mysqlTransaction/" class="">MySQL事务-总结</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMiddleware/docs/RMDB/%E5%8D%95%E6%9C%BA/mysqlLog/" class="">MySQL Logs</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMiddleware/docs/RMDB/%E5%8D%95%E6%9C%BA/mysqlDeadLock/" class="">MySQL  锁和死锁</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMiddleware/docs/RMDB/%E5%8D%95%E6%9C%BA/mysqlMasterSlaveDelay/" class="">MySQL 主从延迟</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <span>分布式</span>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMiddleware/docs/RMDB/%E5%88%86%E5%B8%83%E5%BC%8F/distributedDatabase/" class="">分布式 数据库 总结</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMiddleware/docs/RMDB/%E5%88%86%E5%B8%83%E5%BC%8F/distributedDatabaseCompare/" class="">分布式 数据库 比较</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMiddleware/docs/RMDB/%E5%88%86%E5%B8%83%E5%BC%8F/tikvMVCCTransaction/" class="">TiKV Transaction-MVCC&#43;TSO</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMiddleware/docs/RMDB/%E5%88%86%E5%B8%83%E5%BC%8F/distributedDatabaseGlobalTime/" class="">分布式数据库-全局时钟</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMiddleware/docs/RMDB/%E5%88%86%E5%B8%83%E5%BC%8F/distributedDatabaseJoinQuery/" class="">数据库  关联查询</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMiddleware/docs/RMDB/%E5%88%86%E5%B8%83%E5%BC%8F/globalSecondaryIndex/" class="">全局二级索引-GSI</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li class="book-section-flat" >
+          
+  
+  
+
+  
+    <input type="checkbox" id="section-10fff53c331fc90701f5c89a3d268231" class="toggle" checked />
+    <label for="section-10fff53c331fc90701f5c89a3d268231" class="flex justify-between">
+      <a role="button" class="">Redis&#43;缓存</a>
+    </label>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <span>Redis 基础</span>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <span>overview</span>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMiddleware/docs/Redis&#43;%E7%BC%93%E5%AD%98/Redis-%E5%9F%BA%E7%A1%80/overview/redis/" class="">Redis 总结</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMiddleware/docs/Redis&#43;%E7%BC%93%E5%AD%98/Redis-%E5%9F%BA%E7%A1%80/overview/redisIO/" class="">Redis 的IO模型</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <span>Arch &amp; Redis Cluster</span>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMiddleware/docs/Redis&#43;%E7%BC%93%E5%AD%98/Redis-%E5%9F%BA%E7%A1%80/Arch-Redis-Cluster/redisArch/" class="">Redis 架构</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMiddleware/docs/Redis&#43;%E7%BC%93%E5%AD%98/Redis-%E5%9F%BA%E7%A1%80/Arch-Redis-Cluster/redisError/" class="">Redis Error-MOVED和ASK指令</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMiddleware/docs/Redis&#43;%E7%BC%93%E5%AD%98/Redis-%E5%9F%BA%E7%A1%80/Arch-Redis-Cluster/redisCluster/" class="">Redis Cluster</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMiddleware/docs/Redis&#43;%E7%BC%93%E5%AD%98/Redis-%E5%9F%BA%E7%A1%80/Arch-Redis-Cluster/redisClusterSpec/" class="">Redis Cluster Spec</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMiddleware/docs/Redis&#43;%E7%BC%93%E5%AD%98/Redis-%E5%9F%BA%E7%A1%80/Arch-Redis-Cluster/redisHA/" class="">Redis 集群  容灾（同城多活）</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <span>数据类型</span>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMiddleware/docs/Redis&#43;%E7%BC%93%E5%AD%98/Redis-%E5%9F%BA%E7%A1%80/%E6%95%B0%E6%8D%AE%E7%B1%BB%E5%9E%8B/redisRehash/" class="">Redis Rehash机制</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMiddleware/docs/Redis&#43;%E7%BC%93%E5%AD%98/Redis-%E5%9F%BA%E7%A1%80/%E6%95%B0%E6%8D%AE%E7%B1%BB%E5%9E%8B/redisDataStructure/" class="">Redis数据结构</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <span>事务</span>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMiddleware/docs/Redis&#43;%E7%BC%93%E5%AD%98/Redis-%E5%9F%BA%E7%A1%80/%E4%BA%8B%E5%8A%A1/redisTransaction/" class="">Redis 事务</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <span>持久化</span>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMiddleware/docs/Redis&#43;%E7%BC%93%E5%AD%98/Redis-%E5%9F%BA%E7%A1%80/%E6%8C%81%E4%B9%85%E5%8C%96/redisBothAofAndRDB/" class="">Redis 混合持久化</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMiddleware/docs/Redis&#43;%E7%BC%93%E5%AD%98/Redis-%E5%9F%BA%E7%A1%80/%E6%8C%81%E4%B9%85%E5%8C%96/redisReplica/" class="">Redis 主从复制</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMiddleware/docs/Redis&#43;%E7%BC%93%E5%AD%98/Redis-%E5%9F%BA%E7%A1%80/%E6%8C%81%E4%B9%85%E5%8C%96/redisAOF/" class="">Redis AOF</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMiddleware/docs/Redis&#43;%E7%BC%93%E5%AD%98/Redis-%E5%9F%BA%E7%A1%80/%E6%8C%81%E4%B9%85%E5%8C%96/rdb/" class="">Redis RDB源码</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMiddleware/docs/Redis&#43;%E7%BC%93%E5%AD%98/Redis-%E5%9F%BA%E7%A1%80/%E6%8C%81%E4%B9%85%E5%8C%96/aofRewrite/" class="">Redis AOF Rewrite</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMiddleware/docs/Redis&#43;%E7%BC%93%E5%AD%98/Redis-%E5%9F%BA%E7%A1%80/%E6%8C%81%E4%B9%85%E5%8C%96/redisRDB/" class="">Redis RDB</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <span>资源回收</span>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMiddleware/docs/Redis&#43;%E7%BC%93%E5%AD%98/Redis-%E5%9F%BA%E7%A1%80/%E8%B5%84%E6%BA%90%E5%9B%9E%E6%94%B6/redisLazyFree/" class="">Redis LazyFree</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMiddleware/docs/Redis&#43;%E7%BC%93%E5%AD%98/Redis-%E5%9F%BA%E7%A1%80/%E8%B5%84%E6%BA%90%E5%9B%9E%E6%94%B6/redisDelete/" class="">Redis 回收策略</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMiddleware/docs/Redis&#43;%E7%BC%93%E5%AD%98/Redis-%E5%9F%BA%E7%A1%80/%E8%B5%84%E6%BA%90%E5%9B%9E%E6%94%B6/redisLRU/" class="">Redis LRU算法</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <span>其他</span>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMiddleware/docs/Redis&#43;%E7%BC%93%E5%AD%98/Redis-%E5%9F%BA%E7%A1%80/%E5%85%B6%E4%BB%96/redisNVM/" class="">Redis NVM</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <span>Redis 故障&amp;优化</span>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <span>常见问题</span>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMiddleware/docs/Redis&#43;%E7%BC%93%E5%AD%98/Redis-%E6%95%85%E9%9A%9C%E4%BC%98%E5%8C%96/%E5%B8%B8%E8%A7%81%E9%97%AE%E9%A2%98/redisBigKey/" class="">Redis 大Key</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMiddleware/docs/Redis&#43;%E7%BC%93%E5%AD%98/Redis-%E6%95%85%E9%9A%9C%E4%BC%98%E5%8C%96/%E5%B8%B8%E8%A7%81%E9%97%AE%E9%A2%98/redisOptimize/" class="">Redis 优化建议</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMiddleware/docs/Redis&#43;%E7%BC%93%E5%AD%98/Redis-%E6%95%85%E9%9A%9C%E4%BC%98%E5%8C%96/%E5%B8%B8%E8%A7%81%E9%97%AE%E9%A2%98/redisReliability-1/" class="">Redis雪崩、击穿、穿透</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMiddleware/docs/Redis&#43;%E7%BC%93%E5%AD%98/Redis-%E6%95%85%E9%9A%9C%E4%BC%98%E5%8C%96/%E5%B8%B8%E8%A7%81%E9%97%AE%E9%A2%98/redisDbConsistent/" class="">Redis和数据库之间的一致性</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMiddleware/docs/Redis&#43;%E7%BC%93%E5%AD%98/Redis-%E6%95%85%E9%9A%9C%E4%BC%98%E5%8C%96/%E5%B8%B8%E8%A7%81%E9%97%AE%E9%A2%98/redisSlowResponse/" class="">Redis 慢查询排查</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMiddleware/docs/Redis&#43;%E7%BC%93%E5%AD%98/Redis-%E6%95%85%E9%9A%9C%E4%BC%98%E5%8C%96/%E5%B8%B8%E8%A7%81%E9%97%AE%E9%A2%98/redisHotkey/" class="">Redis 热点Hotkey</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMiddleware/docs/Redis&#43;%E7%BC%93%E5%AD%98/Redis-%E6%95%85%E9%9A%9C%E4%BC%98%E5%8C%96/%E5%B8%B8%E8%A7%81%E9%97%AE%E9%A2%98/redisHitRate/" class="">Redis  命中率</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMiddleware/docs/Redis&#43;%E7%BC%93%E5%AD%98/Redis-%E6%95%85%E9%9A%9C%E4%BC%98%E5%8C%96/redisNodeId/" class="active">Redis 集群扩容时NodeId问题</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <span>Redis 应用</span>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMiddleware/docs/Redis&#43;%E7%BC%93%E5%AD%98/Redis-%E5%BA%94%E7%94%A8/redisUseCase/" class="">Redis 使用场景UseCase</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMiddleware/docs/Redis&#43;%E7%BC%93%E5%AD%98/Redis-%E5%BA%94%E7%94%A8/redisDistKey/" class="">Redis 分布式锁</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMiddleware/docs/Redis&#43;%E7%BC%93%E5%AD%98/Redis-%E5%BA%94%E7%94%A8/redisSLO/" class="">Redis SLO</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <span>缓存</span>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMiddleware/docs/Redis&#43;%E7%BC%93%E5%AD%98/%E7%BC%93%E5%AD%98/cacheConsistent/" class="">缓存 一致性</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMiddleware/docs/Redis&#43;%E7%BC%93%E5%AD%98/%E7%BC%93%E5%AD%98/cacheMultiLayer/" class="">多级缓存(cache)</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMiddleware/docs/Redis&#43;%E7%BC%93%E5%AD%98/%E7%BC%93%E5%AD%98/cacheSummary/" class="">缓存(cache)总结</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMiddleware/docs/Redis&#43;%E7%BC%93%E5%AD%98/%E7%BC%93%E5%AD%98/cache/" class="">缓存(cache)机制</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</nav>
+
+
+
+
+  <script>(function(){var e=document.querySelector("aside .book-menu-content");addEventListener("beforeunload",function(){localStorage.setItem("menu.scrollTop",e.scrollTop)}),e.scrollTop=localStorage.getItem("menu.scrollTop")})()</script>
+
+
+ 
+      </div>
+    </aside>
+
+    <div class="book-page">
+      <header class="book-header">
+        
+  <div class="flex align-center justify-between">
+  <label for="menu-control">
+    <img src="/www6vMiddleware/svg/menu.svg" class="book-icon" alt="Menu" />
+  </label>
+
+  <h3>Redis 集群扩容时NodeId问题</h3>
+
+  <label for="toc-control">
+    
+    <img src="/www6vMiddleware/svg/toc.svg" class="book-icon" alt="Table of Contents" />
+    
+  </label>
+</div>
+
+
+  
+  <aside class="hidden clearfix">
+    
+  
+<nav id="TableOfContents">
+  <ul>
+    <li><a href="#1背景">1. 背景</a></li>
+    <li><a href="#2-redis集群扩容过程梳理">2. Redis集群扩容过程梳理</a>
+      <ul>
+        <li>
+          <ul>
+            <li><a href="#21-启动redis实例">2.1 启动Redis实例</a></li>
+            <li><a href="#22-redis集群所有主节点meet待加入节点">2.2 Redis集群所有主节点meet待加入节点</a></li>
+            <li><a href="#23-确定主从角色">2.3 确定主从角色</a></li>
+          </ul>
+        </li>
+      </ul>
+    </li>
+    <li><a href="#3-redis集群扩容期间节点状态">3. Redis集群扩容期间节点状态</a>
+      <ul>
+        <li>
+          <ul>
+            <li><a href="#31-扩容前集群节点状态">3.1 扩容前集群节点状态</a></li>
+            <li><a href="#32-redis启动后单身状态">3.2 Redis启动后“单身”状态</a></li>
+            <li><a href="#33-meetredis实例1">3.3 Meet Redis实例1</a></li>
+            <li><a href="#34-meetredis实例2">3.4 Meet Redis实例2</a></li>
+            <li><a href="#35-指定新增实例主从关系">3.5 指定新增实例主从关系</a></li>
+          </ul>
+        </li>
+      </ul>
+    </li>
+    <li><a href="#5-延伸阅读">5. 延伸阅读</a>
+      <ul>
+        <li>
+          <ul>
+            <li><a href="#51-redis-集群数据结构">5.1 Redis 集群数据结构</a></li>
+            <li><a href="#52-redis-启动过程">5.2 Redis 启动过程</a></li>
+            <li><a href="#53-cluster-meet处理过程">5.3 cluster meet处理过程</a></li>
+            <li><a href="#53-揭晓-node_id是如何生成的为什么会变化呢">5.3 揭晓 node_id是如何生成的？为什么会变化呢？</a></li>
+          </ul>
+        </li>
+      </ul>
+    </li>
+  </ul>
+</nav>
+
+
+
+  </aside>
+  
+ 
+      </header>
+
+      
+      
+  <article class="markdown book-article"><p></p>
+<!-- more -->
+<h1 id="1背景">
+  1. 背景
+  <a class="anchor" href="#1%e8%83%8c%e6%99%af">#</a>
+</h1>
+<p>有一次扩容 Redis 集群，往集群加入节点，这个操作了很多次的功能居然失败了。查看到异常日志：addAppClusterSharding:10.3.28.7:10240:10.3.28.70, result is false<br>
+观察发现，Redis实例已启动，并且加入到集群，但是主从角色不正确<br>
+本地调试发现，在从节点执行cluster replicate &lt;master_node_id&gt;报错，提示***，发现命令的&lt;master_node_id&gt;和Redis实例的&lt;node_id&gt;不一致</p>
+<ul>
+<li>Redis node_id是如何生成的，怎么会变化呢？</li>
+</ul>
+<p>临时查看最近修改代码，
+com.tuhu.renault.portal.redis.impl.RedisCenterImpl  getNodeId方法
+原来：<br>
+从目标Redis实例获取自己的node_id<br>
+改成了：<br>
+可以从其他Redis实例获取（因为cluster nodes命令可以拿到集群所有节点信息）<br>
+原因是：<br>
+当目标节点挂了，会获取不到node_id，页面操作故障节点下线会失败（用于下线故障节点）<br>
+修复方法：<br>
+临时恢复从目标实例获取自己的node_id;下线故障节点时候从其他节点获取node_id</p>
+<p><img src="./images/img.png" alt="img" /></p>
+<p>下文简单梳理 Redis 集群扩容过程，主要关注 Redis node_id 变化及相关源码。</p>
+<h1 id="2-redis集群扩容过程梳理">
+  2. Redis集群扩容过程梳理
+  <a class="anchor" href="#2-redis%e9%9b%86%e7%be%a4%e6%89%a9%e5%ae%b9%e8%bf%87%e7%a8%8b%e6%a2%b3%e7%90%86">#</a>
+</h1>
+<p>Renault管理平台入口：</p>
+<ul>
+<li>com.tuhu.renault.portal.controller.ClusterController   doAddHorizontalNodes 方法<br>
+主要包括三个步骤：（1）启动 Redis 实例；（2）meet Redis 实例；（3）确定主从角色。</li>
+</ul>
+<h3 id="21-启动redis实例">
+  2.1 启动Redis实例
+  <a class="anchor" href="#21-%e5%90%af%e5%8a%a8redis%e5%ae%9e%e4%be%8b">#</a>
+</h3>
+<ul>
+<li>根据模板生成Redis配置文件，并拷贝到目标机器</li>
+<li>执行：redis-server /usr/local/renault/conf/redis-cluster-6379.conf</li>
+<li>没有返回值，检测端口被占用则认为成功</li>
+</ul>
+<h3 id="22-redis集群所有主节点meet待加入节点">
+  2.2 Redis集群所有主节点meet待加入节点
+  <a class="anchor" href="#22-redis%e9%9b%86%e7%be%a4%e6%89%80%e6%9c%89%e4%b8%bb%e8%8a%82%e7%82%b9meet%e5%be%85%e5%8a%a0%e5%85%a5%e8%8a%82%e7%82%b9">#</a>
+</h3>
+<ul>
+<li>确定Redis实例为&quot;单身&quot;</li>
+<li>执行：cluster meet <ip> <port>，https://redis.io/commands/cluster-meet</li>
+<li>返回“OK”即成功</li>
+</ul>
+<h3 id="23-确定主从角色">
+  2.3 确定主从角色
+  <a class="anchor" href="#23-%e7%a1%ae%e5%ae%9a%e4%b8%bb%e4%bb%8e%e8%a7%92%e8%89%b2">#</a>
+</h3>
+<ul>
+<li>获取主节点NodeId</li>
+<li>从节点实例执行：cluster replicate &lt;node_id&gt;，https://redis.io/commands/cluster-replicate</li>
+<li>返回“OK”即成功</li>
+</ul>
+<h1 id="3-redis集群扩容期间节点状态">
+  3. Redis集群扩容期间节点状态
+  <a class="anchor" href="#3-redis%e9%9b%86%e7%be%a4%e6%89%a9%e5%ae%b9%e6%9c%9f%e9%97%b4%e8%8a%82%e7%82%b9%e7%8a%b6%e6%80%81">#</a>
+</h1>
+<h3 id="31-扩容前集群节点状态">
+  3.1 扩容前集群节点状态
+  <a class="anchor" href="#31-%e6%89%a9%e5%ae%b9%e5%89%8d%e9%9b%86%e7%be%a4%e8%8a%82%e7%82%b9%e7%8a%b6%e6%80%81">#</a>
+</h3>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-Shell" data-lang="Shell"><span style="display:flex;"><span>root@work-arch-renault-redis-3 <span style="color:#f92672">(</span>16:06:02<span style="color:#f92672">)</span> ~ <span style="color:#75715e"># redis-cli -p 6436 cluster nodes</span>
+</span></span><span style="display:flex;"><span>798f8791b4e302df6c5e1418466e91899e199546 10.100.140.229:6436@16436 master - <span style="color:#ae81ff">0</span> <span style="color:#ae81ff">1642579573335</span> <span style="color:#ae81ff">66</span> connected 0-5454
+</span></span><span style="display:flex;"><span>68eab9a2f3bae16afd41ae43970f866c01bebcf0 10.100.140.231:6436@16436 myself,master - <span style="color:#ae81ff">0</span> <span style="color:#ae81ff">1642579573000</span> <span style="color:#ae81ff">69</span> connected 5455-10923
+</span></span><span style="display:flex;"><span>9a1be71bd5699ecb62b4308212ba1363ea72020f 10.100.140.233:6435@16435 master - <span style="color:#ae81ff">0</span> <span style="color:#ae81ff">1642579575338</span> <span style="color:#ae81ff">67</span> connected 10924-16383
+</span></span><span style="display:flex;"><span>86107b968a281aedbcddd9267b53dfb4bcaadee4 10.100.140.230:6437@16437 slave 798f8791b4e302df6c5e1418466e91899e199546 <span style="color:#ae81ff">0</span> <span style="color:#ae81ff">1642579574337</span> <span style="color:#ae81ff">66</span> connected
+</span></span><span style="display:flex;"><span>ba7481602474ce44fa964af043c9417670246002 10.100.140.232:6437@16437 slave 68eab9a2f3bae16afd41ae43970f866c01bebcf0 <span style="color:#ae81ff">0</span> <span style="color:#ae81ff">1642579573000</span> <span style="color:#ae81ff">69</span> connected
+</span></span><span style="display:flex;"><span>ad0cc373957d84ba9e37114feee68a8414408bf6 10.100.140.234:6436@16436 slave 9a1be71bd5699ecb62b4308212ba1363ea72020f <span style="color:#ae81ff">0</span> <span style="color:#ae81ff">1642579572335</span> <span style="color:#ae81ff">67</span> connected
+</span></span></code></pre></div><p>每行的组成结构：<code>&lt;id&gt; &lt;ip:port&gt; &lt;flags&gt; &lt;master&gt; &lt;ping-sent&gt; &lt;pong-recv&gt; &lt;config-epoch&gt; &lt;link-state&gt; &lt;slot&gt; &lt;slot&gt; ... &lt;slot&gt;</code>
+每项的含义如下:</p>
+<ul>
+<li>1.id: 节点ID</li>
+<li>2.ip:port：客户端与节点通信使用的地址</li>
+<li>3.flags：逗号分割的标记位，可能的值如下 
+<ul>
+<li>a. myself：当前连接的节点</li>
+<li>b. master：节点是master</li>
+<li>c. slave：节点是slave</li>
+<li>d. fail?：节点处于PFAIL 状态。 当前节点无法联系，但逻辑上是可达的 (非 FAIL 状态)</li>
+<li>e. fail：节点处于FAIL 状态. 大部分节点都无法与其取得联系将会将改节点由 PFAIL 状态升级至FAIL状态</li>
+<li>f. handshake：还未取得信任的节点，当前正在与其进行握手</li>
+<li>g. noaddr：没有地址的节点</li>
+<li>h. noflags：连个标记都没有</li>
+</ul>
+</li>
+<li>
+<ol start="4">
+<li>master_id：如果节点是slave，并且已知master节点，则这里列出master节点ID,否则的话这里列出”-“</li>
+</ol>
+</li>
+<li>
+<ol start="5">
+<li>ping-sent：最近一次发送ping的时间，这个时间是一个unix毫秒时间戳，0代表没有发送过</li>
+</ol>
+</li>
+<li>
+<ol start="6">
+<li>pong-recv：最近一次收到pong的时间，使用unix时间戳表示</li>
+</ol>
+</li>
+<li>
+<ol start="7">
+<li>config-epoch：节点的epoch值（从节点值随主节点）</li>
+</ol>
+<ul>
+<li>a. 每当节点发生失败切换时，都会创建一个新的，独特的，递增的epoch</li>
+<li>b. 如果多个节点竞争同一个哈希槽时，epoch值更高的节点会抢夺到</li>
+</ul>
+</li>
+<li>
+<ol start="8">
+<li>link-state：node-to-node集群总线使用的链接的状态，我们使用这个链接与集群中其他节点进行通信</li>
+</ol>
+<ul>
+<li>a. 值可以是 connected 和 disconnected</li>
+</ul>
+</li>
+<li>
+<ol start="9">
+<li>slot：哈希槽值或者一个哈希槽范围，代表当前节点可以提供服务的哈希槽值</li>
+</ol>
+</li>
+</ul>
+<h3 id="32-redis启动后单身状态">
+  3.2 Redis启动后“单身”状态
+  <a class="anchor" href="#32-redis%e5%90%af%e5%8a%a8%e5%90%8e%e5%8d%95%e8%ba%ab%e7%8a%b6%e6%80%81">#</a>
+</h3>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-Shell" data-lang="Shell"><span style="display:flex;"><span>root@work-arch-docker-3 <span style="color:#f92672">(</span>16:14:17<span style="color:#f92672">)</span> ~ <span style="color:#75715e"># redis-cli -p 6379 cluster nodes</span>
+</span></span><span style="display:flex;"><span>77199f3d3b63360117c352f51f0262627a53d215 :6379@16379 myself,master - <span style="color:#ae81ff">0</span> <span style="color:#ae81ff">0</span> <span style="color:#ae81ff">0</span> connected
+</span></span><span style="display:flex;"><span>root@work-arch-docker-3 <span style="color:#f92672">(</span>16:14:30<span style="color:#f92672">)</span> ~ <span style="color:#75715e">#</span>
+</span></span><span style="display:flex;"><span>root@work-arch-docker-3 <span style="color:#f92672">(</span>16:14:30<span style="color:#f92672">)</span> ~ <span style="color:#75715e"># redis-cli -p 6380 cluster nodes</span>
+</span></span><span style="display:flex;"><span>60445f6231213b2285f216eac53f67408bdeae28 :6380@16380 myself,master - <span style="color:#ae81ff">0</span> <span style="color:#ae81ff">0</span> <span style="color:#ae81ff">0</span> connected
+</span></span></code></pre></div><h3 id="33-meetredis实例1">
+  3.3 Meet Redis实例1
+  <a class="anchor" href="#33-meetredis%e5%ae%9e%e4%be%8b1">#</a>
+</h3>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-Shell" data-lang="Shell"><span style="display:flex;"><span>root@work-arch-docker-3 <span style="color:#f92672">(</span>16:15:16<span style="color:#f92672">)</span> ~ <span style="color:#75715e"># redis-cli -p 6379 cluster nodes</span>
+</span></span><span style="display:flex;"><span>ba7481602474ce44fa964af043c9417670246002 10.100.140.232:6437@16437 slave 68eab9a2f3bae16afd41ae43970f866c01bebcf0 <span style="color:#ae81ff">0</span> <span style="color:#ae81ff">1642580117000</span> <span style="color:#ae81ff">69</span> connected
+</span></span><span style="display:flex;"><span>86107b968a281aedbcddd9267b53dfb4bcaadee4 10.100.140.230:6437@16437 slave 798f8791b4e302df6c5e1418466e91899e199546 <span style="color:#ae81ff">0</span> <span style="color:#ae81ff">1642580117750</span> <span style="color:#ae81ff">66</span> connected
+</span></span><span style="display:flex;"><span>ad0cc373957d84ba9e37114feee68a8414408bf6 10.100.140.234:6436@16436 slave 9a1be71bd5699ecb62b4308212ba1363ea72020f <span style="color:#ae81ff">0</span> <span style="color:#ae81ff">1642580115000</span> <span style="color:#ae81ff">67</span> connected
+</span></span><span style="display:flex;"><span>798f8791b4e302df6c5e1418466e91899e199546 10.100.140.229:6436@16436 master - <span style="color:#ae81ff">0</span> <span style="color:#ae81ff">1642580115742</span> <span style="color:#ae81ff">66</span> connected 0-5454
+</span></span><span style="display:flex;"><span>68eab9a2f3bae16afd41ae43970f866c01bebcf0 10.100.140.231:6436@16436 master - <span style="color:#ae81ff">0</span> <span style="color:#ae81ff">1642580115000</span> <span style="color:#ae81ff">69</span> connected 5455-10923
+</span></span><span style="display:flex;"><span>9a1be71bd5699ecb62b4308212ba1363ea72020f 10.100.140.233:6435@16435 master - <span style="color:#ae81ff">0</span> <span style="color:#ae81ff">1642580117000</span> <span style="color:#ae81ff">67</span> connected 10924-16383
+</span></span><span style="display:flex;"><span>77199f3d3b63360117c352f51f0262627a53d215 10.100.140.152:6379@16379 myself,master - <span style="color:#ae81ff">0</span> <span style="color:#ae81ff">1642580115000</span> <span style="color:#ae81ff">0</span> connected
+</span></span></code></pre></div><h3 id="34-meetredis实例2">
+  3.4 Meet Redis实例2
+  <a class="anchor" href="#34-meetredis%e5%ae%9e%e4%be%8b2">#</a>
+</h3>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-Shell" data-lang="Shell"><span style="display:flex;"><span>root@work-arch-docker-3 <span style="color:#f92672">(</span>16:15:22<span style="color:#f92672">)</span> ~ <span style="color:#75715e"># redis-cli -p 6380 cluster nodes</span>
+</span></span><span style="display:flex;"><span>86107b968a281aedbcddd9267b53dfb4bcaadee4 10.100.140.230:6437@16437 slave 798f8791b4e302df6c5e1418466e91899e199546 <span style="color:#ae81ff">0</span> <span style="color:#ae81ff">1642580129887</span> <span style="color:#ae81ff">66</span> connected
+</span></span><span style="display:flex;"><span>ba7481602474ce44fa964af043c9417670246002 10.100.140.232:6437@16437 slave 68eab9a2f3bae16afd41ae43970f866c01bebcf0 <span style="color:#ae81ff">0</span> <span style="color:#ae81ff">1642580132000</span> <span style="color:#ae81ff">69</span> connected
+</span></span><span style="display:flex;"><span>ad0cc373957d84ba9e37114feee68a8414408bf6 10.100.140.234:6436@16436 slave 9a1be71bd5699ecb62b4308212ba1363ea72020f <span style="color:#ae81ff">0</span> <span style="color:#ae81ff">1642580130000</span> <span style="color:#ae81ff">67</span> connected
+</span></span><span style="display:flex;"><span>798f8791b4e302df6c5e1418466e91899e199546 10.100.140.229:6436@16436 master - <span style="color:#ae81ff">0</span> <span style="color:#ae81ff">1642580130590</span> <span style="color:#ae81ff">66</span> connected 0-5454
+</span></span><span style="display:flex;"><span>68eab9a2f3bae16afd41ae43970f866c01bebcf0 10.100.140.231:6436@16436 master - <span style="color:#ae81ff">0</span> <span style="color:#ae81ff">1642580133595</span> <span style="color:#ae81ff">69</span> connected 5455-10923
+</span></span><span style="display:flex;"><span>9a1be71bd5699ecb62b4308212ba1363ea72020f 10.100.140.233:6435@16435 master - <span style="color:#ae81ff">0</span> <span style="color:#ae81ff">1642580132593</span> <span style="color:#ae81ff">67</span> connected 10924-16383
+</span></span><span style="display:flex;"><span>77199f3d3b63360117c352f51f0262627a53d215 10.100.140.152:6379@16379 master - <span style="color:#ae81ff">0</span> <span style="color:#ae81ff">1642580131592</span> <span style="color:#ae81ff">0</span> connected
+</span></span><span style="display:flex;"><span>60445f6231213b2285f216eac53f67408bdeae28 10.100.140.152:6380@16380 myself,master - <span style="color:#ae81ff">0</span> <span style="color:#ae81ff">1642580133000</span> <span style="color:#ae81ff">73</span> connected
+</span></span></code></pre></div><h3 id="35-指定新增实例主从关系">
+  3.5 指定新增实例主从关系
+  <a class="anchor" href="#35-%e6%8c%87%e5%ae%9a%e6%96%b0%e5%a2%9e%e5%ae%9e%e4%be%8b%e4%b8%bb%e4%bb%8e%e5%85%b3%e7%b3%bb">#</a>
+</h3>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-Shell" data-lang="Shell"><span style="display:flex;"><span>root@work-arch-docker-3 <span style="color:#f92672">(</span>16:16:55<span style="color:#f92672">)</span> ~ <span style="color:#75715e"># redis-cli -p 6379 cluster nodes</span>
+</span></span><span style="display:flex;"><span>ba7481602474ce44fa964af043c9417670246002 10.100.140.232:6437@16437 slave 68eab9a2f3bae16afd41ae43970f866c01bebcf0 <span style="color:#ae81ff">0</span> <span style="color:#ae81ff">1642580214980</span> <span style="color:#ae81ff">69</span> connected
+</span></span><span style="display:flex;"><span>86107b968a281aedbcddd9267b53dfb4bcaadee4 10.100.140.230:6437@16437 slave 798f8791b4e302df6c5e1418466e91899e199546 <span style="color:#ae81ff">0</span> <span style="color:#ae81ff">1642580215985</span> <span style="color:#ae81ff">66</span> connected
+</span></span><span style="display:flex;"><span>60445f6231213b2285f216eac53f67408bdeae28 10.100.140.152:6380@16380 slave 77199f3d3b63360117c352f51f0262627a53d215 <span style="color:#ae81ff">0</span> <span style="color:#ae81ff">1642580213000</span> <span style="color:#ae81ff">73</span> connected
+</span></span><span style="display:flex;"><span>ad0cc373957d84ba9e37114feee68a8414408bf6 10.100.140.234:6436@16436 slave 9a1be71bd5699ecb62b4308212ba1363ea72020f <span style="color:#ae81ff">0</span> <span style="color:#ae81ff">1642580212000</span> <span style="color:#ae81ff">67</span> connected
+</span></span><span style="display:flex;"><span>798f8791b4e302df6c5e1418466e91899e199546 10.100.140.229:6436@16436 master - <span style="color:#ae81ff">0</span> <span style="color:#ae81ff">1642580212000</span> <span style="color:#ae81ff">66</span> connected 0-5454
+</span></span><span style="display:flex;"><span>68eab9a2f3bae16afd41ae43970f866c01bebcf0 10.100.140.231:6436@16436 master - <span style="color:#ae81ff">0</span> <span style="color:#ae81ff">1642580213578</span> <span style="color:#ae81ff">69</span> connected 5455-10923
+</span></span><span style="display:flex;"><span>9a1be71bd5699ecb62b4308212ba1363ea72020f 10.100.140.233:6435@16435 master - <span style="color:#ae81ff">0</span> <span style="color:#ae81ff">1642580214000</span> <span style="color:#ae81ff">67</span> connected 10924-16383
+</span></span><span style="display:flex;"><span>77199f3d3b63360117c352f51f0262627a53d215 10.100.140.152:6379@16379 myself,master - <span style="color:#ae81ff">0</span> <span style="color:#ae81ff">1642580214000</span> <span style="color:#ae81ff">0</span> connected
+</span></span></code></pre></div><h1 id="5-延伸阅读">
+  5. 延伸阅读
+  <a class="anchor" href="#5-%e5%bb%b6%e4%bc%b8%e9%98%85%e8%af%bb">#</a>
+</h1>
+<h3 id="51-redis-集群数据结构">
+  5.1 Redis 集群数据结构
+  <a class="anchor" href="#51-redis-%e9%9b%86%e7%be%a4%e6%95%b0%e6%8d%ae%e7%bb%93%e6%9e%84">#</a>
+</h3>
+<p>初始化 cluster 中有三个重要数据结构：</p>
+<ul>
+<li>clusterState：记录当前节点视角下，集群目前的状态</li>
+<li>clusterNode：记录节点的状态</li>
+<li>clusterLink：为clusterNode的属性，记录了连接该节点所需的有关信息
+源码文件：cluster.h cluster.c
+<strong>struct clusterState</strong> 展开源码
+<strong>struct clusterNode</strong> 展开源码
+<strong>struct clusterLink</strong> 展开源码</li>
+</ul>
+<h3 id="52-redis-启动过程">
+  5.2 Redis 启动过程
+  <a class="anchor" href="#52-redis-%e5%90%af%e5%8a%a8%e8%bf%87%e7%a8%8b">#</a>
+</h3>
+<p>5.2.1 启动流程</p>
+<p><img src="./images/img1.jpg" alt="img1" /></p>
+<p>5.2.2 启动日志
+Redis实例1日志<br>
+ 展开源码<br>
+Redis实例2日志<br>
+ 展开源码</p>
+<h3 id="53-cluster-meet处理过程">
+  5.3 cluster meet处理过程
+  <a class="anchor" href="#53-cluster-meet%e5%a4%84%e7%90%86%e8%bf%87%e7%a8%8b">#</a>
+</h3>
+<p>5.3.1 meet 命令处理
+大致分为 3 个阶段：</p>
+<ul>
+<li>A 通过 meet msg 的 pong 回包，更改 A 对 B 的认识</li>
+<li>B 通过 ping msg 的 pong 回包，更改 B 对 A 的认识</li>
+<li>来自 A 的 ping or pong msg， B 更新自己看到的 A 的 slot 信息</li>
+</ul>
+<p><img src="./images/img2.png" alt="img2" /></p>
+<p>5.3.2 Gossip消息结构（MEET、PING、PONG）
+<strong>MEET PING PNG message</strong> 展开源码</p>
+<h3 id="53-揭晓-node_id是如何生成的为什么会变化呢">
+  5.3 揭晓 node_id是如何生成的？为什么会变化呢？
+  <a class="anchor" href="#53-%e6%8f%ad%e6%99%93-node_id%e6%98%af%e5%a6%82%e4%bd%95%e7%94%9f%e6%88%90%e7%9a%84%e4%b8%ba%e4%bb%80%e4%b9%88%e4%bc%9a%e5%8f%98%e5%8c%96%e5%91%a2">#</a>
+</h3>
+<p>5.3.1 node_id 如何生成?
+新建 redis 节点时候生成，几乎不会改变，除非执行：cluster reset hard</p>
+<ul>
+<li>cluster.c  line462 随机40字节字符串，这个值在节点启动的时候，从节点配置文件获取或者创建
+<ul>
+<li><code>clusterLoadConfig  /* Load or create a new nodes configuration. */</code></li>
+<li><code>getRandomHexChars(node-&gt;name, CLUSTER_NAMELEN);</code></li>
+</ul>
+</li>
+<li>cluster.c  line532  <strong>Only for hard reset: a new Node ID is generated.</strong>
+<ul>
+<li>hard reset多用于测试</li>
+</ul>
+</li>
+<li>cluster reset 命令说明：http://www.redis.cn/commands/cluster-reset.html
+5.3.2 Redis 集群扩容时候 node_id 为什么会变化?</li>
+<li>其实 Redis 节点的 node_id 是没有变化的</li>
+<li>扩容期间，meet 新节点后，立刻从其他节点获取该新节点的 nodei_id，可能拿到的是随机生成的 node_id (不认识的时候是随机生成node_id，认识之后再更新次node_id）</li>
+</ul>
+</article>
+ 
+      
+
+      <footer class="book-footer">
+        
+  <div class="flex flex-wrap justify-between">
+
+
+
+
+
+</div>
+
+
+
+  <script>(function(){function e(e){const t=window.getSelection(),n=document.createRange();n.selectNodeContents(e),t.removeAllRanges(),t.addRange(n)}document.querySelectorAll("pre code").forEach(t=>{t.addEventListener("click",function(){if(window.getSelection().toString())return;e(t.parentElement),navigator.clipboard&&navigator.clipboard.writeText(t.parentElement.textContent)})})})()</script>
+
+
+ 
+        
+      </footer>
+
+      
+  
+  <div class="book-comments">
+
+</div>
+  
+ 
+
+      <label for="menu-control" class="hidden book-menu-overlay"></label>
+    </div>
+
+    
+    <aside class="book-toc">
+      <div class="book-toc-content">
+        
+  
+<nav id="TableOfContents">
+  <ul>
+    <li><a href="#1背景">1. 背景</a></li>
+    <li><a href="#2-redis集群扩容过程梳理">2. Redis集群扩容过程梳理</a>
+      <ul>
+        <li>
+          <ul>
+            <li><a href="#21-启动redis实例">2.1 启动Redis实例</a></li>
+            <li><a href="#22-redis集群所有主节点meet待加入节点">2.2 Redis集群所有主节点meet待加入节点</a></li>
+            <li><a href="#23-确定主从角色">2.3 确定主从角色</a></li>
+          </ul>
+        </li>
+      </ul>
+    </li>
+    <li><a href="#3-redis集群扩容期间节点状态">3. Redis集群扩容期间节点状态</a>
+      <ul>
+        <li>
+          <ul>
+            <li><a href="#31-扩容前集群节点状态">3.1 扩容前集群节点状态</a></li>
+            <li><a href="#32-redis启动后单身状态">3.2 Redis启动后“单身”状态</a></li>
+            <li><a href="#33-meetredis实例1">3.3 Meet Redis实例1</a></li>
+            <li><a href="#34-meetredis实例2">3.4 Meet Redis实例2</a></li>
+            <li><a href="#35-指定新增实例主从关系">3.5 指定新增实例主从关系</a></li>
+          </ul>
+        </li>
+      </ul>
+    </li>
+    <li><a href="#5-延伸阅读">5. 延伸阅读</a>
+      <ul>
+        <li>
+          <ul>
+            <li><a href="#51-redis-集群数据结构">5.1 Redis 集群数据结构</a></li>
+            <li><a href="#52-redis-启动过程">5.2 Redis 启动过程</a></li>
+            <li><a href="#53-cluster-meet处理过程">5.3 cluster meet处理过程</a></li>
+            <li><a href="#53-揭晓-node_id是如何生成的为什么会变化呢">5.3 揭晓 node_id是如何生成的？为什么会变化呢？</a></li>
+          </ul>
+        </li>
+      </ul>
+    </li>
+  </ul>
+</nav>
+
+
+ 
+      </div>
+    </aside>
+    
+  </main>
+
+  
+</body>
+</html>
+
+
+
+
+
+
+
+
+
+
+
+

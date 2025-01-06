@@ -9,6 +9,20 @@
     <lastBuildDate>Mon, 10 Jul 2023 15:48:29 +0000</lastBuildDate>
     <atom:link href="https://www6v.github.io/www6vMiddleware/tags/KV/index.xml" rel="self" type="application/rss+xml" />
     <item>
+      <title>Redis LazyFree</title>
+      <link>https://www6v.github.io/www6vMiddleware/docs/Redis&#43;%E7%BC%93%E5%AD%98/Redis-%E5%9F%BA%E7%A1%80/%E8%B5%84%E6%BA%90%E5%9B%9E%E6%94%B6/redisLazyFree/</link>
+      <pubDate>Wed, 01 Jun 2022 10:46:16 +0000</pubDate>
+      <guid>https://www6v.github.io/www6vMiddleware/docs/Redis&#43;%E7%BC%93%E5%AD%98/Redis-%E5%9F%BA%E7%A1%80/%E8%B5%84%E6%BA%90%E5%9B%9E%E6%94%B6/redisLazyFree/</guid>
+      <description>场景 [1]&#xD;#&#xD;场景一：客户端执行的显示删除/清除命令，比如 del，flushdb 等； 场景二：某些指令带有的隐式删除命令，比如 move , rename 等； 场景三：到达过期时间的数据需要删除； 场景四：使用内存达到 maxmemory 后被选出来要淘汰的数据需要删除； 场景五：在主从同步全量同步阶段，从库收到主库的 RDB 文件后要先删除现有的数据再加载 RDB 文件； 相关配置&#xD;#&#xD;惰性删除相 关的配置项 lazyfree-lazy-eviction：对应缓存淘汰时的数据删除场景。 lazyfree-lazy-expire：对应过期 key 的删除场景。 lazyfree-lazy-server-del：对应会隐式进行删除操作的 server 命令执行场景。 replica-lazy-flush：对应从节点完成全量同步后，删除原有旧数据的场景。 源代码&#xD;#&#xD;evict.c int freeMemoryIfNeeded(void) { /*......*/ /* Finally remove the selected key. */ if (bestkey) { db = server.db+bestdbid; robj *keyobj = createStringObject(bestkey,sdslen(bestkey)); propagateExpire(db,keyobj,server.lazyfree_lazy_eviction); ### 1 /* We compute the amount of memory freed by db*Delete() alone.</description>
+    </item>
+    <item>
+      <title>Redis 回收策略</title>
+      <link>https://www6v.github.io/www6vMiddleware/docs/Redis&#43;%E7%BC%93%E5%AD%98/Redis-%E5%9F%BA%E7%A1%80/%E8%B5%84%E6%BA%90%E5%9B%9E%E6%94%B6/redisDelete/</link>
+      <pubDate>Wed, 02 Jun 2021 11:42:46 +0000</pubDate>
+      <guid>https://www6v.github.io/www6vMiddleware/docs/Redis&#43;%E7%BC%93%E5%AD%98/Redis-%E5%9F%BA%E7%A1%80/%E8%B5%84%E6%BA%90%E5%9B%9E%E6%94%B6/redisDelete/</guid>
+      <description>&#xA;回收策略&#xD;#&#xD;回收策略 redis kafka 基于时间 过期删除策略 1. 定时删除(对内存最友好， 对CPU时间最不友好) 2. 惰性删除(对CPU时间最友好， 对内存最不友好) 3.定期删除(整合和折中) 基于大小 内存淘汰策略 1. noeviction 2.lru 3. random 4. ttl 其他 x 近似LRU算法[11] 参考&#xD;#&#xD;七问Redis，才知道我与技术大牛的差距在哪里 ***&#xA;经典面试题：Redis 内存满了怎么办？&#xA;回收策略&#xD;#&#xD;Redis内存回收机制，把我整懵了&amp;hellip; Kafka日志清理之Log Deletion 《Redis 开发与运维》 8.2.3 未 </description>
+    </item>
+    <item>
       <title>Redis Cluster</title>
       <link>https://www6v.github.io/www6vMiddleware/docs/Redis&#43;%E7%BC%93%E5%AD%98/Redis-%E5%9F%BA%E7%A1%80/Arch-Redis-Cluster/redisCluster/</link>
       <pubDate>Mon, 11 Jul 2022 06:45:41 +0000</pubDate>
@@ -28,6 +42,13 @@
       <pubDate>Sun, 31 Jul 2022 11:37:41 +0000</pubDate>
       <guid>https://www6v.github.io/www6vMiddleware/docs/Redis&#43;%E7%BC%93%E5%AD%98/Redis-%E5%9F%BA%E7%A1%80/Arch-Redis-Cluster/redisHA/</guid>
       <description>目录&#xD;#&#xD;1. 背景&#xD;#&#xD;Redis 集群自身已经具备了高可用的特性，即使几个Redis节点异常或者挂掉，Redis 集群也会实现故障自动转移，对应用方来说也可以在很短时间内恢复故障。 但是，如果发生了机房故障(断电、断网等极端情况)，Redis集群节点全部挂掉（过半主节点挂掉），会造成集群服务不可用，对于核心业务来说是不可接受的。 为了应对机房故障情况，保障在这种极端情况下，核心业务仍然可以正常访问 Redis 服务，本文将给出适合我司的 Redis 跨机房高可用解决方案。 2. 目标&#xD;#&#xD;保障单机房整体故障时 Redis 缓存服务正常运行。 单机房故障 RTO：30s，RPO：1s 3. 解决方案&#xD;#&#xD;3.1 核心能力&#xD;#&#xD;客户端流量路由：支持按一定的策略，把流量分流到不同机房；机房故障后，流量自动流向其他机房。 服务端故障转移：支持机房故障后，当前机房原来主节点的从节点，通过选举自动倒换成新的主节点。 管理平台正常服务：任一机房故障，Renault 管理平台使用不受影响。 3.2 工作模式&#xD;#&#xD;组件在机房高可用场景下一般有多种工作模式，典型的有单集群模式及多集群模式。本节描述组件在各种工作模式下的部署方式及工作机制。&#xA;部署方案 方案说明 跨机房混合部署 将Redis集群主节点平均分配到各个机房，主从节点在不同机房 各机房独立部署集群 + 数据单向同步 各机房均独立部署集群，集群为热备模式，写请求均写入同一个集群，然后同步到其他集群 各机房独立部署集群 + 数据双向同步 每个机房部署一套Redis集群，同步核心业务写请求 数据同步方法：&#xA;数据同步方案 方案说明 客户端双写 客户端同时写入到各个集群 客户端代理 Netflix开源实现的Dynomite，通过代理层接受数据后写入各个需要同步的节点&#xA;改造难度大&#xA;客户端需要优化添加Dyno Client服务端每个节点需要部署Dyno Node&#xA;read/write性能较原生差异较大，主要体现在write上，之间的差异随着node节点数越多越严重 伪从节点 基于Redis的Master-Slave复制协议，实现低延时、高可用的Redis多数据中心、跨公网数据复制携程开源系统：https://github.com/ctripcorp/x-pipe阿里RedisShake同步工具 写事件监听+MQ跨集群消息同步 读写在本机房，监听写事件 + MQ消息同步到其他机房需要开启事件通知（PUB），修改Redis配置文件中的 notify-keyspace-events 配置（默认的redis并没有开启这个功能）需要独立服务订阅写事件（SUB），并同步到其他集群依赖MQ组件 不考虑客户端代理、发布订阅写事件</description>
+    </item>
+    <item>
+      <title>Redis  命中率</title>
+      <link>https://www6v.github.io/www6vMiddleware/docs/Redis&#43;%E7%BC%93%E5%AD%98/Redis-%E6%95%85%E9%9A%9C%E4%BC%98%E5%8C%96/%E5%B8%B8%E8%A7%81%E9%97%AE%E9%A2%98/redisHitRate/</link>
+      <pubDate>Sun, 31 Jul 2022 17:13:43 +0000</pubDate>
+      <guid>https://www6v.github.io/www6vMiddleware/docs/Redis&#43;%E7%BC%93%E5%AD%98/Redis-%E6%95%85%E9%9A%9C%E4%BC%98%E5%8C%96/%E5%B8%B8%E8%A7%81%E9%97%AE%E9%A2%98/redisHitRate/</guid>
+      <description>&#xA;命中率不高&#xD;#&#xD;会增加接口响应时间&#xA;提高redis命中率 [3][4]&#xD;#&#xD;缓存粒度 缓存粒度越小，命中率越高 合理调整缓存有效期的时间 避免缓存同时失效 预加载 防止缓存击穿和穿透[5] 增加存储容量 容量不足时会触发Redis内存淘汰机制 清空策略 [6] FIFO(first in first out) LFU(less frequently used) LRU(least recently used) 参考&#xD;#&#xD;如何提高redis缓存命中率 关于如何提高缓存命中率（redis） {% post_link &amp;lsquo;redisReliability-1&amp;rsquo; %} self 缓存那些事 </description>
     </item>
     <item>
       <title>Redis 混合持久化</title>
