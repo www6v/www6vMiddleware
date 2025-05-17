@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>OpenTelemetry on 中间件</title>
+    <link>https://www6v.github.io/www6vMiddleware/categories/OpenTelemetry/</link>
+    <description>Recent content in OpenTelemetry on 中间件</description>
+    <generator>Hugo</generator>
+    <language>en</language>
+    <lastBuildDate>Sat, 29 Jan 2022 12:49:06 +0000</lastBuildDate>
+    <atom:link href="https://www6v.github.io/www6vMiddleware/categories/OpenTelemetry/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>可观测性-OpenTelemetry</title>
+      <link>https://www6v.github.io/www6vMiddleware/docs/Observe/%E7%BB%9F%E4%B8%80%E6%A8%A1%E5%9E%8B/observabilityOpenTelemetry/</link>
+      <pubDate>Sat, 29 Jan 2022 12:49:06 +0000</pubDate>
+      <guid>https://www6v.github.io/www6vMiddleware/docs/Observe/%E7%BB%9F%E4%B8%80%E6%A8%A1%E5%9E%8B/observabilityOpenTelemetry/</guid>
+      <description>参考&#xD;#&#xD;可观测性技术生态和 OpenTelemetry 原理及实践，陈一枭 V ***&#xA;OpenTelemetry 可观测性的未来 Jimmy Song - Ted Young ***</description>
+    </item>
+  </channel>
+</rss>

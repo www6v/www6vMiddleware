@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Metric on 中间件</title>
+    <link>https://www6v.github.io/www6vMiddleware/tags/metric/</link>
+    <description>Recent content in Metric on 中间件</description>
+    <generator>Hugo</generator>
+    <language>en</language>
+    <lastBuildDate>Sun, 17 Jul 2022 10:05:33 +0000</lastBuildDate>
+    <atom:link href="https://www6v.github.io/www6vMiddleware/tags/metric/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>可观测性-Prometheus业务监控</title>
+      <link>https://www6v.github.io/www6vMiddleware/docs/Observe/Metric/observabilityPrometheusBiz/</link>
+      <pubDate>Sun, 17 Jul 2022 10:05:33 +0000</pubDate>
+      <guid>https://www6v.github.io/www6vMiddleware/docs/Observe/Metric/observabilityPrometheusBiz/</guid>
+      <description>抓取业务指标的三种⽅式&#xD;#&#xD;白盒监控（最常用的指标抓取方式）&#xD;#&#xD;通过 CRD 配置指标抓取&#xA;ServiceMonitor 通过 Label 选择器匹配：ServiceMonitor-&amp;gt;Service-&amp;gt;Endpoints-&amp;gt;Pod 首选类型，可抓取多个 Pod 指标 PodMonitor 通过 Label 选择器直接匹配 Pod 适合无 Service 的场景，例如 CronJobs、DaemonSets 优势&#xA;无需学习复杂的 Prometheus 配置，包含默认的 relabeling 分离工程团队和基础设施团队 Query Metrics 简单例子&#xA;/// 过去 1 分钟，第 90 个百分位数请求延迟时间的直方图 histogram_quantile( ---------&amp;gt; 获取直⽅图 0.9, ---------&amp;gt; 获取第 90 个百分位数请求延迟时间 sum( ---------&amp;gt; 聚合桶，并按桶的上限(le)进行分组 rate( ---------&amp;gt; 获得每个桶的变化速率 http_response_time_seconds_bucket{job=&amp;#34;week9-app&amp;#34;}[1m] ---------&amp;gt; 过去 1 分钟内 HTTP 请求延迟并分桶 ) ) by(le) ) 黑盒监控 （其他指标抓取方式）&#xD;#&#xD;通过 CRD 配置指标抓取 Probe 需要部署 blackbox_exporter 可以被用在黑盒监控（如 HTTP 探针、网站可用性监控） 监控静态的目标（如网站）或者 Ingress 对象 通过 Label 选择器匹配 Ingress 优势 不侵入业务逻辑 快速发现故障 基于Annotations 抓取 (不推荐使用)&#xD;#&#xD;业务指标告警&#xD;#&#xD;避免告警疲劳 ***&#xD;#&#xD;告警疲劳</description>
+    </item>
+  </channel>
+</rss>

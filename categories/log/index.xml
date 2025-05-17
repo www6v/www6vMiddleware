@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Log on 中间件</title>
+    <link>https://www6v.github.io/www6vMiddleware/categories/log/</link>
+    <description>Recent content in Log on 中间件</description>
+    <generator>Hugo</generator>
+    <language>en</language>
+    <lastBuildDate>Sat, 28 Jan 2023 22:16:42 +0000</lastBuildDate>
+    <atom:link href="https://www6v.github.io/www6vMiddleware/categories/log/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>可观测性-Log</title>
+      <link>https://www6v.github.io/www6vMiddleware/docs/Observe/Log/observabilityLog/</link>
+      <pubDate>Sat, 28 Jan 2023 22:16:42 +0000</pubDate>
+      <guid>https://www6v.github.io/www6vMiddleware/docs/Observe/Log/observabilityLog/</guid>
+      <description>&#xA;Log 模型[1]&#xD;#&#xD;日志框架&#xD;#&#xD;ELK，EFK Loki&#xA;基于tag 日志采集&#xD;#&#xD;Java应用中 API log4j 基于AOP的采集[4] @LogRecord( content = &amp;#34;修改了订单的配送地址：从“#oldAddress”, 修改到“#request.address”&amp;#34;, operator = &amp;#34;#request.userName&amp;#34;, bizNo=&amp;#34;#request.deliveryOrderNo&amp;#34;) public void modifyAddress(updateDeliveryRequest request, String oldAddress){ // 更新派送信息 电话，收件人、地址 doUpdate(request); } 容器中[2] 参考&#xD;#&#xD;《第七模块 ：微服务监控告警Prometheus架构和实践 119.监控模式分类》 微服务架构实战160讲 杨波 partial 容器日志采集利器Log-Pilot 阿里Log-Pilot 容器日志采集模式 停止更新 Pattern: Microservice Architecture 如何优雅地记录操作日志？ 美团 ***&#xA;1xx. 日志：每个软件工程师都应该知道的有关实时数据的统一概念 论文翻译 *** 未 </description>
+    </item>
+  </channel>
+</rss>

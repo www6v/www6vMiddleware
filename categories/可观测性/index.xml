@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>可观测性 on 中间件</title>
+    <link>https://www6v.github.io/www6vMiddleware/categories/%E5%8F%AF%E8%A7%82%E6%B5%8B%E6%80%A7/</link>
+    <description>Recent content in 可观测性 on 中间件</description>
+    <generator>Hugo</generator>
+    <language>en</language>
+    <lastBuildDate>Sat, 28 Jan 2023 22:42:30 +0000</lastBuildDate>
+    <atom:link href="https://www6v.github.io/www6vMiddleware/categories/%E5%8F%AF%E8%A7%82%E6%B5%8B%E6%80%A7/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>可观测性-Tracing</title>
+      <link>https://www6v.github.io/www6vMiddleware/docs/Observe/Tracing/observabilityTracing/</link>
+      <pubDate>Sat, 28 Jan 2023 22:42:30 +0000</pubDate>
+      <guid>https://www6v.github.io/www6vMiddleware/docs/Observe/Tracing/observabilityTracing/</guid>
+      <description>&#xA;原理 [0]&#xD;#&#xD;APM 产品&#xD;#&#xD;APM产品比对 [5]&#xD;#&#xD;APM产品比对 [6]&#xD;#&#xD;使用 [9]&#xD;#&#xD;APM 故障排查&#xD;#&#xD;APM 稳定性指标&#xD;#&#xD;参考&#xD;#&#xD;标准&amp;amp;原理&#xD;#&#xD;《25 | 分布式Trace：横跨几十个分布式组件的慢请求要如何排查？》 OpenTracing语义标准 archived opentracing文档中文版 archived Dapper，大规模分布式系统的跟踪系统 论文 业界&#xD;#&#xD;虾米SRE实践_监控体系升级之路 *** 分布式调用链调研（pinpoint,skywalking,jaeger,zipkin等对比） 对比的表格 *** 失效 6.《第四模块 ：微服务调用链监控CAT架构和实践 69.调用链监控产品和比较》 微服务架构实战160讲 杨波 1xx. 剖析 | SOFARPC 框架之 SOFARPC 链路追踪剖析 使用&#xD;#&#xD;如何检测 Web 服务请求丢失问题 问题排查 应用： Nginx tracing + Tomcat tracing 鹰眼跟踪、限流降级，EDAS的微服务解决之道 </description>
+    </item>
+    <item>
+      <title>可观测性-Log</title>
+      <link>https://www6v.github.io/www6vMiddleware/docs/Observe/Log/observabilityLog/</link>
+      <pubDate>Sat, 28 Jan 2023 22:16:42 +0000</pubDate>
+      <guid>https://www6v.github.io/www6vMiddleware/docs/Observe/Log/observabilityLog/</guid>
+      <description>&#xA;Log 模型[1]&#xD;#&#xD;日志框架&#xD;#&#xD;ELK，EFK Loki&#xA;基于tag 日志采集&#xD;#&#xD;Java应用中 API log4j 基于AOP的采集[4] @LogRecord( content = &amp;#34;修改了订单的配送地址：从“#oldAddress”, 修改到“#request.address”&amp;#34;, operator = &amp;#34;#request.userName&amp;#34;, bizNo=&amp;#34;#request.deliveryOrderNo&amp;#34;) public void modifyAddress(updateDeliveryRequest request, String oldAddress){ // 更新派送信息 电话，收件人、地址 doUpdate(request); } 容器中[2] 参考&#xD;#&#xD;《第七模块 ：微服务监控告警Prometheus架构和实践 119.监控模式分类》 微服务架构实战160讲 杨波 partial 容器日志采集利器Log-Pilot 阿里Log-Pilot 容器日志采集模式 停止更新 Pattern: Microservice Architecture 如何优雅地记录操作日志？ 美团 ***&#xA;1xx. 日志：每个软件工程师都应该知道的有关实时数据的统一概念 论文翻译 *** 未 </description>
+    </item>
+    <item>
+      <title>可观测性-系统构建</title>
+      <link>https://www6v.github.io/www6vMiddleware/docs/Observe/Overview/observabilityBuilding/</link>
+      <pubDate>Thu, 04 Aug 2022 13:59:05 +0000</pubDate>
+      <guid>https://www6v.github.io/www6vMiddleware/docs/Observe/Overview/observabilityBuilding/</guid>
+      <description>&#xA;观察什么[1]&#xD;#&#xD;监控能力矩阵 监控对象范围 怎么观察[1]&#xD;#&#xD;产品架构 技术架构 参考&#xD;#&#xD;vivo 服务端监控体系建设实践 *** vivo 容器集群监控系统架构与实践 vivo 故障定位平台的探索与实践 </description>
+    </item>
+    <item>
+      <title>可观测性-Prometheus业务监控</title>
+      <link>https://www6v.github.io/www6vMiddleware/docs/Observe/Metric/observabilityPrometheusBiz/</link>
+      <pubDate>Sun, 17 Jul 2022 10:05:33 +0000</pubDate>
+      <guid>https://www6v.github.io/www6vMiddleware/docs/Observe/Metric/observabilityPrometheusBiz/</guid>
+      <description>抓取业务指标的三种⽅式&#xD;#&#xD;白盒监控（最常用的指标抓取方式）&#xD;#&#xD;通过 CRD 配置指标抓取&#xA;ServiceMonitor 通过 Label 选择器匹配：ServiceMonitor-&amp;gt;Service-&amp;gt;Endpoints-&amp;gt;Pod 首选类型，可抓取多个 Pod 指标 PodMonitor 通过 Label 选择器直接匹配 Pod 适合无 Service 的场景，例如 CronJobs、DaemonSets 优势&#xA;无需学习复杂的 Prometheus 配置，包含默认的 relabeling 分离工程团队和基础设施团队 Query Metrics 简单例子&#xA;/// 过去 1 分钟，第 90 个百分位数请求延迟时间的直方图 histogram_quantile( ---------&amp;gt; 获取直⽅图 0.9, ---------&amp;gt; 获取第 90 个百分位数请求延迟时间 sum( ---------&amp;gt; 聚合桶，并按桶的上限(le)进行分组 rate( ---------&amp;gt; 获得每个桶的变化速率 http_response_time_seconds_bucket{job=&amp;#34;week9-app&amp;#34;}[1m] ---------&amp;gt; 过去 1 分钟内 HTTP 请求延迟并分桶 ) ) by(le) ) 黑盒监控 （其他指标抓取方式）&#xD;#&#xD;通过 CRD 配置指标抓取 Probe 需要部署 blackbox_exporter 可以被用在黑盒监控（如 HTTP 探针、网站可用性监控） 监控静态的目标（如网站）或者 Ingress 对象 通过 Label 选择器匹配 Ingress 优势 不侵入业务逻辑 快速发现故障 基于Annotations 抓取 (不推荐使用)&#xD;#&#xD;业务指标告警&#xD;#&#xD;避免告警疲劳 ***&#xD;#&#xD;告警疲劳</description>
+    </item>
+    <item>
+      <title>可观测性-Skywalking</title>
+      <link>https://www6v.github.io/www6vMiddleware/docs/Observe/Tracing/observabilitySkywalking/</link>
+      <pubDate>Fri, 18 Mar 2022 22:15:49 +0000</pubDate>
+      <guid>https://www6v.github.io/www6vMiddleware/docs/Observe/Tracing/observabilitySkywalking/</guid>
+      <description>定位&#xD;#&#xD;APM: Tracing + Metric&#xA;架构[2]&#xD;#&#xD;agent&#xD;#&#xD;rpc&#xA;dubbo，springboot mesh&#xA;istio, envoy 中间件&#xA;nginx, kong&#xA;tomcat db&#xA;mysql linux&#xA;ebpf k8s 特性 [1]&#xD;#&#xD;skywalking 强依赖传输协议, head传输协议特殊&#xA;可以存zipkin，jaeger，openTelemetry的数据，但是不能tracing(拓扑图)分析 Metrics Analysis Language metric 前置分析 优势 提供更加一致性的查询结果 成本 劣势 丧失灵活性 精细的数据查不到 logging es&#xA;慢 费钱 Parse loging from Text&#xA;like loki, log前置分析 通过label而不是正文查log Generate Metrics from logs Event事件 live demo&#xD;#&#xD;live demo&#xA;参考&#xD;#&#xD;开源可观测体系发展之路 - 吴晟 @ 得物技术沙龙 V *** SkyWalking分布式系统应用程序性能监控工具-上 java基础教程全面的深入学习Skywalking V 入门 安装Java agent 资源&#xD;#&#xD;ApacheSkyWalking V 1xx.</description>
+    </item>
+    <item>
+      <title>可观测性-OpenTelemetry</title>
+      <link>https://www6v.github.io/www6vMiddleware/docs/Observe/%E7%BB%9F%E4%B8%80%E6%A8%A1%E5%9E%8B/observabilityOpenTelemetry/</link>
+      <pubDate>Sat, 29 Jan 2022 12:49:06 +0000</pubDate>
+      <guid>https://www6v.github.io/www6vMiddleware/docs/Observe/%E7%BB%9F%E4%B8%80%E6%A8%A1%E5%9E%8B/observabilityOpenTelemetry/</guid>
+      <description>参考&#xD;#&#xD;可观测性技术生态和 OpenTelemetry 原理及实践，陈一枭 V ***&#xA;OpenTelemetry 可观测性的未来 Jimmy Song - Ted Young ***</description>
+    </item>
+    <item>
+      <title>可观测性 总结</title>
+      <link>https://www6v.github.io/www6vMiddleware/docs/Observe/Overview/observability/</link>
+      <pubDate>Sat, 31 Aug 2019 11:54:42 +0000</pubDate>
+      <guid>https://www6v.github.io/www6vMiddleware/docs/Observe/Overview/observability/</guid>
+      <description>关键词: 可观测性, 全链路, APM， Metric， Log&#xA;可观测性&#xD;#&#xD;1.0-基础支柱 [1][3]&#xD;#&#xD;模式 产品/框架 Log aggregation ELK， AWS Cloud Watch Application metrics + alert Prometheus 、AWS Cloud Watch Distributed tracing Zipkin ，Jaeger，pinpoint（无侵入）, skywalking（无侵入）, CAT Exception tracking Zipkin ，Jaeger，pinpoint（无侵入）, skywalking（无侵入）, CAT 2.0-统一的可观测性平台[3]&#xD;#&#xD;OpenTelemetry - 数据采集传输的标准化 3.0-内生的可观测性能力[3]&#xD;#&#xD;基于ebpf 监控指标和原则&#xD;#&#xD;USE 原则 [面向&amp;quot;资源监控指标&amp;quot;]&#xA;利用率（Utilization），资源被有效利用起来提供服务的平均时间占比 饱和度（Saturation），资源拥挤的程度，比如工作队列的长度 错误率（Errors），错误的数量 RED 原则 [面向&amp;quot;服务监控指标&amp;quot;]&#xA;每秒请求数量（Rate） 每秒错误数量（Errors） 服务响应时间（Duration） google 四个黄金监控指标 [面向服务]&#xA;延迟 latancy 通信量 throughtout 错误 error 饱和度 可观测性-发展[4]&#xD;#&#xD;metric,log, tracing 之间的转换，tradeoff metric 是最经济的 cost少</description>
+    </item>
+  </channel>
+</rss>

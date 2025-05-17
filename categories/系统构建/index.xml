@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>系统构建 on 中间件</title>
+    <link>https://www6v.github.io/www6vMiddleware/categories/%E7%B3%BB%E7%BB%9F%E6%9E%84%E5%BB%BA/</link>
+    <description>Recent content in 系统构建 on 中间件</description>
+    <generator>Hugo</generator>
+    <language>en</language>
+    <lastBuildDate>Thu, 04 Aug 2022 13:59:05 +0000</lastBuildDate>
+    <atom:link href="https://www6v.github.io/www6vMiddleware/categories/%E7%B3%BB%E7%BB%9F%E6%9E%84%E5%BB%BA/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>可观测性-系统构建</title>
+      <link>https://www6v.github.io/www6vMiddleware/docs/Observe/Overview/observabilityBuilding/</link>
+      <pubDate>Thu, 04 Aug 2022 13:59:05 +0000</pubDate>
+      <guid>https://www6v.github.io/www6vMiddleware/docs/Observe/Overview/observabilityBuilding/</guid>
+      <description>&#xA;观察什么[1]&#xD;#&#xD;监控能力矩阵 监控对象范围 怎么观察[1]&#xD;#&#xD;产品架构 技术架构 参考&#xD;#&#xD;vivo 服务端监控体系建设实践 *** vivo 容器集群监控系统架构与实践 vivo 故障定位平台的探索与实践 </description>
+    </item>
+  </channel>
+</rss>
