@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>DAL on 中间件</title>
+    <link>https://www6v.github.io/www6vMiddleware/tags/DAL/</link>
+    <description>Recent content in DAL on 中间件</description>
+    <generator>Hugo</generator>
+    <language>en</language>
+    <lastBuildDate>Mon, 01 Aug 2022 15:03:16 +0000</lastBuildDate>
+    <atom:link href="https://www6v.github.io/www6vMiddleware/tags/DAL/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>分库分表-分页</title>
+      <link>https://www6v.github.io/www6vMiddleware/docs/DAL/dbShardingPaging/</link>
+      <pubDate>Mon, 01 Aug 2022 15:03:16 +0000</pubDate>
+      <guid>https://www6v.github.io/www6vMiddleware/docs/DAL/dbShardingPaging/</guid>
+      <description>&#xA;方案&#xD;#&#xD;全局查询法&#xD;#&#xD;简单&#xA;业务折衷法&#xD;#&#xD;禁止跳页查询&#xD;#&#xD;允许数据精度损失&#xD;#&#xD;二次查询法（推荐）&#xD;#&#xD;复杂&#xA;参考&#xD;#&#xD;分库分表必会-跨库分页查询看此一篇就够了 分表分页/跨库分页 难玩却不代表没有玩法 千万级别mysql 分库分表后表分页查询优化方案初探 业界难题-“跨库分页”的四种方案 *** 58沈剑 </description>
+    </item>
+    <item>
+      <title>数据库-读写分离</title>
+      <link>https://www6v.github.io/www6vMiddleware/docs/DAL/dbReadWrite/</link>
+      <pubDate>Tue, 12 Jul 2022 18:42:27 +0000</pubDate>
+      <guid>https://www6v.github.io/www6vMiddleware/docs/DAL/dbReadWrite/</guid>
+      <description>参考&#xD;#&#xD;ShardingSphere 核心功能+实操之「读写分离」</description>
+    </item>
+  </channel>
+</rss>

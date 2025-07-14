@@ -22,5 +22,12 @@
       <guid>https://www6v.github.io/www6vMiddleware/docs/Redis&#43;%E7%BC%93%E5%AD%98/%E7%BC%93%E5%AD%98/cache/</guid>
       <description>缓存数据分布模式&#xD;#&#xD;分片模式 （sharding）&#xD;#&#xD;数据正交分散到大量机器， 可以做到线性的可伸缩性， 但是实现可用性比较困难。还有一个好处是可以通过集群做负载均衡来实现数据的管理。 根据CAP理论， 在高可用的场景下， 数据分区的容忍性需要牺牲一定的一致性。 相应各个副本的同步策略也有不同， 主要可分为同步和异步方式。由客户端做一致性hash把数据分片存放到服务端。&#xA;复制模式&#xD;#&#xD;数据在集群中存在多个副本。 在本地缓存的集群中，数据会复制到所有的节点中，没有网络延迟和等待时间的集群成员都是可用的。 多副本通过低延迟访问来提供高性能。 在修改数据时需要复制新的版本数据到所有的副本， 在高并发修改的场景下会限制系统的可伸缩性， 副本数不会调的太高。&#xA;本地缓存&#xD;#&#xD;在同一机房内的， 需要适量考虑本地cache， 数据压缩传输等以节省内网数据传输量 。 跨机房的缓存有地域区分，用户往往访问同一机房， 这样可以做本地的cache。 机房之间通过队列的方式进行异步和压缩传输，以提高用户请求的相应度。&#xA;缓存与场景&#xD;#&#xD;1. 非共性数据缓存 eg. 微博， 博客个人首页&#xD;#&#xD;问题：缓存所有的数据性价比不高，　命中率不高 解决方案：&#xA;I. 热点缓存。&#xD;#&#xD;只缓存那些热点的数据。可以缓存在线的用户，　缓存热销的商品，　缓存热点用户的数据。热点规则表示如何匹配到一个热点，即这个查询请求是否请求了热点数据。 根据2/8原则，小部分的数据占用了大部分的访问量。 这也就是twitter page cache 是40%，而不是90%的原因。 II. 非热点数据，&#xD;#&#xD;可以采用nosql技术（redies），可以把它看成可持久化的缓存。 原理类似虚拟内存，理论上不受内存大小的限制。使用NoSQL来做缓存，我们可以把一些不常访问、不怎么更新的数据也缓存起来。比如论坛、新闻的老数据、数据列表的靠后的页面，虽然用户访问不多，但是搜索引擎爬虫会访问，也可能导致系统负载上升。 从外存拿数据减少了计算的开销 ，由于其数据库结构的简单，从磁盘获取一次数 据也比从数据库一次耗时的查询划算很多。&#xA;III. read-only缓存&#xD;#&#xD;缓存是read-only的， 如果有cache数据的更新， 把cache置为失效的。 如果有多个副本，这样做能够减少replication更新数据的开销， 只需要发送置失效的消息即可。&#xA;2. 高并发更新场景&#xD;#&#xD;I.</description>
     </item>
+    <item>
+      <title>分布式锁</title>
+      <link>https://www6v.github.io/www6vMiddleware/docs/%E5%88%86%E5%B8%83%E5%BC%8F%E9%94%81/distributedLock/</link>
+      <pubDate>Mon, 05 Dec 2016 23:33:34 +0000</pubDate>
+      <guid>https://www6v.github.io/www6vMiddleware/docs/%E5%88%86%E5%B8%83%E5%BC%8F%E9%94%81/distributedLock/</guid>
+      <description>分布式锁&#xD;#&#xD;锁的特性&#xD;#&#xD;排它性 超时释放锁 zk临时目录 高可用，锁集群容错[图2]， 安全性[3]， 可重入锁, 避免死锁 [4] 乐观锁, 悲观锁[6][图2] 实现&#xD;#&#xD;Redis[5]&#xD;#&#xD;Zookeeper[4]&#xD;#&#xD;参考&#xD;#&#xD;分布式系统互斥性与幂等性问题的分析与解决 点评 蒋谞&#xA;漫画：什么是分布式锁？ 程序员小灰&#xA;分布式服务总结 分布式锁&#xA;通过栅栏(fencing)使得锁更安全, fencing token How to do distributed locking Martin Kleppmann&#xA;{% post_link &amp;lsquo;zookeeperDistributedLock&amp;rsquo; %} self&#xA;Go to Page self&#xA;Redis分布式锁实现秒杀业务(乐观锁、悲观锁) 最后 乐观锁: jedis的watch方法&#xA;SOFAJRaft-RheaKV 分布式锁实现剖析 | SOFAJRaft 实现原理 SOFALab 米麒麟 未</description>
+    </item>
   </channel>
 </rss>

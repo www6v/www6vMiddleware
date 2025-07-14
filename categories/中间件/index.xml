@@ -6,7 +6,7 @@
     <description>Recent content on 中间件</description>
     <generator>Hugo</generator>
     <language>en</language>
-    <lastBuildDate>Wed, 20 Jul 2022 14:30:49 +0000</lastBuildDate>
+    <lastBuildDate>Mon, 01 Aug 2022 15:03:16 +0000</lastBuildDate>
     <atom:link href="https://www6v.github.io/www6vMiddleware/categories/%E4%B8%AD%E9%97%B4%E4%BB%B6/index.xml" rel="self" type="application/rss+xml" />
     <item>
       <title>缓存 一致性</title>
@@ -37,11 +37,25 @@
       <description>缓存数据分布模式&#xD;#&#xD;分片模式 （sharding）&#xD;#&#xD;数据正交分散到大量机器， 可以做到线性的可伸缩性， 但是实现可用性比较困难。还有一个好处是可以通过集群做负载均衡来实现数据的管理。 根据CAP理论， 在高可用的场景下， 数据分区的容忍性需要牺牲一定的一致性。 相应各个副本的同步策略也有不同， 主要可分为同步和异步方式。由客户端做一致性hash把数据分片存放到服务端。&#xA;复制模式&#xD;#&#xD;数据在集群中存在多个副本。 在本地缓存的集群中，数据会复制到所有的节点中，没有网络延迟和等待时间的集群成员都是可用的。 多副本通过低延迟访问来提供高性能。 在修改数据时需要复制新的版本数据到所有的副本， 在高并发修改的场景下会限制系统的可伸缩性， 副本数不会调的太高。&#xA;本地缓存&#xD;#&#xD;在同一机房内的， 需要适量考虑本地cache， 数据压缩传输等以节省内网数据传输量 。 跨机房的缓存有地域区分，用户往往访问同一机房， 这样可以做本地的cache。 机房之间通过队列的方式进行异步和压缩传输，以提高用户请求的相应度。&#xA;缓存与场景&#xD;#&#xD;1. 非共性数据缓存 eg. 微博， 博客个人首页&#xD;#&#xD;问题：缓存所有的数据性价比不高，　命中率不高 解决方案：&#xA;I. 热点缓存。&#xD;#&#xD;只缓存那些热点的数据。可以缓存在线的用户，　缓存热销的商品，　缓存热点用户的数据。热点规则表示如何匹配到一个热点，即这个查询请求是否请求了热点数据。 根据2/8原则，小部分的数据占用了大部分的访问量。 这也就是twitter page cache 是40%，而不是90%的原因。 II. 非热点数据，&#xD;#&#xD;可以采用nosql技术（redies），可以把它看成可持久化的缓存。 原理类似虚拟内存，理论上不受内存大小的限制。使用NoSQL来做缓存，我们可以把一些不常访问、不怎么更新的数据也缓存起来。比如论坛、新闻的老数据、数据列表的靠后的页面，虽然用户访问不多，但是搜索引擎爬虫会访问，也可能导致系统负载上升。 从外存拿数据减少了计算的开销 ，由于其数据库结构的简单，从磁盘获取一次数 据也比从数据库一次耗时的查询划算很多。&#xA;III. read-only缓存&#xD;#&#xD;缓存是read-only的， 如果有cache数据的更新， 把cache置为失效的。 如果有多个副本，这样做能够减少replication更新数据的开销， 只需要发送置失效的消息即可。&#xA;2. 高并发更新场景&#xD;#&#xD;I.</description>
     </item>
     <item>
+      <title>分库分表-分页</title>
+      <link>https://www6v.github.io/www6vMiddleware/docs/DAL/dbShardingPaging/</link>
+      <pubDate>Mon, 01 Aug 2022 15:03:16 +0000</pubDate>
+      <guid>https://www6v.github.io/www6vMiddleware/docs/DAL/dbShardingPaging/</guid>
+      <description>&#xA;方案&#xD;#&#xD;全局查询法&#xD;#&#xD;简单&#xA;业务折衷法&#xD;#&#xD;禁止跳页查询&#xD;#&#xD;允许数据精度损失&#xD;#&#xD;二次查询法（推荐）&#xD;#&#xD;复杂&#xA;参考&#xD;#&#xD;分库分表必会-跨库分页查询看此一篇就够了 分表分页/跨库分页 难玩却不代表没有玩法 千万级别mysql 分库分表后表分页查询优化方案初探 业界难题-“跨库分页”的四种方案 *** 58沈剑 </description>
+    </item>
+    <item>
       <title>Spring  Transaction  失效</title>
       <link>https://www6v.github.io/www6vMiddleware/docs/serviceGovernance/Springcloud/springTransactionInvalid/</link>
       <pubDate>Wed, 20 Jul 2022 14:30:49 +0000</pubDate>
       <guid>https://www6v.github.io/www6vMiddleware/docs/serviceGovernance/Springcloud/springTransactionInvalid/</guid>
       <description>&#xA;Spring事务失效问题&#xD;#&#xD;spring事务失效 [1]&#xD;#&#xD;- 场景：普通方法调用事务方法时，事务会失效 - 解决：要在普通方法(一般是最外层)上加上@Transactional 代理不生效 [2]&#xD;#&#xD;非public修饰的方法 在AbstractFallbackTransactionAttributeSource类的computeTransactionAttribute方法中有个判断，如果目标方法不是public，则TransactionAttribute返回null，即不支持事务。&#xA;被final、static关键字修饰的类或方法 spring事务底层使用了aop，也就是通过jdk动态代理或者cglib，帮我们生成了代理类，在代理类中实现的事务功能。但如果某个方法用final修饰了，那么在它的代理类中，就无法重写该方法，而添加事务功能。&#xA;类方法内部调用 updateStatus方法拥有事务的能力是因为spring aop生成代理了对象，但是这种方法直接调用了this对象的方法，所以updateStatus方法不会生成事务&#xA;解决方案 新加一个Service方法 在该Service类中注入自己 通过AopContent类 当前类没有被Spring管理&#xA;多线程调用 spring的事务是通过数据库连接来实现的。当前线程中保存了一个map，key是数据源，value是数据库连接。 同一个事务，其实是指同一个数据库连接，只有拥有同一个数据库连接才能同时提交和回滚。如果在不同的线程，拿到的数据库连接肯定是不一样的，所以是不同的事务。&#xA;(存储引擎)表不支持事务&#xA;未开启事务 springboot通过DataSourceTransactionManagerAutoConfiguration类，已经默默的帮你开启了事务。 使用的还是传统的spring项目，则需要在applicationContext.xml文件中，手动配置事务相关参数。如果忘了配置，事务肯定是不会生效的。&#xA;将注解标注在接口方法上&#xA;错误使用@Transactional [2]&#xD;#&#xD;错误的传播机制 目前只有这三种传播特性才会创建新事务：REQUIRED，REQUIRES_NEW，NESTED。&#xA;异常被内部catch 如果想要spring事务能够正常回滚，必须抛出它能够处理的异常。如果没有抛异常，则spring认为程序是正常的。&#xA;rollbackFor属性设置错误&#xA;@Transactional(rollbackFor = BusinessException.class) public void add(UserModel userModel) throws Exception { saveData(userModel); updateData(userModel); } 嵌套事务 可以将内部嵌套事务放在try/catch中，并且不继续往上抛异常。这样就能保证，如果内部嵌套事务中出现异常，只回滚内部事务，而不影响外部事务。&#xA;手动抛了别的异常&#xA;参考&#xD;#&#xD;Spring 踩坑之@Transactional 神奇失效 小鱼儿 spring事务（注解 @Transactional ）失效的12种场景 spring中12种@Transactional的失效场景(小结) Spring @Async/@Transactional 失效的原因及解决方案 未 </description>
+    </item>
+    <item>
+      <title>数据库-读写分离</title>
+      <link>https://www6v.github.io/www6vMiddleware/docs/DAL/dbReadWrite/</link>
+      <pubDate>Tue, 12 Jul 2022 18:42:27 +0000</pubDate>
+      <guid>https://www6v.github.io/www6vMiddleware/docs/DAL/dbReadWrite/</guid>
+      <description>参考&#xD;#&#xD;ShardingSphere 核心功能+实操之「读写分离」</description>
     </item>
     <item>
       <title>负载均衡-算法</title>
@@ -56,6 +70,20 @@
       <pubDate>Sun, 06 Jun 2021 16:07:33 +0000</pubDate>
       <guid>https://www6v.github.io/www6vMiddleware/docs/serviceGovernance/Springcloud/springCloud/</guid>
       <description>参考&#xD;#&#xD;SpringCloud 面试题 （持续更新、吐血推荐）</description>
+    </item>
+    <item>
+      <title>分库分表</title>
+      <link>https://www6v.github.io/www6vMiddleware/docs/DAL/dbSharding/</link>
+      <pubDate>Wed, 26 May 2021 14:27:23 +0000</pubDate>
+      <guid>https://www6v.github.io/www6vMiddleware/docs/DAL/dbSharding/</guid>
+      <description>&#xA;目录&#xD;#&#xD;分库分表&#xD;#&#xD;垂直切分 &amp;amp; 水平切分 [4]&#xD;#&#xD;垂直切分&#xA;垂直分库 不同的业务使用不同的数据库. eg.订单库和促销活动库 垂直分表 根据一张表中的字段，将一张表划分为两张表 水平切分&#xA;水平分表 将表中的某一列作为切分的条件，按照某种规则（Range 或 Hash 取模）来 切分为更小的表 水平分库分表 水平切换的表分布到不同机器的库中 切分方式 数据量 访问特点 适用场景 单库单表 较小 xxx 小规模业务 表分区 较大 热点数据比较集中 数据量大、历史访问少 单库多表 较大 访问热点数据分散，所有数据都会访问 数据量较大 多库多表 极大 并发量高、海量数据 高并发、大数据量 分片原则的总结 [3]&#xD;#&#xD;尽可能不要使用分片，优先考虑单表优化。[规避] 如果必须使用分片，分片数量应该尽量少，均匀分布在多个数据节点上。 分片规则应提前规划选择，考虑数据增长模式、访问模式、关联性和扩容问题。 避免在一个事务中跨越多个分片。 [规避] 查询条件要优化，避免使用 &amp;ldquo;SELECT *&amp;rdquo; 的方式，尽量避免返回大量结果集，并为频繁使用的查询语句建立索引。 通过数据冗余和表分区等方式降低跨库 joins 的可能性。 [规避] 对于有时间特征的数据表，采用时间范围分片，当前活跃数据采用短跨度分片，历史数据采用长跨度分片。 分片的选择应该取决于最频繁的查询 SQL 的条件，避免不带 where 语句的查询 SQL。 问题&amp;amp;解决方案&#xD;#&#xD;分库分表带来的问题 [1]&#xD;#&#xD;事务性问题 方案一：尽可能保证一个事务所操作的表分布在一个库中 [规避] 方案二：业务层引入分布式事务组件，如事务性消息、TCC、Seata等 主键唯一性问题 方案一：设置自增步长，采用等差数列递增 方案二：采用全局统一ID生成机制，如UUID、雪花算法、数据库号段等方式 跨库多表join问题 建议尽可能避免表join操作，可以采用多次查询业务层进行数据组装 [规避] 冗余表或冗余字段来优化跨库 JOIN 查询 [规避] [4] 跨库聚合查询问题 [5] 方案一：赛道赛马机制，每次从N个库表中查询出TOP N数据，然后在业务层代码中进行聚合合并操作 [全局视野法] 方案二：将经常使用到groupby、orderby字段存储到一个单一库表中，先到单一表中查询出相应数据，然后根据查询到的主键ID，到分库分表中查询详情进行返回 [二次查询法] 跨节点分页查询问题 [5] 跨节点分页查询问题是指在分库分表的环境下，通过某些非分库分表字段进行查询时，可能需要跨多个库或表进行查询，这会带来性能问题。解决这个问题的一种方法是使用两套数据，一套是基于分库分表的用户查询数据，另一套是基于Elasticsearch或Solr的订单数据，主要用于运营人员进行分页查询。 为了不影响订单业务性能，可以使用异步消息来实现Elasticsearch或Solr订单数据的新增和修改。 [gpt 总结] [4] 扩容问题 [4] 一旦动态增加表了，就会涉及到数据迁移问题 在最开始设计表数据量时，尽量使用 2 的倍数来设置表数量。当需要扩容时，也 同样按照 2 的倍数来扩容，这样可以减少数据的迁移量。 ShardingSphere-分布式事务 [2]&#xD;#&#xD;LOCAL XA BASE 业务改造 无 无 需要 seata server 一致性 不支持 支持 最终一致 隔离性 不支持 支持 业务方保证 并发性能 无影响 严重衰退 略微衰退 适合场景 业务方处理不一致 短事务 &amp;amp; 低并发 长事务 &amp;amp; 高并发 参考&#xD;#&#xD;一文读懂数据库分库分表 ShardingSphere-分布式事务 MySQL 大表优化方案（长文） 《36 | 什么时候需要分表分库？》 {% post_link &amp;lsquo;dbShardingPaging&amp;rsquo; %} self </description>
+    </item>
+    <item>
+      <title>Zookeeper-分布式锁</title>
+      <link>https://www6v.github.io/www6vMiddleware/docs/%E5%88%86%E5%B8%83%E5%BC%8F%E9%94%81/zookeeperDistributedLock/</link>
+      <pubDate>Wed, 12 May 2021 10:35:05 +0000</pubDate>
+      <guid>https://www6v.github.io/www6vMiddleware/docs/%E5%88%86%E5%B8%83%E5%BC%8F%E9%94%81/zookeeperDistributedLock/</guid>
+      <description>&#xA;基于ZK的分布式锁&#xD;#&#xD;可重入性[2][3]-实现方式&#xD;#&#xD;[chat]&#xA;在ZooKeeper中，分布式锁的可重入性是通过在锁节点的数据中保存一个拥有者ID和计数器来实现的。具体来说，当一个客户端第一次获取锁时，它会在锁节点的数据中设置一个拥有者ID，并将计数器设置为1。当这个客户端再次请求获取锁时，它会检查锁节点的数据中是否已经设置了拥有者ID，并且该ID是否与自己相同。如果相同，则将计数器加1，表示该客户端已经多次获取了锁；如果不同，则该客户端需要等待锁的释放。&#xA;通过保存拥有者ID和计数器，ZooKeeper可以轻松地实现分布式锁的可重入性。当一个客户端多次获取锁时，它只需要检查锁节点的数据中保存的拥有者ID是否与自己相同，并且计数器是否大于等于1即可。如果满足条件，则说明该客户端已经拥有了锁，并且可以继续执行操作；否则，该客户端需要等待锁的释放。&#xA;需要注意的是，为了避免死锁，ZooKeeper分布式锁的可重入性实现中还需要考虑锁的释放顺序。具体来说，当一个客户端释放锁时，需要按照获取锁的顺序依次释放所有的锁，从而避免死锁的发生。&#xA;总之，ZooKeeper分布式锁的可重入性是通过在锁节点的数据中保存拥有者ID和计数器来实现的。这种实现方式简单、高效，并且可以避免死锁的发生。&#xA;[endchat]&#xA;[chat] 总结: 在ZooKeeper中，分布式锁的可重入性是如何实现的&#xA;具体来说，它通过在锁节点的数据中保存拥有者ID和计数器来判断一个客户端是否已经持有锁，并且在客户端多次获取锁时，可以通过增加计数器的方式来实现可重入性。为了避免死锁，ZooKeeper分布式锁的实现中还需要考虑锁的释放顺序，即按照获取锁的顺序依次释放所有的锁。这种实现方式简单、高效，并且可以避免死锁的发生。&#xA;[endchat]&#xA;可重入性[2]-代码实现&#xD;#&#xD;@Override public boolean lock() { //可重入的判断 synchronized (this) { if (lockCount.get() == 0) { thread = Thread.currentThread(); lockCount.incrementAndGet(); } else { if (!thread.equals(Thread.currentThread())) { ## 本线程是否已经占有锁 return false; } lockCount.incrementAndGet(); return true; } } //.... } 羊群效应 优化 [1]&#xD;#&#xD;参考&#xD;#&#xD;《从Paxos到Zookeeper分布式一致性原理与实践》 倪超 6.1.7节 Zookeeper 分布式锁 （图解+秒懂+史上最全） *** 分布式锁（一）基于Zookeeper实现可重入分布式锁 * </description>
     </item>
     <item>
       <title>Nginx优化</title>
@@ -77,6 +105,13 @@
       <pubDate>Thu, 22 Aug 2019 02:17:53 +0000</pubDate>
       <guid>https://www6v.github.io/www6vMiddleware/docs/serviceGovernance/loadBalance/nginx/</guid>
       <description>Nginx总结&#xD;#&#xD;Nginx架构&#xD;#&#xD;共享内存 Slab 分页 4K， 8K， 16K Nginx反向代理&#xD;#&#xD;类型&#xD;#&#xD;带权重的round-robin算法是基础 hash负载均衡算法 ip-hash算法 -&amp;gt; real-ip hash算法 -&amp;gt; 自定义可以hash的参数（比如?userName） 问题: 如果有upstream的机器宕机， hash算法还会路由到这台机器 解决方案：使用一致性hash(consistent),hash 环&#xA;least-connection算法， 如果所有节点的connection都一致， 会退化成为round-robin算法。 可扩展立方体&#xD;#&#xD;X-axis 基于round-robin或者least-connected算法分发请求 -&amp;gt; 相对简单 Y-axis 基于URL对功能进行分发。 -&amp;gt; 相对复杂 Z-axis 将用户IP地址或者其他信息映射到某个特定的服务或者集群 -&amp;gt; 相对简单 多种协议反向代理&#xD;#&#xD;tcp udp 透传 http -&amp;gt; memcached , scgi, fastcgi, uwsgi, grpc, http, websocket 反向代理流程&#xD;#&#xD;修改发送到upstream机器的请求的nginx指令。&#xA;节点热更新&#xD;#&#xD;master节点热更新&#xD;#&#xD;worker节点热更新&#xD;#&#xD;域名转发到其他域名[2]&#xD;#&#xD;return 指令 rewrite proxy_pass 文件下载&#xD;#&#xD;nginx.</description>
+    </item>
+    <item>
+      <title>分布式锁</title>
+      <link>https://www6v.github.io/www6vMiddleware/docs/%E5%88%86%E5%B8%83%E5%BC%8F%E9%94%81/distributedLock/</link>
+      <pubDate>Mon, 05 Dec 2016 23:33:34 +0000</pubDate>
+      <guid>https://www6v.github.io/www6vMiddleware/docs/%E5%88%86%E5%B8%83%E5%BC%8F%E9%94%81/distributedLock/</guid>
+      <description>分布式锁&#xD;#&#xD;锁的特性&#xD;#&#xD;排它性 超时释放锁 zk临时目录 高可用，锁集群容错[图2]， 安全性[3]， 可重入锁, 避免死锁 [4] 乐观锁, 悲观锁[6][图2] 实现&#xD;#&#xD;Redis[5]&#xD;#&#xD;Zookeeper[4]&#xD;#&#xD;参考&#xD;#&#xD;分布式系统互斥性与幂等性问题的分析与解决 点评 蒋谞&#xA;漫画：什么是分布式锁？ 程序员小灰&#xA;分布式服务总结 分布式锁&#xA;通过栅栏(fencing)使得锁更安全, fencing token How to do distributed locking Martin Kleppmann&#xA;{% post_link &amp;lsquo;zookeeperDistributedLock&amp;rsquo; %} self&#xA;Go to Page self&#xA;Redis分布式锁实现秒杀业务(乐观锁、悲观锁) 最后 乐观锁: jedis的watch方法&#xA;SOFAJRaft-RheaKV 分布式锁实现剖析 | SOFAJRaft 实现原理 SOFALab 米麒麟 未</description>
     </item>
     <item>
       <title>Spring事务</title>
