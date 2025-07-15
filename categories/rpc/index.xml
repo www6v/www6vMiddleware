@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Rpc on 中间件</title>
+    <link>https://www6v.github.io/www6vMiddleware/categories/rpc/</link>
+    <description>Recent content in Rpc on 中间件</description>
+    <generator>Hugo</generator>
+    <language>en</language>
+    <lastBuildDate>Mon, 21 Mar 2022 09:43:56 +0000</lastBuildDate>
+    <atom:link href="https://www6v.github.io/www6vMiddleware/categories/rpc/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>gRPC</title>
+      <link>https://www6v.github.io/www6vMiddleware/docs/%E7%BD%91%E7%BB%9C/grpc/</link>
+      <pubDate>Mon, 21 Mar 2022 09:43:56 +0000</pubDate>
+      <guid>https://www6v.github.io/www6vMiddleware/docs/%E7%BD%91%E7%BB%9C/grpc/</guid>
+      <description>&#xA;gRPC&#xD;#&#xD;通信[1]&#xD;#&#xD;基于HTTP2连接，发送消息 protobuf做消息序列化 HTTP2 [2]&#xD;#&#xD;优点 头部压缩、多路复用 stream, frame gRPC的通信模式 [1]&#xD;#&#xD;一元RPC模式 服务端 流式RPC模式 客户端 流式RPC模式 双向流RPC模式 gRPC&#xD;#&#xD;grpc-java [1]&#xD;#&#xD;gRPC-go [3][4]&#xD;#&#xD;{% details gRPC-go %}&#xA;grpc-go server.go&#xA;// Package main implements a simple gRPC server that demonstrates how to use gRPC-Go libraries&#xA;// to perform unary, client streaming, server streaming and full duplex RPCs.&#xA;{% enddetails %}&#xA;参考&#xD;#&#xD;IT老齐的gRPC实战课 《透视HTTP协议》《33 | 我应该迁移到HTTP/2吗？》 grpc-go examples #17 grpc 开发及 grpcp 的源码分析 【 Go 夜读 】 </description>
+    </item>
+  </channel>
+</rss>

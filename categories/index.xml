@@ -219,6 +219,20 @@
       <description></description>
     </item>
     <item>
+      <title>Rpc</title>
+      <link>https://www6v.github.io/www6vMiddleware/categories/rpc/</link>
+      <pubDate>Mon, 21 Mar 2022 09:43:56 +0000</pubDate>
+      <guid>https://www6v.github.io/www6vMiddleware/categories/rpc/</guid>
+      <description></description>
+    </item>
+    <item>
+      <title>基础</title>
+      <link>https://www6v.github.io/www6vMiddleware/categories/%E5%9F%BA%E7%A1%80/</link>
+      <pubDate>Mon, 21 Mar 2022 09:43:56 +0000</pubDate>
+      <guid>https://www6v.github.io/www6vMiddleware/categories/%E5%9F%BA%E7%A1%80/</guid>
+      <description></description>
+    </item>
+    <item>
       <title>OpenTelemetry</title>
       <link>https://www6v.github.io/www6vMiddleware/categories/OpenTelemetry/</link>
       <pubDate>Sat, 29 Jan 2022 12:49:06 +0000</pubDate>
@@ -251,6 +265,13 @@
       <link>https://www6v.github.io/www6vMiddleware/categories/Zookeeper/</link>
       <pubDate>Wed, 12 May 2021 10:35:05 +0000</pubDate>
       <guid>https://www6v.github.io/www6vMiddleware/categories/Zookeeper/</guid>
+      <description></description>
+    </item>
+    <item>
+      <title>事件</title>
+      <link>https://www6v.github.io/www6vMiddleware/categories/%E4%BA%8B%E4%BB%B6/</link>
+      <pubDate>Sun, 23 Aug 2020 12:54:24 +0000</pubDate>
+      <guid>https://www6v.github.io/www6vMiddleware/categories/%E4%BA%8B%E4%BB%B6/</guid>
       <description></description>
     </item>
     <item>
@@ -314,6 +335,13 @@
       <link>https://www6v.github.io/www6vMiddleware/categories/%E5%BE%AE%E6%9C%8D%E5%8A%A1/</link>
       <pubDate>Mon, 09 Sep 2019 15:02:28 +0000</pubDate>
       <guid>https://www6v.github.io/www6vMiddleware/categories/%E5%BE%AE%E6%9C%8D%E5%8A%A1/</guid>
+      <description></description>
+    </item>
+    <item>
+      <title>Http</title>
+      <link>https://www6v.github.io/www6vMiddleware/categories/http/</link>
+      <pubDate>Wed, 14 Aug 2019 15:00:23 +0000</pubDate>
+      <guid>https://www6v.github.io/www6vMiddleware/categories/http/</guid>
       <description></description>
     </item>
     <item>
