@@ -9,7 +9,7 @@
     <lastBuildDate>Thu, 24 Mar 2022 11:06:49 +0000</lastBuildDate>
     <atom:link href="https://www6v.github.io/www6vMiddleware/categories/Seata/index.xml" rel="self" type="application/rss+xml" />
     <item>
-      <title>Seata 总结</title>
+      <title>分布式事务-Seata</title>
       <link>https://www6v.github.io/www6vMiddleware/docs/%E5%85%B6%E4%BB%96/transactionSeata/</link>
       <pubDate>Thu, 24 Mar 2022 11:06:49 +0000</pubDate>
       <guid>https://www6v.github.io/www6vMiddleware/docs/%E5%85%B6%E4%BB%96/transactionSeata/</guid>

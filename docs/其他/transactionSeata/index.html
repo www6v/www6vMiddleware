@@ -12,7 +12,7 @@ XA模式官方文档 满足全局数据一致性. AT、TCC、Saga 都是补偿�
 <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#343a40">
 <meta name="color-scheme" content="light dark"><meta property="og:url" content="https://www6v.github.io/www6vMiddleware/docs/%E5%85%B6%E4%BB%96/transactionSeata/">
   <meta property="og:site_name" content="中间件">
-  <meta property="og:title" content="Seata 总结">
+  <meta property="og:title" content="分布式事务-Seata">
   <meta property="og:description" content="Seata 模式[3]#功能名称 特点 基本原理 使用场景 存在问题 性能 复杂度 AT 模式
 AT模式官方文档 1 自动补偿事务 代理数据源，一阶段解析sql将数据写入undo_log表，二阶段根据undo_log表进行回滚 支持 ACID 事务的关系型数据库 开发时需注意：脏读 性能较高 开发简单 TCC 模式
 TCC模式官方文档 手动补偿事务 代理数据源，一阶段执行prepare方法，二阶段执行commit或rollback方法 不支持 ACID 事务的数据库 开发时需注意：空回滚、幂等、悬挂 性能高 开发复杂 Saga 模式
@@ -20,13 +20,13 @@ SAGA模式官方文档 基于状态机引擎实现，用户设计状态图，开
 XA模式官方文档 满足全局数据一致性. AT、TCC、Saga 都是补偿型，无法做到真正的全局一致性. 由数据库XA协议完成提交、回滚 支持XA 事务的数据库 性能较低 性能较低 开发简单 AT模式 [1]#典型的分布式事务过程： TM 向 TC 申请开启一个全局事务，全局事务创建成功并生成一个全局唯一的 XID； XID 在微服务调用链路的上下文中传播； RM 向 TC 注册分支事务，将其纳入 XID 对应全局事务的管辖； TM 向 TC 发起针对 XID 的全局提交或回滚决议； TC 调度 XID 下管辖的全部分支事务完成提交或回滚请求。 AT模式 示例 [4]#@Service public class OrderServiceImpl implements OrderService { .">
   <meta property="og:locale" content="en">
   <meta property="og:type" content="website">
-<title>Seata 总结 | 中间件</title>
+<title>分布式事务-Seata | 中间件</title>
 <link rel="icon" href="/www6vMiddleware/favicon.png" >
 <link rel="manifest" href="/www6vMiddleware/manifest.json">
 <link rel="canonical" href="https://www6v.github.io/www6vMiddleware/docs/%E5%85%B6%E4%BB%96/transactionSeata/">
 <link rel="stylesheet" href="/www6vMiddleware/book.min.6c8b9d2a1fc95075ed7da46ca81060b39add8fff6741ac51259f768929281e2c.css" integrity="sha256-bIudKh/JUHXtfaRsqBBgs5rdj/9nQaxRJZ92iSkoHiw=" crossorigin="anonymous">
   <script defer src="/www6vMiddleware/fuse.min.js"></script>
-  <script defer src="/www6vMiddleware/en.search.min.5c28fa2afbff1bf4c3323f774da325501c0a137dd04a5d5d7f318038481f3f9b.js" integrity="sha256-XCj6Kvv/G/TDMj93TaMlUBwKE33QSl1dfzGAOEgfP5s=" crossorigin="anonymous"></script>
+  <script defer src="/www6vMiddleware/en.search.min.341c798febd5d13ce8f73e347ca8e127464e0b17fc191a70365c93cb10ef8a8d.js" integrity="sha256-NBx5j&#43;vV0Tzo9z40fKjhJ0ZOCxf8GRpwNlyTyxDvio0=" crossorigin="anonymous"></script>
 
   
 
@@ -103,6 +103,24 @@ https://github.com/alex-shpak/hugo-book
 
           
   <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMiddleware/docs/serviceGovernance/Overview/resilience/" class="">弹力设计 *</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
     
       
         <li>
@@ -646,7 +664,7 @@ https://github.com/alex-shpak/hugo-book
   
 
   
-    <span>灰度发布</span>
+    <span>Deploy</span>
   
 
           
@@ -659,7 +677,25 @@ https://github.com/alex-shpak/hugo-book
   
 
   
-    <a href="/www6vMiddleware/docs/serviceGovernance/Gray/apiGatewayGray/" class="">API 网关-灰度发布</a>
+    <a href="/www6vMiddleware/docs/serviceGovernance/Deploy/deploy/" class="">部署升级</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMiddleware/docs/serviceGovernance/Deploy/apiGatewayGray/" class="">API 网关-灰度发布</a>
   
 
           
@@ -2662,7 +2698,7 @@ https://github.com/alex-shpak/hugo-book
   
 
   
-    <a href="/www6vMiddleware/docs/%E5%85%B6%E4%BB%96/transactionSeata/" class="active">Seata 总结</a>
+    <a href="/www6vMiddleware/docs/%E5%85%B6%E4%BB%96/transactionSeata/" class="active">分布式事务-Seata</a>
   
 
           
@@ -2752,7 +2788,7 @@ https://github.com/alex-shpak/hugo-book
   
 
   
-    <a href="/www6vMiddleware/docs/%E5%85%B6%E4%BB%96/zookeeper/" class="">Zookeeper-总结</a>
+    <a href="/www6vMiddleware/docs/%E5%85%B6%E4%BB%96/zookeeper/" class="">分布式协调-Zookeeper</a>
   
 
           
@@ -2860,7 +2896,7 @@ https://github.com/alex-shpak/hugo-book
     <img src="/www6vMiddleware/svg/menu.svg" class="book-icon" alt="Menu" />
   </label>
 
-  <h3>Seata 总结</h3>
+  <h3>分布式事务-Seata</h3>
 
   <label for="toc-control">
     

@@ -13,7 +13,7 @@ Master选举 -&gt; HA架构#HDFS NameNode HA
 <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#343a40">
 <meta name="color-scheme" content="light dark"><meta property="og:url" content="https://www6v.github.io/www6vMiddleware/docs/%E5%85%B6%E4%BB%96/zookeeper/">
   <meta property="og:site_name" content="中间件">
-  <meta property="og:title" content="Zookeeper-总结">
+  <meta property="og:title" content="分布式协调-Zookeeper">
   <meta property="og:description" content="
 读/写流程 [1]#写流程#写Leader 写Follower/Observer 将写请求转发给Leader处理 读流程#Leader/Follower/Observer都可直接处理读请求，从本地内存中读取数据并返回给客户端即可。 应用场景 [2]#元数据管理#Dubbo， HBase
 分布式协调#kafka controller
@@ -22,13 +22,13 @@ Master选举 -&gt; HA架构#HDFS NameNode HA
 实现高可用 [2]#主备切换#集群选举#最小节点获胜 抢建唯一节点 法官判决 参考#深入浅出Zookeeper（一） Zookeeper架构及FastLeaderElection机制 *** 浅析如何基于ZooKeeper实现高可用架构｜得物技术 ZooKeeper 核心通识 未 ">
   <meta property="og:locale" content="en">
   <meta property="og:type" content="website">
-<title>Zookeeper-总结 | 中间件</title>
+<title>分布式协调-Zookeeper | 中间件</title>
 <link rel="icon" href="/www6vMiddleware/favicon.png" >
 <link rel="manifest" href="/www6vMiddleware/manifest.json">
 <link rel="canonical" href="https://www6v.github.io/www6vMiddleware/docs/%E5%85%B6%E4%BB%96/zookeeper/">
 <link rel="stylesheet" href="/www6vMiddleware/book.min.6c8b9d2a1fc95075ed7da46ca81060b39add8fff6741ac51259f768929281e2c.css" integrity="sha256-bIudKh/JUHXtfaRsqBBgs5rdj/9nQaxRJZ92iSkoHiw=" crossorigin="anonymous">
   <script defer src="/www6vMiddleware/fuse.min.js"></script>
-  <script defer src="/www6vMiddleware/en.search.min.5c28fa2afbff1bf4c3323f774da325501c0a137dd04a5d5d7f318038481f3f9b.js" integrity="sha256-XCj6Kvv/G/TDMj93TaMlUBwKE33QSl1dfzGAOEgfP5s=" crossorigin="anonymous"></script>
+  <script defer src="/www6vMiddleware/en.search.min.341c798febd5d13ce8f73e347ca8e127464e0b17fc191a70365c93cb10ef8a8d.js" integrity="sha256-NBx5j&#43;vV0Tzo9z40fKjhJ0ZOCxf8GRpwNlyTyxDvio0=" crossorigin="anonymous"></script>
 
   
 
@@ -105,6 +105,24 @@ https://github.com/alex-shpak/hugo-book
 
           
   <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMiddleware/docs/serviceGovernance/Overview/resilience/" class="">弹力设计 *</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
     
       
         <li>
@@ -648,7 +666,7 @@ https://github.com/alex-shpak/hugo-book
   
 
   
-    <span>灰度发布</span>
+    <span>Deploy</span>
   
 
           
@@ -661,7 +679,25 @@ https://github.com/alex-shpak/hugo-book
   
 
   
-    <a href="/www6vMiddleware/docs/serviceGovernance/Gray/apiGatewayGray/" class="">API 网关-灰度发布</a>
+    <a href="/www6vMiddleware/docs/serviceGovernance/Deploy/deploy/" class="">部署升级</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMiddleware/docs/serviceGovernance/Deploy/apiGatewayGray/" class="">API 网关-灰度发布</a>
   
 
           
@@ -2664,7 +2700,7 @@ https://github.com/alex-shpak/hugo-book
   
 
   
-    <a href="/www6vMiddleware/docs/%E5%85%B6%E4%BB%96/transactionSeata/" class="">Seata 总结</a>
+    <a href="/www6vMiddleware/docs/%E5%85%B6%E4%BB%96/transactionSeata/" class="">分布式事务-Seata</a>
   
 
           
@@ -2754,7 +2790,7 @@ https://github.com/alex-shpak/hugo-book
   
 
   
-    <a href="/www6vMiddleware/docs/%E5%85%B6%E4%BB%96/zookeeper/" class="active">Zookeeper-总结</a>
+    <a href="/www6vMiddleware/docs/%E5%85%B6%E4%BB%96/zookeeper/" class="active">分布式协调-Zookeeper</a>
   
 
           
@@ -2862,7 +2898,7 @@ https://github.com/alex-shpak/hugo-book
     <img src="/www6vMiddleware/svg/menu.svg" class="book-icon" alt="Menu" />
   </label>
 
-  <h3>Zookeeper-总结</h3>
+  <h3>分布式协调-Zookeeper</h3>
 
   <label for="toc-control">
     

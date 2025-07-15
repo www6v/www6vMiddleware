@@ -3,26 +3,26 @@
 <head>
   <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="description" content="灰度发布 策略 [2]#基于权重 百分比 version &hellip; 基于springcloud gateway &#43; nacos实现灰度发布[1]#spring: application: name: gateway-reactor-gray cloud: nacos: discovery: server-addr: localhost:8848 gateway: discovery: locator: enabled: true lower-case-service-id: true routes: - id: hello-consumer uri: grayLb://hello-consumer ## 灰度负载均衡 predicates: - Path=/hello/** public class GrayLoadBalancer implements ReactorServiceInstanceLoadBalancer { ... private Response&lt;ServiceInstance&gt; getInstanceResponse(List&lt;ServiceInstance&gt; instances,HttpHeaders headers) { if (instances.isEmpty()) { return getServiceInstanceEmptyResponse(); } else { return getServiceInstanceResponseWithWeight(instances); // } } /** * 根据版本进行分发 */ private Response&lt;ServiceInstance&gt; getServiceInstanceResponseByVersion(List&lt;ServiceInstance&gt; instances, HttpHeaders headers) { String versionNo = headers.">
+<meta name="description" content="参考#57 | 管理设计篇之“部署升级策略” 陈皓">
 <meta name="theme-color" media="(prefers-color-scheme: light)" content="#ffffff">
 <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#343a40">
-<meta name="color-scheme" content="light dark"><meta property="og:url" content="https://www6v.github.io/www6vMiddleware/docs/serviceGovernance/Gray/apiGatewayGray/">
+<meta name="color-scheme" content="light dark"><meta property="og:url" content="https://www6v.github.io/www6vMiddleware/docs/serviceGovernance/Deploy/deploy/">
   <meta property="og:site_name" content="中间件">
-  <meta property="og:title" content="API 网关-灰度发布">
-  <meta property="og:description" content="灰度发布 策略 [2]#基于权重 百分比 version … 基于springcloud gateway &#43; nacos实现灰度发布[1]#spring: application: name: gateway-reactor-gray cloud: nacos: discovery: server-addr: localhost:8848 gateway: discovery: locator: enabled: true lower-case-service-id: true routes: - id: hello-consumer uri: grayLb://hello-consumer ## 灰度负载均衡 predicates: - Path=/hello/** public class GrayLoadBalancer implements ReactorServiceInstanceLoadBalancer { ... private Response&lt;ServiceInstance&gt; getInstanceResponse(List&lt;ServiceInstance&gt; instances,HttpHeaders headers) { if (instances.isEmpty()) { return getServiceInstanceEmptyResponse(); } else { return getServiceInstanceResponseWithWeight(instances); // } } /** * 根据版本进行分发 */ private Response&lt;ServiceInstance&gt; getServiceInstanceResponseByVersion(List&lt;ServiceInstance&gt; instances, HttpHeaders headers) { String versionNo = headers.">
+  <meta property="og:title" content="部署升级">
+  <meta property="og:description" content="参考#57 | 管理设计篇之“部署升级策略” 陈皓">
   <meta property="og:locale" content="en">
   <meta property="og:type" content="website">
-<title>API 网关-灰度发布 | 中间件</title>
+<title>部署升级 | 中间件</title>
 <link rel="icon" href="/www6vMiddleware/favicon.png" >
 <link rel="manifest" href="/www6vMiddleware/manifest.json">
-<link rel="canonical" href="https://www6v.github.io/www6vMiddleware/docs/serviceGovernance/Gray/apiGatewayGray/">
+<link rel="canonical" href="https://www6v.github.io/www6vMiddleware/docs/serviceGovernance/Deploy/deploy/">
 <link rel="stylesheet" href="/www6vMiddleware/book.min.6c8b9d2a1fc95075ed7da46ca81060b39add8fff6741ac51259f768929281e2c.css" integrity="sha256-bIudKh/JUHXtfaRsqBBgs5rdj/9nQaxRJZ92iSkoHiw=" crossorigin="anonymous">
   <script defer src="/www6vMiddleware/fuse.min.js"></script>
-  <script defer src="/www6vMiddleware/en.search.min.5c28fa2afbff1bf4c3323f774da325501c0a137dd04a5d5d7f318038481f3f9b.js" integrity="sha256-XCj6Kvv/G/TDMj93TaMlUBwKE33QSl1dfzGAOEgfP5s=" crossorigin="anonymous"></script>
+  <script defer src="/www6vMiddleware/en.search.min.341c798febd5d13ce8f73e347ca8e127464e0b17fc191a70365c93cb10ef8a8d.js" integrity="sha256-NBx5j&#43;vV0Tzo9z40fKjhJ0ZOCxf8GRpwNlyTyxDvio0=" crossorigin="anonymous"></script>
 
   
 
-<link rel="alternate" type="application/rss+xml" href="https://www6v.github.io/www6vMiddleware/docs/serviceGovernance/Gray/apiGatewayGray/index.xml" title="中间件" />
+<link rel="alternate" type="application/rss+xml" href="https://www6v.github.io/www6vMiddleware/docs/serviceGovernance/Deploy/deploy/index.xml" title="中间件" />
 <!--
 Made with Book Theme
 https://github.com/alex-shpak/hugo-book
@@ -95,6 +95,24 @@ https://github.com/alex-shpak/hugo-book
 
           
   <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMiddleware/docs/serviceGovernance/Overview/resilience/" class="">弹力设计 *</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
     
       
         <li>
@@ -638,7 +656,7 @@ https://github.com/alex-shpak/hugo-book
   
 
   
-    <span>灰度发布</span>
+    <span>Deploy</span>
   
 
           
@@ -651,7 +669,25 @@ https://github.com/alex-shpak/hugo-book
   
 
   
-    <a href="/www6vMiddleware/docs/serviceGovernance/Gray/apiGatewayGray/" class="active">API 网关-灰度发布</a>
+    <a href="/www6vMiddleware/docs/serviceGovernance/Deploy/deploy/" class="active">部署升级</a>
+  
+
+          
+  <ul>
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/www6vMiddleware/docs/serviceGovernance/Deploy/apiGatewayGray/" class="">API 网关-灰度发布</a>
   
 
           
@@ -2654,7 +2690,7 @@ https://github.com/alex-shpak/hugo-book
   
 
   
-    <a href="/www6vMiddleware/docs/%E5%85%B6%E4%BB%96/transactionSeata/" class="">Seata 总结</a>
+    <a href="/www6vMiddleware/docs/%E5%85%B6%E4%BB%96/transactionSeata/" class="">分布式事务-Seata</a>
   
 
           
@@ -2744,7 +2780,7 @@ https://github.com/alex-shpak/hugo-book
   
 
   
-    <a href="/www6vMiddleware/docs/%E5%85%B6%E4%BB%96/zookeeper/" class="">Zookeeper-总结</a>
+    <a href="/www6vMiddleware/docs/%E5%85%B6%E4%BB%96/zookeeper/" class="">分布式协调-Zookeeper</a>
   
 
           
@@ -2852,7 +2888,7 @@ https://github.com/alex-shpak/hugo-book
     <img src="/www6vMiddleware/svg/menu.svg" class="book-icon" alt="Menu" />
   </label>
 
-  <h3>API 网关-灰度发布</h3>
+  <h3>部署升级</h3>
 
   <label for="toc-control">
     
@@ -2868,13 +2904,7 @@ https://github.com/alex-shpak/hugo-book
   
 <nav id="TableOfContents">
   <ul>
-    <li>
-      <ul>
-        <li><a href="#灰度发布-策略-2">灰度发布 策略 [2]</a></li>
-        <li><a href="#基于springcloud-gateway--nacos实现灰度发布1">基于springcloud gateway + nacos实现灰度发布[1]</a></li>
-        <li><a href="#参考">参考</a></li>
-      </ul>
-    </li>
+    <li><a href="#参考">参考</a></li>
   </ul>
 </nav>
 
@@ -2887,116 +2917,12 @@ https://github.com/alex-shpak/hugo-book
 
       
       
-  <article class="markdown book-article"><p></p>
-<!-- more -->
-<h2 id="灰度发布-策略-2">
-  灰度发布 策略 [2]
-  <a class="anchor" href="#%e7%81%b0%e5%ba%a6%e5%8f%91%e5%b8%83-%e7%ad%96%e7%95%a5-2">#</a>
-</h2>
-<ul>
-<li>基于权重  百分比</li>
-<li>version</li>
-<li>&hellip;</li>
-</ul>
-<h2 id="基于springcloud-gateway--nacos实现灰度发布1">
-  基于springcloud gateway + nacos实现灰度发布[1]
-  <a class="anchor" href="#%e5%9f%ba%e4%ba%8espringcloud-gateway--nacos%e5%ae%9e%e7%8e%b0%e7%81%b0%e5%ba%a6%e5%8f%91%e5%b8%831">#</a>
-</h2>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-yaml" data-lang="yaml"><span style="display:flex;"><span><span style="color:#f92672">spring</span>:
-</span></span><span style="display:flex;"><span>  <span style="color:#f92672">application</span>:
-</span></span><span style="display:flex;"><span>    <span style="color:#f92672">name</span>: <span style="color:#ae81ff">gateway-reactor-gray</span>
-</span></span><span style="display:flex;"><span>  <span style="color:#f92672">cloud</span>:
-</span></span><span style="display:flex;"><span>     <span style="color:#f92672">nacos</span>:
-</span></span><span style="display:flex;"><span>       <span style="color:#f92672">discovery</span>:
-</span></span><span style="display:flex;"><span>        <span style="color:#f92672">server-addr</span>: <span style="color:#ae81ff">localhost:8848</span>
-</span></span><span style="display:flex;"><span>     <span style="color:#f92672">gateway</span>:
-</span></span><span style="display:flex;"><span>       <span style="color:#f92672">discovery</span>:
-</span></span><span style="display:flex;"><span>         <span style="color:#f92672">locator</span>:
-</span></span><span style="display:flex;"><span>           <span style="color:#f92672">enabled</span>: <span style="color:#66d9ef">true</span>
-</span></span><span style="display:flex;"><span>           <span style="color:#f92672">lower-case-service-id</span>: <span style="color:#66d9ef">true</span>
-</span></span><span style="display:flex;"><span>       <span style="color:#f92672">routes</span>:
-</span></span><span style="display:flex;"><span>         - <span style="color:#f92672">id</span>: <span style="color:#ae81ff">hello-consumer</span>
-</span></span><span style="display:flex;"><span>           <span style="color:#f92672">uri</span>: <span style="color:#ae81ff">grayLb://hello-consumer </span> <span style="color:#75715e">## 灰度负载均衡</span>
-</span></span><span style="display:flex;"><span>           <span style="color:#f92672">predicates</span>:
-</span></span><span style="display:flex;"><span>              - <span style="color:#ae81ff">Path=/hello/**</span>
-</span></span></code></pre></div><div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-Java" data-lang="Java"><span style="display:flex;"><span><span style="color:#66d9ef">public</span> <span style="color:#66d9ef">class</span> <span style="color:#a6e22e">GrayLoadBalancer</span> <span style="color:#66d9ef">implements</span> ReactorServiceInstanceLoadBalancer {
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>    ... 
-</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">private</span> Response<span style="color:#f92672">&lt;</span>ServiceInstance<span style="color:#f92672">&gt;</span> <span style="color:#a6e22e">getInstanceResponse</span>(List<span style="color:#f92672">&lt;</span>ServiceInstance<span style="color:#f92672">&gt;</span> instances,HttpHeaders headers) {
-</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">if</span> (instances.<span style="color:#a6e22e">isEmpty</span>()) {
-</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">return</span> getServiceInstanceEmptyResponse();
-</span></span><span style="display:flex;"><span>        } <span style="color:#66d9ef">else</span> {
-</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">return</span> getServiceInstanceResponseWithWeight(instances);  <span style="color:#75715e">//</span>
-</span></span><span style="display:flex;"><span>        }
-</span></span><span style="display:flex;"><span>    }
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>    <span style="color:#75715e">/**
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e">     * 根据版本进行分发
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e">     */</span>
-</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">private</span> Response<span style="color:#f92672">&lt;</span>ServiceInstance<span style="color:#f92672">&gt;</span> <span style="color:#a6e22e">getServiceInstanceResponseByVersion</span>(List<span style="color:#f92672">&lt;</span>ServiceInstance<span style="color:#f92672">&gt;</span> instances, HttpHeaders headers) {
-</span></span><span style="display:flex;"><span>        String versionNo <span style="color:#f92672">=</span> headers.<span style="color:#a6e22e">getFirst</span>(<span style="color:#e6db74">&#34;version&#34;</span>); <span style="color:#75715e">//</span>
-</span></span><span style="display:flex;"><span>        System.<span style="color:#a6e22e">out</span>.<span style="color:#a6e22e">println</span>(versionNo);
-</span></span><span style="display:flex;"><span>        Map<span style="color:#f92672">&lt;</span>String,String<span style="color:#f92672">&gt;</span> versionMap <span style="color:#f92672">=</span> <span style="color:#66d9ef">new</span> HashMap<span style="color:#f92672">&lt;&gt;</span>();
-</span></span><span style="display:flex;"><span>        versionMap.<span style="color:#a6e22e">put</span>(<span style="color:#e6db74">&#34;version&#34;</span>,versionNo);
-</span></span><span style="display:flex;"><span>        ...
-</span></span><span style="display:flex;"><span>    }
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>    <span style="color:#75715e">/**
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e">     * 根据在nacos中配置的权重值，进行分发
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e">     */</span>
-</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">private</span> Response<span style="color:#f92672">&lt;</span>ServiceInstance<span style="color:#f92672">&gt;</span> <span style="color:#a6e22e">getServiceInstanceResponseWithWeight</span>(List<span style="color:#f92672">&lt;</span>ServiceInstance<span style="color:#f92672">&gt;</span> instances) {
-</span></span><span style="display:flex;"><span>        Map<span style="color:#f92672">&lt;</span>ServiceInstance,Integer<span style="color:#f92672">&gt;</span> weightMap <span style="color:#f92672">=</span> <span style="color:#66d9ef">new</span> HashMap<span style="color:#f92672">&lt;&gt;</span>();
-</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">for</span> (ServiceInstance instance : instances) {
-</span></span><span style="display:flex;"><span>            Map<span style="color:#f92672">&lt;</span>String,String<span style="color:#f92672">&gt;</span> metadata <span style="color:#f92672">=</span> instance.<span style="color:#a6e22e">getMetadata</span>();
-</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">if</span>(metadata.<span style="color:#a6e22e">containsKey</span>(<span style="color:#e6db74">&#34;weight&#34;</span>)){   <span style="color:#75715e">//</span>
-</span></span><span style="display:flex;"><span>                weightMap.<span style="color:#a6e22e">put</span>(instance,Integer.<span style="color:#a6e22e">valueOf</span>(metadata.<span style="color:#a6e22e">get</span>(<span style="color:#e6db74">&#34;weight&#34;</span>)));
-</span></span><span style="display:flex;"><span>            }
-</span></span><span style="display:flex;"><span>        }
-</span></span><span style="display:flex;"><span>        ...
-</span></span><span style="display:flex;"><span>    }
-</span></span></code></pre></div><div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-Java" data-lang="Java"><span style="display:flex;"><span><span style="color:#66d9ef">public</span> <span style="color:#66d9ef">class</span> <span style="color:#a6e22e">GrayReactiveLoadBalancerClientFilter</span> <span style="color:#66d9ef">implements</span> GlobalFilter, Ordered {
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>   ...
-</span></span><span style="display:flex;"><span>   
-</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">@Override</span>
-</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">public</span> Mono<span style="color:#f92672">&lt;</span>Void<span style="color:#f92672">&gt;</span> <span style="color:#a6e22e">filter</span>(ServerWebExchange exchange, GatewayFilterChain chain) {
-</span></span><span style="display:flex;"><span>        URI url <span style="color:#f92672">=</span> (URI)exchange.<span style="color:#a6e22e">getAttribute</span>(ServerWebExchangeUtils.<span style="color:#a6e22e">GATEWAY_REQUEST_URL_ATTR</span>);
-</span></span><span style="display:flex;"><span>        String schemePrefix <span style="color:#f92672">=</span> (String)exchange.<span style="color:#a6e22e">getAttribute</span>(ServerWebExchangeUtils.<span style="color:#a6e22e">GATEWAY_SCHEME_PREFIX_ATTR</span>);
-</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">if</span> (url <span style="color:#f92672">!=</span> <span style="color:#66d9ef">null</span> <span style="color:#f92672">&amp;&amp;</span> (<span style="color:#e6db74">&#34;grayLb&#34;</span>.<span style="color:#a6e22e">equals</span>(url.<span style="color:#a6e22e">getScheme</span>()) <span style="color:#f92672">||</span> <span style="color:#e6db74">&#34;grayLb&#34;</span>.<span style="color:#a6e22e">equals</span>(schemePrefix))) { <span style="color:#75715e">//</span>
-</span></span><span style="display:flex;"><span>            ServerWebExchangeUtils.<span style="color:#a6e22e">addOriginalRequestUrl</span>(exchange, url);
-</span></span><span style="display:flex;"><span>            ...
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">return</span> <span style="color:#66d9ef">this</span>.<span style="color:#a6e22e">choose</span>(exchange).<span style="color:#a6e22e">doOnNext</span>((response) <span style="color:#f92672">-&gt;</span> { <span style="color:#75715e">//</span>
-</span></span><span style="display:flex;"><span>              ... 
-</span></span><span style="display:flex;"><span>            }).<span style="color:#a6e22e">then</span>(chain.<span style="color:#a6e22e">filter</span>(exchange));
-</span></span><span style="display:flex;"><span>        } <span style="color:#66d9ef">else</span> {
-</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">return</span> chain.<span style="color:#a6e22e">filter</span>(exchange);
-</span></span><span style="display:flex;"><span>        }
-</span></span><span style="display:flex;"><span>    }
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">private</span> Mono<span style="color:#f92672">&lt;</span>Response<span style="color:#f92672">&lt;</span>ServiceInstance<span style="color:#f92672">&gt;&gt;</span> <span style="color:#a6e22e">choose</span>(ServerWebExchange exchange) { <span style="color:#75715e">//</span>
-</span></span><span style="display:flex;"><span>        URI uri <span style="color:#f92672">=</span> (URI)exchange.<span style="color:#a6e22e">getAttribute</span>(ServerWebExchangeUtils.<span style="color:#a6e22e">GATEWAY_REQUEST_URL_ATTR</span>);
-</span></span><span style="display:flex;"><span>        GrayLoadBalancer loadBalancer <span style="color:#f92672">=</span> <span style="color:#66d9ef">new</span> GrayLoadBalancer(clientFactory.<span style="color:#a6e22e">getLazyProvider</span>(uri.<span style="color:#a6e22e">getHost</span>(), ServiceInstanceListSupplier.<span style="color:#a6e22e">class</span>), uri.<span style="color:#a6e22e">getHost</span>());
-</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">if</span> (loadBalancer <span style="color:#f92672">==</span> <span style="color:#66d9ef">null</span>) {
-</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">throw</span> <span style="color:#66d9ef">new</span> NotFoundException(<span style="color:#e6db74">&#34;No loadbalancer available for &#34;</span> <span style="color:#f92672">+</span> uri.<span style="color:#a6e22e">getHost</span>());
-</span></span><span style="display:flex;"><span>        } <span style="color:#66d9ef">else</span> {
-</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">return</span> loadBalancer.<span style="color:#a6e22e">choose</span>(<span style="color:#66d9ef">this</span>.<span style="color:#a6e22e">createRequest</span>(exchange)); <span style="color:#75715e">//</span>
-</span></span><span style="display:flex;"><span>        }
-</span></span><span style="display:flex;"><span>    }
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>}
-</span></span></code></pre></div><h2 id="参考">
+  <article class="markdown book-article"><p><img src="./images/deploy.png" alt="部署升级策略" /></p>
+<h1 id="参考">
   参考
   <a class="anchor" href="#%e5%8f%82%e8%80%83">#</a>
-</h2>
-<ol>
-<li><a href="https://www.cnblogs.com/linyb-geek/p/12774014.html">基于springcloud gateway + nacos实现灰度发布（reactive版）</a>
-<a href="https://github.com/lyb-geek/gateway">相关的代码</a></li>
-<li><a href="k8sIngressNginx.md">Go to Page</a>   灰度发布  self</li>
-</ol>
+</h1>
+<p>57 | 管理设计篇之“部署升级策略”    陈皓</p>
 </article>
  
       
@@ -3038,13 +2964,7 @@ https://github.com/alex-shpak/hugo-book
   
 <nav id="TableOfContents">
   <ul>
-    <li>
-      <ul>
-        <li><a href="#灰度发布-策略-2">灰度发布 策略 [2]</a></li>
-        <li><a href="#基于springcloud-gateway--nacos实现灰度发布1">基于springcloud gateway + nacos实现灰度发布[1]</a></li>
-        <li><a href="#参考">参考</a></li>
-      </ul>
-    </li>
+    <li><a href="#参考">参考</a></li>
   </ul>
 </nav>
 
