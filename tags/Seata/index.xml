@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Seata on 中间件</title>
+    <link>https://www6v.github.io/www6vMiddleware/tags/Seata/</link>
+    <description>Recent content in Seata on 中间件</description>
+    <generator>Hugo</generator>
+    <language>en</language>
+    <lastBuildDate>Thu, 24 Mar 2022 11:06:49 +0000</lastBuildDate>
+    <atom:link href="https://www6v.github.io/www6vMiddleware/tags/Seata/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>Seata 总结</title>
+      <link>https://www6v.github.io/www6vMiddleware/docs/%E5%85%B6%E4%BB%96/transactionSeata/</link>
+      <pubDate>Thu, 24 Mar 2022 11:06:49 +0000</pubDate>
+      <guid>https://www6v.github.io/www6vMiddleware/docs/%E5%85%B6%E4%BB%96/transactionSeata/</guid>
+      <description>Seata 模式[3]&#xD;#&#xD;功能名称 特点 基本原理 使用场景 存在问题 性能 复杂度 AT 模式&#xA;AT模式官方文档 1 自动补偿事务 代理数据源，一阶段解析sql将数据写入undo_log表，二阶段根据undo_log表进行回滚 支持 ACID 事务的关系型数据库 开发时需注意：脏读 性能较高 开发简单 TCC 模式&#xA;TCC模式官方文档 手动补偿事务 代理数据源，一阶段执行prepare方法，二阶段执行commit或rollback方法 不支持 ACID 事务的数据库 开发时需注意：空回滚、幂等、悬挂 性能高 开发复杂 Saga 模式&#xA;SAGA模式官方文档 基于状态机引擎实现，用户设计状态图，开发rollback方法，状态机根据状态图 json 调用相关方法 业务流程长、业务流程多 参与者包含其它公司或遗留系统服务，无法提供 TCC 模式要求的三个接口 除了额外开发方法，需设计开发状态图 json 性能高 开发复杂 XA 模式&#xA;XA模式官方文档 满足全局数据一致性. AT、TCC、Saga 都是补偿型，无法做到真正的全局一致性. 由数据库XA协议完成提交、回滚 支持XA 事务的数据库 性能较低 性能较低 开发简单 AT模式 [1]&#xD;#&#xD;典型的分布式事务过程： TM 向 TC 申请开启一个全局事务，全局事务创建成功并生成一个全局唯一的 XID； XID 在微服务调用链路的上下文中传播； RM 向 TC 注册分支事务，将其纳入 XID 对应全局事务的管辖； TM 向 TC 发起针对 XID 的全局提交或回滚决议； TC 调度 XID 下管辖的全部分支事务完成提交或回滚请求。 AT模式 示例 [4]&#xD;#&#xD;@Service public class OrderServiceImpl implements OrderService { .</description>
+    </item>
+  </channel>
+</rss>

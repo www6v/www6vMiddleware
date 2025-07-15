@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Java基础 on 中间件</title>
+    <link>https://www6v.github.io/www6vMiddleware/categories/Java%E5%9F%BA%E7%A1%80/</link>
+    <description>Recent content in Java基础 on 中间件</description>
+    <generator>Hugo</generator>
+    <language>en</language>
+    <lastBuildDate>Thu, 11 Jun 2020 20:19:24 +0000</lastBuildDate>
+    <atom:link href="https://www6v.github.io/www6vMiddleware/categories/Java%E5%9F%BA%E7%A1%80/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>Mybatis Plugin Inteceptor</title>
+      <link>https://www6v.github.io/www6vMiddleware/docs/DAL/mybatisInteceptor/</link>
+      <pubDate>Thu, 11 Jun 2020 20:19:24 +0000</pubDate>
+      <guid>https://www6v.github.io/www6vMiddleware/docs/DAL/mybatisInteceptor/</guid>
+      <description>&#xA;三类Mybatis Plugin Inteceptor&#xD;#&#xD;动态增强sql的（推荐） 改ReturnType的 （推荐） 改整个sql语句的 </description>
+    </item>
+  </channel>
+</rss>

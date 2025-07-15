@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Id生成 on 中间件</title>
+    <link>https://www6v.github.io/www6vMiddleware/categories/id%E7%94%9F%E6%88%90/</link>
+    <description>Recent content in Id生成 on 中间件</description>
+    <generator>Hugo</generator>
+    <language>en</language>
+    <lastBuildDate>Mon, 15 Aug 2016 06:28:23 +0000</lastBuildDate>
+    <atom:link href="https://www6v.github.io/www6vMiddleware/categories/id%E7%94%9F%E6%88%90/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>分布式ID生成 发号器</title>
+      <link>https://www6v.github.io/www6vMiddleware/docs/%E5%85%B6%E4%BB%96/id/</link>
+      <pubDate>Mon, 15 Aug 2016 06:28:23 +0000</pubDate>
+      <guid>https://www6v.github.io/www6vMiddleware/docs/%E5%85%B6%E4%BB%96/id/</guid>
+      <description>&#xA;一. UUID&#xD;#&#xD;缺点&#xD;#&#xD;没有业务含义 不是自增的， 某些场景需要按id排序， 不适合做数据库主键。&#xA;ID 有序也会提升数据的写入性能， 数据库索引B+树的插入。 二. Snowflake&#xD;#&#xD;Snowflake算法实现&#xA;实现方式：&#xD;#&#xD;嵌入在服务器中 独立的分布式id服务器 缺点&#xD;#&#xD;最大的缺点就是它依赖于系统的时间戳，一旦系统时间不准，就有可能生成重复的 ID。 所以如果我们发现系统时钟不准，就可以让发号器暂时拒绝发号，直到时钟准确为止。 可以使用ntp服务器同步服务的系统时间。&#xA;优化&#xD;#&#xD;时间戳不记录毫秒而是记录秒，这样在一个时间区间里可以多发出几个号，避免出现分库分表时数据分配不均。 批量id 参考：&#xD;#&#xD;Leaf——美团点评分布式ID生成系统 照东 服务化框架－分布式Unique ID的生成方法一览 江南白衣 Leaf：美团分布式ID生成服务开源 发号器：如何保证分库分表后ID的全局唯一性？ 唐扬 </description>
+    </item>
+  </channel>
+</rss>

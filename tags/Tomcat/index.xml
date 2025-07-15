@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Tomcat on 中间件</title>
+    <link>https://www6v.github.io/www6vMiddleware/tags/Tomcat/</link>
+    <description>Recent content in Tomcat on 中间件</description>
+    <generator>Hugo</generator>
+    <language>en</language>
+    <lastBuildDate>Sat, 08 Aug 2020 22:38:36 +0000</lastBuildDate>
+    <atom:link href="https://www6v.github.io/www6vMiddleware/tags/Tomcat/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>Tomcat总结</title>
+      <link>https://www6v.github.io/www6vMiddleware/docs/%E5%85%B6%E4%BB%96/tomcat/</link>
+      <pubDate>Sat, 08 Aug 2020 22:38:36 +0000</pubDate>
+      <guid>https://www6v.github.io/www6vMiddleware/docs/%E5%85%B6%E4%BB%96/tomcat/</guid>
+      <description>Tomcat 架构&#xD;#&#xD;tomcat组件&#xA;Servlet规范&#xD;#&#xD;Servlet Filter 每个请求生成一个Filter链 Listener 定制自己的监听器来监听 Tomcat 内部发生的各种事件：包括 Web 应用级别的、Session 级别的和请求级别的 参考:&#xD;#&#xD;tomcat 组件 Top level view&#xA;深入拆解Tomcat &amp;amp; Jetty - 06 | Tomcat系统架构（下）：聊聊多层容器的设计 李号双&#xA;深入拆解Tomcat &amp;amp; Jetty - 26 | Context容器（下）：Tomcat如何实现Servlet规范？ 李号双</description>
+    </item>
+  </channel>
+</rss>
