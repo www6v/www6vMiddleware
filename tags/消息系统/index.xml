@@ -9,14 +9,14 @@
     <lastBuildDate>Thu, 12 May 2022 22:17:03 +0000</lastBuildDate>
     <atom:link href="https://www6v.github.io/www6vMiddleware/tags/%E6%B6%88%E6%81%AF%E7%B3%BB%E7%BB%9F/index.xml" rel="self" type="application/rss+xml" />
     <item>
-      <title>消息中间件总结</title>
+      <title>消息中间件 总结 *</title>
       <link>https://www6v.github.io/www6vMiddleware/docs/message/Overview/mq/</link>
       <pubDate>Tue, 19 Apr 2016 18:33:32 +0000</pubDate>
       <guid>https://www6v.github.io/www6vMiddleware/docs/message/Overview/mq/</guid>
       <description>&#xA;消息积压&#xD;#&#xD;原则: 消费性能要高于生产的性能&#xD;#&#xD;1. 发送端性能优化&#xD;#&#xD;并发和批量&#xA;2. 消费端性能优化&#xD;#&#xD;分区partion和consumer同步扩容&#xA;参考&#xD;#&#xD;Jumper, JMQ 代码 文档 Kafka vs RocketMQ——单机系统可靠性 以夕 xxx 分布式开放消息系统(RocketMQ)的原理与实践 CHEN川 *** 消息队列设计精要 点评 王烨 失效 Kafka设计解析（六）- Kafka高性能关键技术解析 郭俊 事务消息 -&amp;gt; 消息队列 RocketMQ 阿里云官方文档 消息队列 RocketMQ、Apache RocketMQ、消息队列 Kafka、Apache Kafka、RabbitMQ 产品对比 阿里云官方文档 RocketMQ消息堆积判断 rocketMQ消息堆积监控的java实现 c614756zhang RocketMQ原理（4）——消息ACK机制及消费进度管理 Jaskey Lam </description>
     </item>
     <item>
-      <title>MQ总结(Kafka, Rocketmq, Rabbitmq)</title>
+      <title>MQ总结(Kafka, Rocketmq, Rabbitmq) *</title>
       <link>https://www6v.github.io/www6vMiddleware/docs/message/Overview/mqCompare/</link>
       <pubDate>Thu, 12 May 2022 22:17:03 +0000</pubDate>
       <guid>https://www6v.github.io/www6vMiddleware/docs/message/Overview/mqCompare/</guid>

@@ -16,7 +16,7 @@
       <description>&#xA;参考:&#xD;#&#xD;Kafka剖析（一）：Kafka背景及架构介绍 郭俊 Kafka设计解析（六）- Kafka高性能关键技术解析 郭俊 《kafka权威指南》 薛命灯 第3，5章 Kafka文件存储机制那些事 幽灵之使 分布式发布订阅消息系统 - Kafka架构设计 官方文档翻译 未 </description>
     </item>
     <item>
-      <title>消息中间件总结</title>
+      <title>消息中间件 总结 *</title>
       <link>https://www6v.github.io/www6vMiddleware/docs/message/Overview/mq/</link>
       <pubDate>Tue, 19 Apr 2016 18:33:32 +0000</pubDate>
       <guid>https://www6v.github.io/www6vMiddleware/docs/message/Overview/mq/</guid>
@@ -30,7 +30,7 @@
       <description>&#xA;Producer 架构&#xD;#&#xD;Overviw 1 [1]&#xD;#&#xD;整个生产者客户端是由主线程和Sender线程协调运行的, 主线程创建消息, 然后通过 拦截器、元信息更新、序列化、分区器、缓存消息等等流程。 Sender线程在初始化的时候就已经运行了,并且是一个while循环。&#xA;Overviw 2&#xD;#&#xD;Producer 分区策略[2]&#xD;#&#xD;DefaultPartitioner 默认分区策略 粘性分区Sticky Partitioner UniformStickyPartitioner 纯粹的粘性分区策略 RoundRobinPartitioner 分区策略 kafka 生产者 里的buffer[3]&#xD;#&#xD;kafka producer中配置的 buffer.memory （参数在文末有详细说明）参数是缓冲区的大小，这个缓存区大家也就是RecordAccmulator所用的内存大小。默认是32MB。&#xA;参考&#xD;#&#xD;图解kafka生产者流程,超详细！ 石臻臻 kafka contributor Kafka生产者的3种分区策略 石臻臻 kafka contributor Kafka Producer全流程分析和思考 </description>
     </item>
     <item>
-      <title>MQ总结(Kafka, Rocketmq, Rabbitmq)</title>
+      <title>MQ总结(Kafka, Rocketmq, Rabbitmq) *</title>
       <link>https://www6v.github.io/www6vMiddleware/docs/message/Overview/mqCompare/</link>
       <pubDate>Thu, 12 May 2022 22:17:03 +0000</pubDate>
       <guid>https://www6v.github.io/www6vMiddleware/docs/message/Overview/mqCompare/</guid>

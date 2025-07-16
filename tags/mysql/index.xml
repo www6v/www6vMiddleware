@@ -9,7 +9,7 @@
     <lastBuildDate>Tue, 15 Aug 2023 12:42:56 +0000</lastBuildDate>
     <atom:link href="https://www6v.github.io/www6vMiddleware/tags/mysql/index.xml" rel="self" type="application/rss+xml" />
     <item>
-      <title>MySQL 事务-隔离性</title>
+      <title>MySQL 事务-隔离性 *</title>
       <link>https://www6v.github.io/www6vMiddleware/docs/RMDB/%E5%8D%95%E6%9C%BA/mysqlTransactionAndLock/</link>
       <pubDate>Fri, 14 Aug 2020 17:22:20 +0000</pubDate>
       <guid>https://www6v.github.io/www6vMiddleware/docs/RMDB/%E5%8D%95%E6%9C%BA/mysqlTransactionAndLock/</guid>
@@ -23,21 +23,21 @@
       <description>&#xA;redo log &amp;amp;&amp;amp; bin log&#xD;#&#xD;有了redo log，InnoDB就可以保证即使数据库发生异常重启，之前提交的记录都不会丢失，这个 能力称为crash-safe。&#xA;\ redo log bin log where InnoDB引擎特有的 MySQL的Server层实现的 what 物理日志，记录的是“在某个数据页上做了什么修改” 逻辑日志，记录的是这个语句的原始逻辑 how 循环写的 追加写入的 update in Mysql&#xD;#&#xD;MySQL里的WAL(Write-Ahead Logging)技术，它的关键点就是先写日志，再写磁盘.&#xA;更新流程还涉及两个重要的日志模块，redo log（重做日志）和 binlog（归档日志）。&#xA;图中浅色框表示是在InnoDB内部执行的，深色框表示是在执行器中执行的。&#xA;redo log的写入拆成了两个步骤：prepare和commit，这就是&amp;quot;两阶段提交&amp;quot;, 让redo log和bin log之间的逻辑一致。&#xA;参考&#xD;#&#xD;《MySQL实战45讲 - 日志系统：一条SQL更新语句是如何执行的？》 丁奇 </description>
     </item>
     <item>
-      <title>MySQL的主从 高可用 容灾</title>
+      <title>MySQL的主从 高可用 容灾 *</title>
       <link>https://www6v.github.io/www6vMiddleware/docs/RMDB/%E5%8D%95%E6%9C%BA/mysqlReliability/</link>
       <pubDate>Sun, 21 Jun 2020 18:14:49 +0000</pubDate>
       <guid>https://www6v.github.io/www6vMiddleware/docs/RMDB/%E5%8D%95%E6%9C%BA/mysqlReliability/</guid>
       <description>MySQL主从复制原理&#xD;#&#xD;主从复制-流程&#xD;#&#xD;MySQL主从复制&#xA;MySQL master 将数据变更写入二进制日志( binary log, 其中记录叫做二进制日志事件binary log events，可以通过 show binlog events 进行查看) MySQL slave 将 master 的 binary log events 拷贝到它的中继日志(relay log) MySQL slave 重放 relay log 中事件，将数据变更反映它自己的数据 主从复制-类型 [6]&#xD;#&#xD;异步复制 半同步复制 MHA + 半同步复制 全同步复制 MGR + 全同步 主备切换 [1]&#xD;#&#xD;因为readonly设置对超级(super)权限用户是无效的，而用于同步更新的线程，就拥有超级权限。&#xA;一个事务日志同步的完整过程是这样的： 在备库B上通过change master命令，设置主库A的IP、端口、用户名、密码，以及要从哪个 位置开始请求binlog，这个位置包含文件名和日志偏移量。 在备库B上执行start slave命令，这时候备库会启动两个线程，就是图中的io_thread和 sql_thread。其中io_thread负责与主库建立连接。 主库A校验完用户名、密码后，开始按照备库B传过来的位置，从本地读取binlog，发给B。 备库B拿到binlog后，写到本地文件，称为中转日志（relay log）。 sql_thread读取中转日志，解析出日志里的命令，并执行。 Master-Master(双M)循环复制问题 [1]&#xD;#&#xD;如果设置了双M结构，日志的执行流就会变成这样： 从节点A更新的事务，binlog里面记的都是A的server id； 传到节点B执行一次以后，节点B生成的binlog 的server id也是A的server id； 再传回给节点A，A判断到这个server id与自己的相同，就不会再处理这个日志。所以，死循 环在这里就断掉了。 主备延迟 [2]&#xD;#&#xD;主备延迟原因 备库所在机器的性能要比主库所在的机器性能差 备库的压力大 解决方案: I.</description>
     </item>
     <item>
-      <title>MySQL的索引和优化</title>
+      <title>MySQL的索引和优化 *</title>
       <link>https://www6v.github.io/www6vMiddleware/docs/RMDB/%E5%8D%95%E6%9C%BA/mysqlIndex/</link>
       <pubDate>Tue, 10 Sep 2019 16:02:39 +0000</pubDate>
       <guid>https://www6v.github.io/www6vMiddleware/docs/RMDB/%E5%8D%95%E6%9C%BA/mysqlIndex/</guid>
       <description>索引-结构&#xD;#&#xD;索引分类[7]&#xD;#&#xD;分类 含义 特点 关键字 主键索引 针对于表中主键创建的索引 默认自动创建，只能有一个 PRIMARY 唯一索引 避免同一个表中某数据列中的值重复 可以有多个 UNIQUE 常规索引 快速定位特定数据 可以有多个 全文索引 全文索引查找的是文本中的关键词，而不是比较索引中的值 可以有多个 FULLTEXT 分类 含义 特点 聚集索引(Clustered Index) 将数据存储与索引放一块，索引结构的叶子节点保存了行数据 必须有，而且只有一个 二级索引(Secondary Index) 将数据与索引分开存储，索引结构的叶子节点关联的是对应的主键 可以存在多个 聚集索引选取规则: 如果存在主键，主键索引就是聚集索引 如果不存在主键，将使用第一个唯一（UNIQUE）索引作为聚集索引。 如果表没有主键，或没有合适的唯一索引，则InnoDB会自动生成一个rowid作为隐藏的聚集索 引。 索引结构和存储引擎 [3]&#xD;#&#xD;索引的数据结构： B+树能够很好地配合磁盘的读写特性，减少单次查询的磁盘访问次数&#xA;index MyISAM InnoDB Memory B-Tree&#xA;（balanced 平衡的） 支持 支持 支持 Hash 不支持 不支持 支持 R-Tree 空间索引 支持 不支持 不支持 Full-text 支持 支持 不支持 复合索引的数据结构&#xD;#&#xD;create table people {&#xD;last_name,&#xD;first_name,&#xD;dob,&#xD;gender,&#xD;key(last_name, first_name, dob)&#xD;} 索引- 使用&#xD;#&#xD;索引的使用场景&#xD;#&#xD;索引的使用场景 例子 匹配全值 index (a,b,c) a=1 and b=2 and c=3 范围查找 index a&amp;gt;1 and b&amp;lt;3 匹配最左前缀 index(a，b，c) a OR a，b OR a、b、c OR a，c 会使用 b、c 不使用 仅对索引列进行查询（覆盖索引） index a a=1 匹配列前缀 index （a， b） a like &amp;lsquo;WEER%&amp;rsquo; Index Condition Pushdown（ICP） 减少回表IO 索引的失效 [12][7]&#xD;#&#xD;非复合索引</description>
     </item>
     <item>
-      <title>MySQL事务-总结</title>
+      <title>MySQL事务-总结 *</title>
       <link>https://www6v.github.io/www6vMiddleware/docs/RMDB/%E5%8D%95%E6%9C%BA/mysqlTransaction/</link>
       <pubDate>Sat, 21 Feb 2015 14:44:33 +0000</pubDate>
       <guid>https://www6v.github.io/www6vMiddleware/docs/RMDB/%E5%8D%95%E6%9C%BA/mysqlTransaction/</guid>

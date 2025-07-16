@@ -9,7 +9,7 @@
     <lastBuildDate>Sun, 21 Jan 2018 09:59:17 +0000</lastBuildDate>
     <atom:link href="https://www6v.github.io/www6vMiddleware/tags/%E4%B8%AD%E9%97%B4%E4%BB%B6/index.xml" rel="self" type="application/rss+xml" />
     <item>
-      <title>缓存(cache)总结</title>
+      <title>缓存(cache)总结 *</title>
       <link>https://www6v.github.io/www6vMiddleware/docs/Redis&#43;%E7%BC%93%E5%AD%98/%E7%BC%93%E5%AD%98/cacheSummary/</link>
       <pubDate>Sun, 21 Jan 2018 09:59:17 +0000</pubDate>
       <guid>https://www6v.github.io/www6vMiddleware/docs/Redis&#43;%E7%BC%93%E5%AD%98/%E7%BC%93%E5%AD%98/cacheSummary/</guid>
@@ -30,7 +30,7 @@
       <description>分布式锁&#xD;#&#xD;锁的特性&#xD;#&#xD;排它性 超时释放锁 zk临时目录 高可用，锁集群容错[图2]， 安全性[3]， 可重入锁, 避免死锁 [4] 乐观锁, 悲观锁[6][图2] 实现&#xD;#&#xD;Redis[5]&#xD;#&#xD;Zookeeper[4]&#xD;#&#xD;参考&#xD;#&#xD;分布式系统互斥性与幂等性问题的分析与解决 点评 蒋谞&#xA;漫画：什么是分布式锁？ 程序员小灰&#xA;分布式服务总结 分布式锁&#xA;通过栅栏(fencing)使得锁更安全, fencing token How to do distributed locking Martin Kleppmann&#xA;{% post_link &amp;lsquo;zookeeperDistributedLock&amp;rsquo; %} self&#xA;Go to Page self&#xA;Redis分布式锁实现秒杀业务(乐观锁、悲观锁) 最后 乐观锁: jedis的watch方法&#xA;SOFAJRaft-RheaKV 分布式锁实现剖析 | SOFAJRaft 实现原理 SOFALab 米麒麟 未</description>
     </item>
     <item>
-      <title>分布式ID生成 发号器</title>
+      <title>分布式ID生成 发号器 *</title>
       <link>https://www6v.github.io/www6vMiddleware/docs/%E5%85%B6%E4%BB%96/id/</link>
       <pubDate>Mon, 15 Aug 2016 06:28:23 +0000</pubDate>
       <guid>https://www6v.github.io/www6vMiddleware/docs/%E5%85%B6%E4%BB%96/id/</guid>

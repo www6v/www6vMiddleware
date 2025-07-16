@@ -12,7 +12,7 @@ Overview#超时重试机制[self 1][self 2] 限流 熔断机制 隔离 降级�
 <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#343a40">
 <meta name="color-scheme" content="light dark"><meta property="og:url" content="https://www6v.github.io/www6vMiddleware/docs/serviceGovernance/faultTolerant/faultTolerant/soaTolerate/">
   <meta property="og:site_name" content="中间件">
-  <meta property="og:title" content="分布式服务框架 容错机制">
+  <meta property="og:title" content="分布式服务框架 容错机制 *">
   <meta property="og:description" content="
 关键词： 容错, 降级, 隔离, 超时, 重试, 高可用, 监控, 开关
 Overview#超时重试机制[self 1][self 2] 限流 熔断机制 隔离 降级（本地缓存） 流量调度、负载均衡 微服务熔断与隔离 降级#降级策略 场景 实现 降低一致性约束 [1] 关闭非核心业务 人工开关 （非核心服务）, 强制降级,简化功能 开关存放位置:配置文件,数据库, Redis/Zk 关闭非核心业务 自动开关(非核心服务), 超时降级 1. 统计失败次数降级-不稳定的api
@@ -20,13 +20,13 @@ Overview#超时重试机制[self 1][self 2] 限流 熔断机制 隔离 降级�
 3. 实现-熔断器 超时和重试 Retry#超时和重试 网络连接/读/写的超时时间（重要） 服务 读服务 - 可重试 写服务 - 幂等可重试 服务 客户端超时与重试 服务端超时 - 业务超时 任务型 服务调用型 超时后策略 failover 其它分组 其它机房 failcache 托底默认数据 等待页/错误页 降级 超时时间 太短 调用成功率降低 太长 后续正常请求挤压 经验值 稍微大于tp99的响应时间 集群容错#集群容错 Fail over（重试其他节点） 超时异常 Fail fast（快速失败） Fail cache（重试故障节点）（hedwig） 网路异常 Fail back（回退） 隔离 BulkHead#隔离 线程池隔离(hystirx) vm隔离（资源隔离） 物理机隔离 集群隔离 分组隔离 机房隔离 框架#框架 淘宝Dubbo 一号店Hedwig 京东JSF 点评pegion 唯品会OSP 状态监测#状态监测 服务注册中心状态监测（hedwig） 服务提供者和消费者之间的链路有效性检测（pegion） 服务健康检查（打分） 反推回消费者的路由表 流量控制（算法） Rate Limiter#流量控制（算法）　限流算法 令牌桶（控制入口） 漏桶（控制出口） 计数器(hedwig) 接口的总请求数（hedwig客户端） 接口的时间窗口请求数（hedwig服务端） 平滑限流,整形（netty） 整体流控 静态流控(整体qps固定) 预先分配 动态配额分配置（推） 动态配额申请制（拉） 动态流控 分级流控-拒绝流量 连接控制 并发控制（线程的并发执行数） 参考#self#{% post_link ‘soaTolerate’ %} self {% post_link ‘soaTimeout’ %} self ">
   <meta property="og:locale" content="en">
   <meta property="og:type" content="website">
-<title>分布式服务框架 容错机制 | 中间件</title>
+<title>分布式服务框架 容错机制 * | 中间件</title>
 <link rel="icon" href="/www6vMiddleware/favicon.png" >
 <link rel="manifest" href="/www6vMiddleware/manifest.json">
 <link rel="canonical" href="https://www6v.github.io/www6vMiddleware/docs/serviceGovernance/faultTolerant/faultTolerant/soaTolerate/">
 <link rel="stylesheet" href="/www6vMiddleware/book.min.6c8b9d2a1fc95075ed7da46ca81060b39add8fff6741ac51259f768929281e2c.css" integrity="sha256-bIudKh/JUHXtfaRsqBBgs5rdj/9nQaxRJZ92iSkoHiw=" crossorigin="anonymous">
   <script defer src="/www6vMiddleware/fuse.min.js"></script>
-  <script defer src="/www6vMiddleware/en.search.min.341c798febd5d13ce8f73e347ca8e127464e0b17fc191a70365c93cb10ef8a8d.js" integrity="sha256-NBx5j&#43;vV0Tzo9z40fKjhJ0ZOCxf8GRpwNlyTyxDvio0=" crossorigin="anonymous"></script>
+  <script defer src="/www6vMiddleware/en.search.min.3753a7d03f4e50bb4ae48d3532debf27a12b9a0e0cbf0f664126378098a9f5ed.js" integrity="sha256-N1On0D9OULtK5I01Mt6/J6Ermg4Mvw9mQSY3gJip9e0=" crossorigin="anonymous"></script>
 
   
 
@@ -214,7 +214,7 @@ https://github.com/alex-shpak/hugo-book
   
 
   
-    <a href="/www6vMiddleware/docs/serviceGovernance/API-Gateway/apiGateway/" class="">API Gateway网关</a>
+    <a href="/www6vMiddleware/docs/serviceGovernance/API-Gateway/apiGateway/" class="">API Gateway网关 *</a>
   
 
           
@@ -304,7 +304,7 @@ https://github.com/alex-shpak/hugo-book
   
 
   
-    <a href="/www6vMiddleware/docs/serviceGovernance/loadBalance/loadBalance/" class="">负载均衡-算法</a>
+    <a href="/www6vMiddleware/docs/serviceGovernance/loadBalance/loadBalance/" class="">负载均衡-算法 *</a>
   
 
           
@@ -325,6 +325,11 @@ https://github.com/alex-shpak/hugo-book
     <a href="/www6vMiddleware/docs/serviceGovernance/loadBalance/nginxOptimize/" class="">Nginx优化</a>
   
 
+          
+  <ul>
+    
+  </ul>
+
         </li>
       
     
@@ -335,7 +340,7 @@ https://github.com/alex-shpak/hugo-book
   
 
   
-    <a href="/www6vMiddleware/docs/serviceGovernance/loadBalance/nginx/" class="">Nginx总结</a>
+    <a href="/www6vMiddleware/docs/serviceGovernance/loadBalance/nginx/" class="">Nginx总结 *</a>
   
 
           
@@ -438,7 +443,7 @@ https://github.com/alex-shpak/hugo-book
   
 
   
-    <a href="/www6vMiddleware/docs/serviceGovernance/faultTolerant/faultTolerant/soaTimeout/" class="">超时和重试 总结</a>
+    <a href="/www6vMiddleware/docs/serviceGovernance/faultTolerant/faultTolerant/soaTimeout/" class="">超时和重试 总结 *</a>
   
 
           
@@ -456,7 +461,7 @@ https://github.com/alex-shpak/hugo-book
   
 
   
-    <a href="/www6vMiddleware/docs/serviceGovernance/faultTolerant/faultTolerant/soaTolerate/" class="active">分布式服务框架 容错机制</a>
+    <a href="/www6vMiddleware/docs/serviceGovernance/faultTolerant/faultTolerant/soaTolerate/" class="active">分布式服务框架 容错机制 *</a>
   
 
           
@@ -510,7 +515,7 @@ https://github.com/alex-shpak/hugo-book
   
 
   
-    <a href="/www6vMiddleware/docs/serviceGovernance/faultTolerant/throttle/ratelimit/" class="">限流-总结</a>
+    <a href="/www6vMiddleware/docs/serviceGovernance/faultTolerant/throttle/ratelimit/" class="">限流-总结 *</a>
   
 
           
@@ -677,7 +682,7 @@ https://github.com/alex-shpak/hugo-book
   
 
   
-    <a href="/www6vMiddleware/docs/serviceGovernance/Deploy/deploy/" class="">部署升级</a>
+    <a href="/www6vMiddleware/docs/serviceGovernance/Deploy/deploy/" class="">部署升级 *</a>
   
 
           
@@ -749,7 +754,7 @@ https://github.com/alex-shpak/hugo-book
   
 
   
-    <a href="/www6vMiddleware/docs/serviceGovernance/security/securityOAuth2/" class="">安全-OAuth2</a>
+    <a href="/www6vMiddleware/docs/serviceGovernance/security/securityOAuth2/" class="">安全-OAuth2 *</a>
   
 
           
@@ -806,7 +811,7 @@ https://github.com/alex-shpak/hugo-book
   
 
   
-    <a href="/www6vMiddleware/docs/message/Overview/mq/" class="">消息中间件总结</a>
+    <a href="/www6vMiddleware/docs/message/Overview/mq/" class="">消息中间件 总结 *</a>
   
 
           
@@ -824,7 +829,7 @@ https://github.com/alex-shpak/hugo-book
   
 
   
-    <a href="/www6vMiddleware/docs/message/Overview/mqCompare/" class="">MQ总结(Kafka, Rocketmq, Rabbitmq)</a>
+    <a href="/www6vMiddleware/docs/message/Overview/mqCompare/" class="">MQ总结(Kafka, Rocketmq, Rabbitmq) *</a>
   
 
           
@@ -1133,7 +1138,7 @@ https://github.com/alex-shpak/hugo-book
   
 
   
-    <a href="/www6vMiddleware/docs/RMDB/%E5%8D%95%E6%9C%BA/mysqlTransactionAndLock/" class="">MySQL 事务-隔离性</a>
+    <a href="/www6vMiddleware/docs/RMDB/%E5%8D%95%E6%9C%BA/mysqlTransactionAndLock/" class="">MySQL 事务-隔离性 *</a>
   
 
           
@@ -1169,7 +1174,7 @@ https://github.com/alex-shpak/hugo-book
   
 
   
-    <a href="/www6vMiddleware/docs/RMDB/%E5%8D%95%E6%9C%BA/mysqlReliability/" class="">MySQL的主从 高可用 容灾</a>
+    <a href="/www6vMiddleware/docs/RMDB/%E5%8D%95%E6%9C%BA/mysqlReliability/" class="">MySQL的主从 高可用 容灾 *</a>
   
 
           
@@ -1187,7 +1192,7 @@ https://github.com/alex-shpak/hugo-book
   
 
   
-    <a href="/www6vMiddleware/docs/RMDB/%E5%8D%95%E6%9C%BA/mysqlIndex/" class="">MySQL的索引和优化</a>
+    <a href="/www6vMiddleware/docs/RMDB/%E5%8D%95%E6%9C%BA/mysqlIndex/" class="">MySQL的索引和优化 *</a>
   
 
           
@@ -1205,7 +1210,7 @@ https://github.com/alex-shpak/hugo-book
   
 
   
-    <a href="/www6vMiddleware/docs/RMDB/%E5%8D%95%E6%9C%BA/mysqlTransaction/" class="">MySQL事务-总结</a>
+    <a href="/www6vMiddleware/docs/RMDB/%E5%8D%95%E6%9C%BA/mysqlTransaction/" class="">MySQL事务-总结 *</a>
   
 
           
@@ -1295,7 +1300,7 @@ https://github.com/alex-shpak/hugo-book
   
 
   
-    <a href="/www6vMiddleware/docs/RMDB/%E5%88%86%E5%B8%83%E5%BC%8F/distributedDatabase/" class="">分布式 数据库 总结</a>
+    <a href="/www6vMiddleware/docs/RMDB/%E5%88%86%E5%B8%83%E5%BC%8F/distributedDatabase/" class="">分布式 数据库 总结 *</a>
   
 
           
@@ -1455,7 +1460,7 @@ https://github.com/alex-shpak/hugo-book
   
 
   
-    <a href="/www6vMiddleware/docs/Redis&#43;%E7%BC%93%E5%AD%98/Redis-%E5%9F%BA%E7%A1%80/overview/redis/" class="">Redis 总结</a>
+    <a href="/www6vMiddleware/docs/Redis&#43;%E7%BC%93%E5%AD%98/Redis-%E5%9F%BA%E7%A1%80/overview/redis/" class="">Redis 总结 *</a>
   
 
           
@@ -1509,7 +1514,7 @@ https://github.com/alex-shpak/hugo-book
   
 
   
-    <a href="/www6vMiddleware/docs/Redis&#43;%E7%BC%93%E5%AD%98/Redis-%E5%9F%BA%E7%A1%80/Arch-Redis-Cluster/redisArch/" class="">Redis 架构</a>
+    <a href="/www6vMiddleware/docs/Redis&#43;%E7%BC%93%E5%AD%98/Redis-%E5%9F%BA%E7%A1%80/Arch-Redis-Cluster/redisArch/" class="">Redis 架构 *</a>
   
 
           
@@ -1725,7 +1730,7 @@ https://github.com/alex-shpak/hugo-book
   
 
   
-    <a href="/www6vMiddleware/docs/Redis&#43;%E7%BC%93%E5%AD%98/Redis-%E5%9F%BA%E7%A1%80/%E6%8C%81%E4%B9%85%E5%8C%96/redisReplica/" class="">Redis 主从复制</a>
+    <a href="/www6vMiddleware/docs/Redis&#43;%E7%BC%93%E5%AD%98/Redis-%E5%9F%BA%E7%A1%80/%E6%8C%81%E4%B9%85%E5%8C%96/redisReplica/" class="">Redis 主从复制 *</a>
   
 
           
@@ -1959,7 +1964,7 @@ https://github.com/alex-shpak/hugo-book
   
 
   
-    <a href="/www6vMiddleware/docs/Redis&#43;%E7%BC%93%E5%AD%98/Redis-%E6%95%85%E9%9A%9C%E4%BC%98%E5%8C%96/%E5%B8%B8%E8%A7%81%E9%97%AE%E9%A2%98/redisBigKey/" class="">Redis 大Key</a>
+    <a href="/www6vMiddleware/docs/Redis&#43;%E7%BC%93%E5%AD%98/Redis-%E6%95%85%E9%9A%9C%E4%BC%98%E5%8C%96/%E5%B8%B8%E8%A7%81%E9%97%AE%E9%A2%98/redisBigKey/" class="">Redis 大Key *</a>
   
 
           
@@ -1995,7 +2000,7 @@ https://github.com/alex-shpak/hugo-book
   
 
   
-    <a href="/www6vMiddleware/docs/Redis&#43;%E7%BC%93%E5%AD%98/Redis-%E6%95%85%E9%9A%9C%E4%BC%98%E5%8C%96/%E5%B8%B8%E8%A7%81%E9%97%AE%E9%A2%98/redisReliability-1/" class="">Redis雪崩、击穿、穿透</a>
+    <a href="/www6vMiddleware/docs/Redis&#43;%E7%BC%93%E5%AD%98/Redis-%E6%95%85%E9%9A%9C%E4%BC%98%E5%8C%96/%E5%B8%B8%E8%A7%81%E9%97%AE%E9%A2%98/redisReliability-1/" class="">Redis雪崩、击穿、穿透 *</a>
   
 
           
@@ -2180,7 +2185,7 @@ https://github.com/alex-shpak/hugo-book
   
 
   
-    <a href="/www6vMiddleware/docs/Redis&#43;%E7%BC%93%E5%AD%98/%E7%BC%93%E5%AD%98/cacheConsistent/" class="">缓存 一致性</a>
+    <a href="/www6vMiddleware/docs/Redis&#43;%E7%BC%93%E5%AD%98/%E7%BC%93%E5%AD%98/cacheConsistent/" class="">缓存 一致性 *</a>
   
 
           
@@ -2216,7 +2221,7 @@ https://github.com/alex-shpak/hugo-book
   
 
   
-    <a href="/www6vMiddleware/docs/Redis&#43;%E7%BC%93%E5%AD%98/%E7%BC%93%E5%AD%98/cacheSummary/" class="">缓存(cache)总结</a>
+    <a href="/www6vMiddleware/docs/Redis&#43;%E7%BC%93%E5%AD%98/%E7%BC%93%E5%AD%98/cacheSummary/" class="">缓存(cache)总结 *</a>
   
 
           
@@ -2312,7 +2317,7 @@ https://github.com/alex-shpak/hugo-book
   
 
   
-    <a href="/www6vMiddleware/docs/Observe/Overview/observability/" class="">可观测性 总结</a>
+    <a href="/www6vMiddleware/docs/Observe/Overview/observability/" class="">可观测性 总结 *</a>
   
 
           
@@ -2566,7 +2571,7 @@ https://github.com/alex-shpak/hugo-book
   
 
   
-    <a href="/www6vMiddleware/docs/DAL/dbSharding/" class="">分库分表</a>
+    <a href="/www6vMiddleware/docs/DAL/dbSharding/" class="">分库分表 *</a>
   
 
           
@@ -2698,7 +2703,7 @@ https://github.com/alex-shpak/hugo-book
   
 
   
-    <a href="/www6vMiddleware/docs/%E5%85%B6%E4%BB%96/transactionSeata/" class="">分布式事务-Seata</a>
+    <a href="/www6vMiddleware/docs/%E5%85%B6%E4%BB%96/transactionSeata/" class="">分布式事务-Seata *</a>
   
 
           
@@ -2770,7 +2775,7 @@ https://github.com/alex-shpak/hugo-book
   
 
   
-    <a href="/www6vMiddleware/docs/%E5%85%B6%E4%BB%96/id/" class="">分布式ID生成 发号器</a>
+    <a href="/www6vMiddleware/docs/%E5%85%B6%E4%BB%96/id/" class="">分布式ID生成 发号器 *</a>
   
 
           
@@ -2896,7 +2901,7 @@ https://github.com/alex-shpak/hugo-book
     <img src="/www6vMiddleware/svg/menu.svg" class="book-icon" alt="Menu" />
   </label>
 
-  <h3>分布式服务框架 容错机制</h3>
+  <h3>分布式服务框架 容错机制 *</h3>
 
   <label for="toc-control">
     

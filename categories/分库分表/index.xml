@@ -16,7 +16,7 @@
       <description>&#xA;方案&#xD;#&#xD;全局查询法&#xD;#&#xD;简单&#xA;业务折衷法&#xD;#&#xD;禁止跳页查询&#xD;#&#xD;允许数据精度损失&#xD;#&#xD;二次查询法（推荐）&#xD;#&#xD;复杂&#xA;参考&#xD;#&#xD;分库分表必会-跨库分页查询看此一篇就够了 分表分页/跨库分页 难玩却不代表没有玩法 千万级别mysql 分库分表后表分页查询优化方案初探 业界难题-“跨库分页”的四种方案 *** 58沈剑 </description>
     </item>
     <item>
-      <title>分库分表</title>
+      <title>分库分表 *</title>
       <link>https://www6v.github.io/www6vMiddleware/docs/DAL/dbSharding/</link>
       <pubDate>Wed, 26 May 2021 14:27:23 +0000</pubDate>
       <guid>https://www6v.github.io/www6vMiddleware/docs/DAL/dbSharding/</guid>

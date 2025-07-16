@@ -9,7 +9,7 @@
     <lastBuildDate>Sun, 17 Jan 2016 12:23:58 +0000</lastBuildDate>
     <atom:link href="https://www6v.github.io/www6vMiddleware/tags/%E8%B6%85%E6%97%B6/index.xml" rel="self" type="application/rss+xml" />
     <item>
-      <title>超时和重试 总结</title>
+      <title>超时和重试 总结 *</title>
       <link>https://www6v.github.io/www6vMiddleware/docs/serviceGovernance/faultTolerant/faultTolerant/soaTimeout/</link>
       <pubDate>Sun, 17 Jan 2016 12:23:58 +0000</pubDate>
       <guid>https://www6v.github.io/www6vMiddleware/docs/serviceGovernance/faultTolerant/faultTolerant/soaTimeout/</guid>

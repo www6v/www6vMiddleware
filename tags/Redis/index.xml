@@ -23,21 +23,21 @@
       <description>&#xA;什么时候触发 rehash？&#xD;#&#xD;，_dictExpandIfNeeded 函数中定义了三个扩容条件。 下面的代码就展示了 _dictExpandIfNeeded 函数对这三个条件的定义，你可以看下。 条件一：ht[0]的大小为 0。 条件二：ht[0]承载的元素个数已经超过了 ht[0]的大小，同时 Hash 表可以进行扩容。 条件三：ht[0]承载的元素个数，是 ht[0]的大小的 dict_force_resize_ratio 倍，其中， dict_force_resize_ratio 的默认值是 5。&#xA;rehash 扩容扩多大？&#xD;#&#xD;对 Hash表扩容的思路也很简单，就是如果当前表的已用空间大小为 size，那么就将表扩容到 size*2 的大小。&#xA;rehash 如何执行？&#xD;#&#xD;其实这是因为，Hash 表在执行 rehash 时，由于 Hash 表空间扩大，原本映射到某一位置 的键可能会被映射到一个新的位置上，因此，很多键就需要从原来的位置拷贝到新的位 置。而在键拷贝时，由于 Redis 主线程无法执行其他请求，所以键拷贝会阻塞主线程，这 样就会产生 rehash 开销。&#xA;而为了降低 rehash 开销，Redis 就提出了渐进式 rehash 的方法。&#xA;dictRehash 的主要执行流程&#xD;#&#xD;</description>
     </item>
     <item>
-      <title>Redis 架构</title>
+      <title>Redis 架构 *</title>
       <link>https://www6v.github.io/www6vMiddleware/docs/Redis&#43;%E7%BC%93%E5%AD%98/Redis-%E5%9F%BA%E7%A1%80/Arch-Redis-Cluster/redisArch/</link>
       <pubDate>Tue, 25 May 2021 18:35:49 +0000</pubDate>
       <guid>https://www6v.github.io/www6vMiddleware/docs/Redis&#43;%E7%BC%93%E5%AD%98/Redis-%E5%9F%BA%E7%A1%80/Arch-Redis-Cluster/redisArch/</guid>
       <description>目录&#xD;#&#xD;Redis架构演进[1]&#xD;#&#xD;数据怕丢失 -&amp;gt; 持久化（RDB/AOF） 恢复时间久 -&amp;gt; 主从副本（副本随时可切） 故障手动切换慢 -&amp;gt; 哨兵集群（自动切换） 读存在压力 -&amp;gt; 扩容副本（读写分离） 写存在压力/容量瓶颈 -&amp;gt; 分片集群 分片集群社区方案 -&amp;gt; Twemproxy、Codis（Redis 节点之间无通信，需要部署哨兵，可横向扩容） 分片集群官方方案 -&amp;gt; Redis Cluster （Redis 节点之间 Gossip 协议，无需部署哨兵，可横向扩容） 业务侧升级困难 -&amp;gt; Proxy + Redis Cluster（不侵入业务侧） 主从架构&#xD;#&#xD;主从同步 异步方式来同步数据 最终一致性 分类 增量同步 （同步的是指令） 1.指令记录在master本地的内存 buffer 2.异步将 buffer 中的指令同步到从节点 类似 AOF 快照同步（同步的是内容，全量同步） bgsave存磁盘rdb，然后rdb发到slave，slave装载 优化: 2.8.18 版开始支持无盘复制 哨兵集群 sentinel&#xD;#&#xD;master-slave异步复制, 所以会丢消息&#xA;参数: # 至少有一个slave复制 min-slaves-to-write 1 # slave节点最大10s的延迟 min-slaves-max-lag 10 Redis cluster&#xD;#&#xD;整体架构</description>
     </item>
     <item>
-      <title>Redis 大Key</title>
+      <title>Redis 大Key *</title>
       <link>https://www6v.github.io/www6vMiddleware/docs/Redis&#43;%E7%BC%93%E5%AD%98/Redis-%E6%95%85%E9%9A%9C%E4%BC%98%E5%8C%96/%E5%B8%B8%E8%A7%81%E9%97%AE%E9%A2%98/redisBigKey/</link>
       <pubDate>Fri, 21 May 2021 07:33:33 +0000</pubDate>
       <guid>https://www6v.github.io/www6vMiddleware/docs/Redis&#43;%E7%BC%93%E5%AD%98/Redis-%E6%95%85%E9%9A%9C%E4%BC%98%E5%8C%96/%E5%B8%B8%E8%A7%81%E9%97%AE%E9%A2%98/redisBigKey/</guid>
       <description>Redis 大Key&#xD;#&#xD;什么是 Bigkey [5]&#xD;#&#xD;【字符串类型】： 单个string类型的value值超过1MB，就可以认为是Bigkey。 【非字符串类型】：哈希、列表、集合、有序集合等， 它们的元素个数超过2000个，就可以认为是Bigkey。&#xA;问题&#xD;#&#xD;问题1 [1]&#xA;大key在数据迁移[遇到过]、扩容、删除[遇到过]时会有卡顿。 问题2 [3]&#xA;执行大key命令的客户端本身，耗时明显增加，甚至超时 执行大key相关读取或者删除操作时，会严重占用带宽和CPU，影响其他客户端 大key本身的存储带来分布式系统中分片数据不平衡，CPU使用率也不平衡 大key有时候也是热key，读取操作频繁，影响面会很大 执行大key删除时，在低版本redis中可能阻塞线程 [遇到过] 建议 [6]&#xD;#&#xD;bigKey 容量&#xA;string类型控制在10KB以内 hash、list、set、zset元素个数不要超过5000 非字符串的bigkey，不要使用del删除，使用hscan、sscan、zscan方式渐进式删除&#xA;防止bigkey过期时间自动删除问题(例如一个200万的zset设置1小时过期，会触发del操作，造成阻塞，而且该操作不会不出现在慢查询中(latency可查))，查找方法和删除方法&#xA;查找 大Key&#xD;#&#xD;&amp;ndash;bigkeys参数, 用scan扫描大key [1][2][5] $ redis-cli --bigkeys # Scanning the entire keyspace to find biggest keys as well as # average sizes per key type. You can use -i 0.1 to sleep 0.1 sec # per 100 SCAN commands (not usually needed).</description>
     </item>
     <item>
-      <title>Redis 总结</title>
+      <title>Redis 总结 *</title>
       <link>https://www6v.github.io/www6vMiddleware/docs/Redis&#43;%E7%BC%93%E5%AD%98/Redis-%E5%9F%BA%E7%A1%80/overview/redis/</link>
       <pubDate>Sat, 12 Nov 2016 23:29:16 +0000</pubDate>
       <guid>https://www6v.github.io/www6vMiddleware/docs/Redis&#43;%E7%BC%93%E5%AD%98/Redis-%E5%9F%BA%E7%A1%80/overview/redis/</guid>
@@ -93,7 +93,7 @@
       <description>&#xA;SLO&#xD;#&#xD;命中率 Hit Ratio 每秒命中数量 每秒未命中数量 吞吐 Throughput 操作数 延迟 命令执行平均耗时 容量 expiring/not expiring keys expired/evicted keys 内存使用率 Memory Utilization 活动连接数 Active Connections 参考&#xD;#&#xD;部署一个redis exporter监控所有的Redis实例 6 Crucial Redis Monitoring Metrics You Need To Watch </description>
     </item>
     <item>
-      <title>Redis雪崩、击穿、穿透</title>
+      <title>Redis雪崩、击穿、穿透 *</title>
       <link>https://www6v.github.io/www6vMiddleware/docs/Redis&#43;%E7%BC%93%E5%AD%98/Redis-%E6%95%85%E9%9A%9C%E4%BC%98%E5%8C%96/%E5%B8%B8%E8%A7%81%E9%97%AE%E9%A2%98/redisReliability-1/</link>
       <pubDate>Mon, 28 Mar 2022 22:00:34 +0000</pubDate>
       <guid>https://www6v.github.io/www6vMiddleware/docs/Redis&#43;%E7%BC%93%E5%AD%98/Redis-%E6%95%85%E9%9A%9C%E4%BC%98%E5%8C%96/%E5%B8%B8%E8%A7%81%E9%97%AE%E9%A2%98/redisReliability-1/</guid>
